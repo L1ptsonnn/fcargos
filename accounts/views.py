@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User, CompanyProfile, CarrierProfile
+from .forms import LoginForm, CompanyRegistrationForm, CarrierRegistrationForm
 
 
 def login_view(request):
