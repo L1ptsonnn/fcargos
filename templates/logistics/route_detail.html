@@ -67,14 +67,80 @@
         </div>
         
         <div class="col-md-4">
-            {% if user.role == 'carrier' and can_bid %}
+            <!-- Дії для перевізників -->
+            {% if user.role == 'carrier' %}
+                {% if can_bid %}
+                    <div class="card shadow-lg border-0 mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Зробити ставку</h5>
+                        </div>
+                        <div class="card-body">
+                            <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100 mb-2">
+                                <i class="bi bi-plus-circle"></i> Зробити ставку
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if can_accept_direct %}
+                    <div class="card shadow-lg border-0 mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-check-circle"></i> Прийняти замовлення</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Прийняти маршрут безпосередньо за запропонованою ціною</p>
+                            <a href="{% url 'accept_route' route.pk %}" class="btn btn-primary w-100">
+                                <i class="bi bi-check-lg"></i> Прийняти маршрут
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if route.carrier == user and route.status == 'in_transit' %}
+                    <div class="card shadow-lg border-0 mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Управління</h5>
+                        </div>
+                        <div class="card-body">
+                            <a href="{% url 'reject_route' route.pk %}" class="btn btn-outline-danger w-100 mb-2" 
+                               onclick="return confirm('Ви впевнені, що хочете відхилити цей маршрут?')">
+                                <i class="bi bi-x-circle"></i> Відхилити маршрут
+                            </a>
+                            {% if can_complete %}
+                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100">
+                                <i class="bi bi-check2-all"></i> Завершити доставку
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            <!-- Дії для компаній -->
+            {% if user.role == 'company' and route.company == user %}
+                {% if can_complete %}
+                    <div class="card shadow-lg border-0 mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-check2-all"></i> Завершити маршрут</h5>
+                        </div>
+                        <div class="card-body">
+                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100">
+                                <i class="bi bi-check-lg"></i> Підтвердити доставку
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            <!-- Відстеження -->
+            {% if route.status == 'in_transit' or route.status == 'delivered' %}
                 <div class="card shadow-lg border-0 mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Зробити ставку</h5>
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Відстеження</h5>
                     </div>
                     <div class="card-body">
-                        <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100">
-                            <i class="bi bi-plus-circle"></i> Пропозиція
+                        <a href="{% url 'tracking' route.pk %}" class="btn btn-info w-100">
+                            <i class="bi bi-radar"></i> Відстежити вантаж
                         </a>
                     </div>
                 </div>
@@ -87,12 +153,47 @@
                     </div>
                     <div class="card-body">
                         {% for bid in bids %}
-                            <div class="border-bottom pb-3 mb-3">
-                                <p class="mb-1"><strong>{{ bid.carrier.username }}</strong></p>
-                                <p class="mb-1">Ціна: <strong>{{ bid.proposed_price }} грн</strong></p>
-                                <p class="mb-1">Доставка: {{ bid.estimated_delivery|date:"d.m.Y H:i" }}</p>
+                            <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <p class="mb-1"><strong>
+                                            <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
+                                        </strong></p>
+                                        {% if bid.carrier.carrier_profile %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-star-fill text-warning"></i> 
+                                                Рейтинг: {{ bid.carrier.carrier_profile.rating }} / 5
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    {% if bid.is_accepted %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Прийнято
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <p class="mb-1">
+                                    <i class="bi bi-cash-coin"></i> Ціна: 
+                                    <strong class="text-success">{{ bid.proposed_price }} грн</strong>
+                                    {% if route.price %}
+                                        <small class="text-muted">
+                                            (знижка: {{ route.price|add:"-"|add:bid.proposed_price }} грн)
+                                        </small>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="bi bi-calendar-check"></i> Доставка: 
+                                    {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
+                                </p>
                                 {% if bid.message %}
-                                    <p class="mb-0 text-muted"><small>{{ bid.message }}</small></p>
+                                    <p class="mb-2 text-muted"><small>{{ bid.message }}</small></p>
+                                {% endif %}
+                                {% if can_accept_bids and not bid.is_accepted %}
+                                    <a href="{% url 'accept_bid' bid.pk %}" 
+                                       class="btn btn-sm btn-success"
+                                       onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
+                                        <i class="bi bi-check"></i> Прийняти ставку
+                                    </a>
                                 {% endif %}
                             </div>
                         {% endfor %}
