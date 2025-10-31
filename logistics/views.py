@@ -49,28 +49,10 @@ def route_detail(request, pk):
                route.status == 'pending' and
                not Bid.objects.filter(route=route, carrier=request.user).exists())
     
-    # Перевірка можливості прийняти безпосередньо маршрут
-    can_accept_direct = (request.user.role == 'carrier' and 
-                        route.status == 'pending' and 
-                        not route.carrier)
-    
-    # Перевірка чи компанія може приймати ставки
-    can_accept_bids = (request.user.role == 'company' and 
-                       route.company == request.user and 
-                       route.status == 'pending')
-    
-    # Перевірка чи можна завершити маршрут
-    can_complete = ((request.user.role == 'carrier' and route.carrier == request.user) or
-                   (request.user.role == 'company' and route.company == request.user)) and \
-                   route.status == 'in_transit'
-    
     context = {
         'route': route,
         'bids': bids,
         'can_bid': can_bid,
-        'can_accept_direct': can_accept_direct,
-        'can_accept_bids': can_accept_bids,
-        'can_complete': can_complete,
         'route_data': {
             'origin': {
                 'lat': float(route.origin_lat),
@@ -152,57 +134,17 @@ def accept_bid(request, bid_id):
 
 
 @login_required
-def accept_route(request, route_id):
-    """Прийняття маршруту перевізником (безпосереднє прийняття без ставки)"""
-    if request.user.role != 'carrier':
-        messages.error(request, 'Тільки перевізники можуть приймати маршрути')
-        return redirect('home')
-    
-    route = get_object_or_404(Route, pk=route_id, status='pending')
-    
-    if route.carrier:
-        messages.error(request, 'Маршрут вже призначено перевізнику')
-        return redirect('route_detail', pk=route.pk)
-    
-    route.carrier = request.user
-    route.status = 'in_transit'
-    route.save()
-    
-    Tracking.objects.get_or_create(route=route, defaults={
-        'current_location': route.origin_city,
-        'current_lat': route.origin_lat,
-        'current_lng': route.origin_lng,
-    })
-    
-    messages.success(request, 'Маршрут успішно прийнято!')
-    return redirect('route_detail', pk=route.pk)
-
-
-@login_required
-def reject_route(request, route_id):
-    """Відхилення маршруту перевізником"""
-    if request.user.role != 'carrier':
-        messages.error(request, 'Тільки перевізники можуть відхиляти маршрути')
-        return redirect('home')
-    
-    route = get_object_or_404(Route, pk=route_id, carrier=request.user)
-    
-    route.carrier = None
-    route.status = 'pending'
-    route.save()
-    
-    messages.success(request, 'Маршрут відхилено')
-    return redirect('routes_list')
-
-
-@login_required
-def complete_route(request, route_id):
+def complete_route(request, pk):
     """Завершення маршруту"""
-    route = get_object_or_404(Route, pk=route_id)
+    route = get_object_or_404(Route, pk=pk)
     
     if route.carrier != request.user and route.company != request.user:
         messages.error(request, 'У вас немає доступу до цього маршруту')
         return redirect('home')
+    
+    if route.status != 'in_transit':
+        messages.error(request, 'Маршрут не може бути завершеним')
+        return redirect('route_detail', pk=route.pk)
     
     route.status = 'delivered'
     route.save()

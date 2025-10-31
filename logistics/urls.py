@@ -6,9 +6,7 @@ urlpatterns = [
     path('routes/create/', views.create_route, name='create_route'),
     path('routes/<int:pk>/', views.route_detail, name='route_detail'),
     path('routes/<int:pk>/bid/', views.create_bid, name='create_bid'),
-    path('routes/<int:route_id>/accept/', views.accept_route, name='accept_route'),
-    path('routes/<int:route_id>/reject/', views.reject_route, name='reject_route'),
-    path('routes/<int:route_id>/complete/', views.complete_route, name='complete_route'),
+    path('routes/<int:pk>/complete/', views.complete_route, name='complete_route'),
     path('bids/<int:bid_id>/accept/', views.accept_bid, name='accept_bid'),
     path('tracking/<int:pk>/', views.tracking_view, name='tracking'),
 ]
