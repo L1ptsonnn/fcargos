@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.core.serializers import serialize
+import json
 from logistics.models import Route
 
 
@@ -30,6 +32,6 @@ def home(request):
     
     context = {
         'routes': routes,
-        'routes_data': routes_data,
+        'routes_data': json.dumps(routes_data),
     }
     return render(request, 'dashboard/home.html', context)
