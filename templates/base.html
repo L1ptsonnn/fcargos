@@ -54,6 +54,16 @@
                             </li>
                         {% endif %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'statistics' %}">
+                                <i class="bi bi-graph-up"></i> Статистика
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'history' %}">
+                                <i class="bi bi-clock-history"></i> Історія
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'profile' %}">
                                 <i class="bi bi-person"></i> Профіль
                             </a>
