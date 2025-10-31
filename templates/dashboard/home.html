@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Головна - FCargos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 120px 0 80px;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    .map-container {
+        height: 600px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        overflow: hidden;
+        margin-top: 50px;
+        position: relative;
+    }
+    .route-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .route-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: scale(1.05);
+    }
+    .animated-icon {
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    .route-line {
+        stroke: #667eea;
+        stroke-width: 3;
+        stroke-dasharray: 10, 5;
+        animation: dash 20s linear infinite;
+    }
+    @keyframes dash {
+        to {
+            stroke-dashoffset: -1000;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="bi bi-truck animated-icon"></i>
+                    FCargos
+                </h1>
+                <p class="lead mb-4">
+                    Сучасна платформа для логістичних перевезень. 
+                    З'єднуємо компанії та перевізників по всьому світу.
+                </p>
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg me-3">
+                        <i class="bi bi-person-plus"></i> Почати зараз
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Увійти
+                    </a>
+                {% else %}
+                    {% if user.role == 'company' %}
+                        <a href="{% url 'create_route' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-plus-circle"></i> Створити маршрут
+                        </a>
+                    {% elif user.role == 'carrier' %}
+                        <a href="{% url 'routes_list' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-search"></i> Знайти маршрути
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="bi bi-globe" style="font-size: 200px; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <i class="bi bi-map" style="font-size: 48px;"></i>
+                    <h3 class="mt-3">{{ routes|length }}</h3>
+                    <p class="mb-0">Активних маршрутів</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="bi bi-truck" style="font-size: 48px;"></i>
+                    <h3 class="mt-3">24/7</h3>
+                    <p class="mb-0">Підтримка</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="bi bi-shield-check" style="font-size: 48px;"></i>
+                    <h3 class="mt-3">100%</h3>
+                    <p class="mb-0">Надійність</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">
+            <i class="bi bi-globe-americas"></i> Динамічна карта маршрутів
+        </h2>
+        <div class="map-container">
+            <div id="worldMap" style="height: 100%; width: 100%;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Routes List -->
+{% if routes %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Останні маршрути</h2>
+        <div class="row">
+            {% for route in routes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card route-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-geo-alt"></i> {{ route.origin_city }}
+                            <i class="bi bi-arrow-right"></i>
+                            {{ route.destination_city }}
+                        </h5>
+                        <p class="card-text">
+                            <strong>Тип вантажу:</strong> {{ route.cargo_type }}<br>
+                            <strong>Вага:</strong> {{ route.weight }} кг<br>
+                            <strong>Ціна:</strong> {{ route.price }} грн
+                        </p>
+                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                            {{ route.get_status_display }}
+                        </span>
+                        <a href="{% url 'route_detail' route.pk %}" class="btn btn-primary btn-sm mt-2">
+                            Деталі <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Ініціалізація карти світу
+    const map = L.map('worldMap').setView([50.0, 30.0], 3);
+    
+    // Додавання тайлів карти
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Дані маршрутів
+    const routesData = {{ routes_data|safe }};
+
+    // Додавання маршрутів на карту
+    routesData.forEach((route, index) => {
+        const origin = [route.origin.lat, route.origin.lng];
+        const destination = [route.destination.lat, route.destination.lng];
+        
+        // Маркери
+        const originMarker = L.marker(origin).addTo(map)
+            .bindPopup(`<b>${route.origin.city}</b><br>${route.origin.country}`);
+        
+        const destMarker = L.marker(destination).addTo(map)
+            .bindPopup(`<b>${route.destination.city}</b><br>${route.destination.country}`);
+        
+        // Лінія маршруту з анімацією
+        const polyline = L.polyline([origin, destination], {
+            color: route.status === 'pending' ? '#ffc107' : '#0dcaf0',
+            weight: 4,
+            opacity: 0.7
+        }).addTo(map);
+        
+        // Анімація точки на лінії
+        let progress = 0;
+        const animateMarker = () => {
+            if (progress <= 100) {
+                const lat = route.origin.lat + (route.destination.lat - route.origin.lat) * (progress / 100);
+                const lng = route.origin.lng + (route.destination.lng - route.origin.lng) * (progress / 100);
+                
+                if (window.animatedMarkers && window.animatedMarkers[index]) {
+                    map.removeLayer(window.animatedMarkers[index]);
+                }
+                
+                if (!window.animatedMarkers) window.animatedMarkers = {};
+                
+                const animatedIcon = L.divIcon({
+                    className: 'animated-route-marker',
+                    html: `<div style="background: #667eea; width: 15px; height: 15px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);"></div>`,
+                    iconSize: [15, 15]
+                });
+                
+                window.animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map);
+                
+                progress += 2;
+                setTimeout(animateMarker, 100);
+            }
+        };
+        
+        animateMarker();
+    });
+</script>
+{% endblock %}
+
