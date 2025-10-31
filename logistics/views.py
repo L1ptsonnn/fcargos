@@ -49,10 +49,28 @@ def route_detail(request, pk):
                route.status == 'pending' and
                not Bid.objects.filter(route=route, carrier=request.user).exists())
     
+    # Перевірка можливості прийняти безпосередньо маршрут
+    can_accept_direct = (request.user.role == 'carrier' and 
+                        route.status == 'pending' and 
+                        not route.carrier)
+    
+    # Перевірка чи компанія може приймати ставки
+    can_accept_bids = (request.user.role == 'company' and 
+                       route.company == request.user and 
+                       route.status == 'pending')
+    
+    # Перевірка чи можна завершити маршрут
+    can_complete = ((request.user.role == 'carrier' and route.carrier == request.user) or
+                   (request.user.role == 'company' and route.company == request.user)) and \
+                   route.status == 'in_transit'
+    
     context = {
         'route': route,
         'bids': bids,
         'can_bid': can_bid,
+        'can_accept_direct': can_accept_direct,
+        'can_accept_bids': can_accept_bids,
+        'can_complete': can_complete,
         'route_data': {
             'origin': {
                 'lat': float(route.origin_lat),
@@ -97,6 +115,111 @@ def create_bid(request, pk):
         form = BidForm()
     
     return render(request, 'logistics/create_bid.html', {'form': form, 'route': route})
+
+
+@login_required
+def accept_bid(request, bid_id):
+    """Прийняття ставки (тільки для компаній)"""
+    if request.user.role != 'company':
+        messages.error(request, 'Тільки компанії можуть приймати ставки')
+        return redirect('home')
+    
+    bid = get_object_or_404(Bid, pk=bid_id, route__company=request.user)
+    
+    if bid.route.status != 'pending':
+        messages.error(request, 'Цей маршрут вже не доступний')
+        return redirect('route_detail', pk=bid.route.pk)
+    
+    # Відмічаємо ставку як прийняту
+    bid.is_accepted = True
+    bid.save()
+    
+    # Призначаємо перевізника маршруту
+    bid.route.carrier = bid.carrier
+    bid.route.status = 'in_transit'
+    bid.route.price = bid.proposed_price
+    bid.route.save()
+    
+    # Створюємо відстеження якщо його немає
+    Tracking.objects.get_or_create(route=bid.route, defaults={
+        'current_location': bid.route.origin_city,
+        'current_lat': bid.route.origin_lat,
+        'current_lng': bid.route.origin_lng,
+    })
+    
+    messages.success(request, f'Ставку від {bid.carrier.username} прийнято!')
+    return redirect('route_detail', pk=bid.route.pk)
+
+
+@login_required
+def accept_route(request, route_id):
+    """Прийняття маршруту перевізником (безпосереднє прийняття без ставки)"""
+    if request.user.role != 'carrier':
+        messages.error(request, 'Тільки перевізники можуть приймати маршрути')
+        return redirect('home')
+    
+    route = get_object_or_404(Route, pk=route_id, status='pending')
+    
+    if route.carrier:
+        messages.error(request, 'Маршрут вже призначено перевізнику')
+        return redirect('route_detail', pk=route.pk)
+    
+    route.carrier = request.user
+    route.status = 'in_transit'
+    route.save()
+    
+    Tracking.objects.get_or_create(route=route, defaults={
+        'current_location': route.origin_city,
+        'current_lat': route.origin_lat,
+        'current_lng': route.origin_lng,
+    })
+    
+    messages.success(request, 'Маршрут успішно прийнято!')
+    return redirect('route_detail', pk=route.pk)
+
+
+@login_required
+def reject_route(request, route_id):
+    """Відхилення маршруту перевізником"""
+    if request.user.role != 'carrier':
+        messages.error(request, 'Тільки перевізники можуть відхиляти маршрути')
+        return redirect('home')
+    
+    route = get_object_or_404(Route, pk=route_id, carrier=request.user)
+    
+    route.carrier = None
+    route.status = 'pending'
+    route.save()
+    
+    messages.success(request, 'Маршрут відхилено')
+    return redirect('routes_list')
+
+
+@login_required
+def complete_route(request, route_id):
+    """Завершення маршруту"""
+    route = get_object_or_404(Route, pk=route_id)
+    
+    if route.carrier != request.user and route.company != request.user:
+        messages.error(request, 'У вас немає доступу до цього маршруту')
+        return redirect('home')
+    
+    route.status = 'delivered'
+    route.save()
+    
+    # Оновлюємо відстеження
+    try:
+        tracking = route.tracking
+        tracking.current_location = route.destination_city
+        tracking.current_lat = route.destination_lat
+        tracking.current_lng = route.destination_lng
+        tracking.progress_percent = 100
+        tracking.save()
+    except Tracking.DoesNotExist:
+        pass
+    
+    messages.success(request, 'Маршрут успішно завершено!')
+    return redirect('route_detail', pk=route.pk)
 
 
 @login_required
