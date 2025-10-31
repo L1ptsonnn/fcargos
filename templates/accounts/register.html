@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Реєстрація - FCargos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-5">
+                <i class="bi bi-person-plus" style="font-size: 64px; color: #667eea;"></i>
+                <h2 class="mt-3">Оберіть тип реєстрації</h2>
+                <p class="text-muted">Приєднуйтесь до FCargos як компанія або перевізник</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-lg border-0 hover-card" style="cursor: pointer;" onclick="window.location.href='{% url 'register_company' %}'">
+                        <div class="card-body p-5 text-center">
+                            <i class="bi bi-building" style="font-size: 64px; color: #667eea; margin-bottom: 20px;"></i>
+                            <h3 class="mb-3">Компанія</h3>
+                            <p class="text-muted mb-4">
+                                Створюйте маршрути, знаходьте надійних перевізників та відстежуйте свої вантажі
+                            </p>
+                            <ul class="list-unstyled text-start mb-4">
+                                <li><i class="bi bi-check-circle text-success"></i> Створення маршрутів</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Вибір перевізників</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Відстеження вантажів</li>
+                            </ul>
+                            <a href="{% url 'register_company' %}" class="btn btn-primary btn-lg w-100">
+                                Зареєструватися як компанія
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-lg border-0 hover-card" style="cursor: pointer;" onclick="window.location.href='{% url 'register_carrier' %}'">
+                        <div class="card-body p-5 text-center">
+                            <i class="bi bi-truck" style="font-size: 64px; color: #764ba2; margin-bottom: 20px;"></i>
+                            <h3 class="mb-3">Перевізник</h3>
+                            <p class="text-muted mb-4">
+                                Знаходьте вигідні маршрути, робіть ставки та збільшуйте свій дохід
+                            </p>
+                            <ul class="list-unstyled text-start mb-4">
+                                <li><i class="bi bi-check-circle text-success"></i> Доступ до маршрутів</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Зроблення ставок</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Управління замовленнями</li>
+                            </ul>
+                            <a href="{% url 'register_carrier' %}" class="btn btn-primary btn-lg w-100" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">
+                                Зареєструватися як перевізник
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="mb-0">Вже маєте акаунт? 
+                    <a href="{% url 'login' %}" class="text-decoration-none fw-bold">
+                        Увійти
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: all 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2) !important;
+}
+</style>
+{% endblock %}
+
