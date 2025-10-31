@@ -195,118 +195,131 @@
 
 {% block extra_js %}
 <script>
-    // Ініціалізація карти світу
-    const map = L.map('worldMap').setView([50.0, 30.0], 3);
-    
-    // Додавання тайлів карти
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
-
-    // Дані маршрутів
-    const routesData = JSON.parse('{{ routes_data|escapejs }}');
-    const animatedMarkers = {};
-
-    // Додавання маршрутів на карту з покращеним функціоналом
-    routesData.forEach((route, index) => {
-        const origin = [route.origin.lat, route.origin.lng];
-        const destination = [route.destination.lat, route.destination.lng];
+    // Очікуємо завантаження DOM та Leaflet
+    document.addEventListener('DOMContentLoaded', function() {
+        // Перевірка чи Leaflet завантажений
+        if (typeof L === 'undefined') {
+            console.error('Leaflet не завантажений!');
+            document.getElementById('worldMap').innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+            return;
+        }
         
-        // Кольорові маркери залежно від статусу
-        const originIcon = L.divIcon({
-            className: 'route-marker',
-            html: `<div style="background: #198754; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>`,
-            iconSize: [20, 20]
-        });
-        
-        const destIcon = L.divIcon({
-            className: 'route-marker',
-            html: `<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>`,
-            iconSize: [20, 20]
-        });
-        
-        // Маркери з попапами
-        const originMarker = L.marker(origin, {icon: originIcon}).addTo(map)
-            .bindPopup(`
-                <b>📍 ${route.origin.city}</b><br>
-                ${route.origin.country}<br>
-                <small>Тип: ${route.cargo_type}</small>
-            `);
-        
-        const destMarker = L.marker(destination, {icon: destIcon}).addTo(map)
-            .bindPopup(`
-                <b>📍 ${route.destination.city}</b><br>
-                ${route.destination.country}<br>
-                <small>Тип: ${route.cargo_type}</small>
-            `);
-        
-        // Лінія маршруту з анімацією
-        const routeColor = route.status === 'pending' ? '#ffc107' : '#0dcaf0';
-        const polyline = L.polyline([origin, destination], {
-            color: routeColor,
-            weight: 4,
-            opacity: 0.8,
-            dashArray: route.status === 'in_transit' ? '10, 5' : null
-        }).addTo(map);
-        
-        // Анімація руху для активних маршрутів
-        if (route.status === 'in_transit') {
-            let progress = 0;
-            const animateRoute = () => {
-                if (progress <= 100) {
-                    const lat = route.origin.lat + (route.destination.lat - route.origin.lat) * (progress / 100);
-                    const lng = route.origin.lng + (route.destination.lng - route.origin.lng) * (progress / 100);
-                    
-                    if (animatedMarkers[index]) {
-                        map.removeLayer(animatedMarkers[index]);
-                    }
-                    
-                    const animatedIcon = L.divIcon({
-                        className: 'animated-route-marker',
-                        html: `<div style="background: ${routeColor}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px ${routeColor}; animation: pulse 2s infinite;"></div>`,
-                        iconSize: [18, 18]
-                    });
-                    
-                    animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map)
-                        .bindPopup(`<b>🚚 Вантаж в дорозі</b><br>Прогрес: ${Math.round(progress)}%`);
-                    
-                    progress += 1;
-                    setTimeout(animateRoute, 150);
-                } else {
-                    // Перезапускаємо анімацію
-                    setTimeout(() => {
-                        progress = 0;
-                        animateRoute();
-                    }, 1000);
-                }
-            };
+        try {
+            // Ініціалізація карти світу
+            const map = L.map('worldMap').setView([50.0, 30.0], 3);
             
-            animateRoute();
-        }
-        
-        // Додавання інформації про маршрут до попапу лінії
-        polyline.bindPopup(`
-            <b>${route.origin.city} → ${route.destination.city}</b><br>
-            Тип вантажу: ${route.cargo_type}<br>
-            Статус: ${route.status === 'pending' ? 'Очікує' : 'В дорозі'}
-        `);
-    });
+            // Додавання тайлів карти
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Дані маршрутів
+            const routesData = JSON.parse('{{ routes_data|escapejs }}');
+            const animatedMarkers = {};
+
+            // Додавання маршрутів на карту з покращеним функціоналом
+            routesData.forEach((route, index) => {
+                const origin = [route.origin.lat, route.origin.lng];
+                const destination = [route.destination.lat, route.destination.lng];
+                
+                // Кольорові маркери залежно від статусу
+                const originIcon = L.divIcon({
+                    className: 'route-marker',
+                    html: `<div style="background: #198754; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>`,
+                    iconSize: [20, 20]
+                });
+                
+                const destIcon = L.divIcon({
+                    className: 'route-marker',
+                    html: `<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>`,
+                    iconSize: [20, 20]
+                });
+                
+                // Маркери з попапами
+                const originMarker = L.marker(origin, {icon: originIcon}).addTo(map)
+                    .bindPopup(`
+                        <b>📍 ${route.origin.city}</b><br>
+                        ${route.origin.country}<br>
+                        <small>Тип: ${route.cargo_type}</small>
+                    `);
+                
+                const destMarker = L.marker(destination, {icon: destIcon}).addTo(map)
+                    .bindPopup(`
+                        <b>📍 ${route.destination.city}</b><br>
+                        ${route.destination.country}<br>
+                        <small>Тип: ${route.cargo_type}</small>
+                    `);
+                
+                // Лінія маршруту з анімацією
+                const routeColor = route.status === 'pending' ? '#ffc107' : '#0dcaf0';
+                const polyline = L.polyline([origin, destination], {
+                    color: routeColor,
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: route.status === 'in_transit' ? '10, 5' : null
+                }).addTo(map);
+                
+                // Анімація руху для активних маршрутів
+                if (route.status === 'in_transit') {
+                    let progress = 0;
+                    const animateRoute = () => {
+                        if (progress <= 100) {
+                            const lat = route.origin.lat + (route.destination.lat - route.origin.lat) * (progress / 100);
+                            const lng = route.origin.lng + (route.destination.lng - route.origin.lng) * (progress / 100);
+                            
+                            if (animatedMarkers[index]) {
+                                map.removeLayer(animatedMarkers[index]);
+                            }
+                            
+                            const animatedIcon = L.divIcon({
+                                className: 'animated-route-marker',
+                                html: `<div style="background: ${routeColor}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px ${routeColor}; animation: pulse 2s infinite;"></div>`,
+                                iconSize: [18, 18]
+                            });
+                            
+                            animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map)
+                                .bindPopup(`<b>🚚 Вантаж в дорозі</b><br>Прогрес: ${Math.round(progress)}%`);
+                            
+                            progress += 1;
+                            setTimeout(animateRoute, 150);
+                        } else {
+                            // Перезапускаємо анімацію
+                            setTimeout(() => {
+                                progress = 0;
+                                animateRoute();
+                            }, 1000);
+                        }
+                    };
+                    
+                    animateRoute();
+                }
+                
+                // Додавання інформації про маршрут до попапу лінії
+                polyline.bindPopup(`
+                    <b>${route.origin.city} → ${route.destination.city}</b><br>
+                    Тип вантажу: ${route.cargo_type}<br>
+                    Статус: ${route.status === 'pending' ? 'Очікує' : 'В дорозі'}
+                `);
+            });
     
-    // Фіт бігокс для всіх маршрутів
-    if (routesData.length > 0) {
-        const bounds = routesData.reduce((acc, route) => {
-            return [
-                [...acc[0], [route.origin.lat, route.origin.lng]],
-                [...acc[1], [route.destination.lat, route.destination.lng]]
-            ];
-        }, [[], []]);
-        
-        const allPoints = [...bounds[0].flat(), ...bounds[1].flat()];
-        if (allPoints.length > 0) {
-            map.fitBounds(allPoints, {padding: [50, 50]});
+            // Фіт бігокс для всіх маршрутів
+            if (routesData.length > 0) {
+                const allPoints = [];
+                routesData.forEach(route => {
+                    allPoints.push([route.origin.lat, route.origin.lng]);
+                    allPoints.push([route.destination.lat, route.destination.lng]);
+                });
+                
+                if (allPoints.length > 0) {
+                    map.fitBounds(allPoints, {padding: [50, 50]});
+                }
+            }
+        } catch (error) {
+            console.error('Помилка ініціалізації карти:', error);
+            document.getElementById('worldMap').innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
         }
-    }
+    });
 </script>
 {% endblock %}
 

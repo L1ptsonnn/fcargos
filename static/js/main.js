@@ -67,38 +67,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }, false);
     });
 
-    // Phone number formatting (Ukrainian format)
+    // Phone number formatting (Ukrainian format: +380 (XX) XXX XX XX)
     const phoneInputs = document.querySelectorAll('input[name="phone"], input[id*="phone"]');
     phoneInputs.forEach(input => {
         input.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
+            
+            // Видаляємо перший 0 якщо є
             if (value.startsWith('0')) {
                 value = value.substring(1);
             }
+            
+            // Додаємо 380 якщо немає
             if (value.length > 0 && !value.startsWith('380')) {
                 value = '380' + value;
             }
-            if (value.length > 0) {
+            
+            // Обмежуємо до 12 цифр (380 + 9 цифр)
+            if (value.length > 12) {
+                value = value.substring(0, 12);
+            }
+            
+            // Форматуємо: +380 (XX) XXX XX XX
+            if (value.length >= 3) {
                 let formatted = '+380';
                 if (value.length > 3) {
-                    formatted += ' (' + value.substring(3, 6);
+                    // Оператор (XX)
+                    formatted += ' (' + value.substring(3, 5);
                 }
-                if (value.length > 6) {
-                    formatted += ') ' + value.substring(6, 9);
+                if (value.length > 5) {
+                    // Перші 3 цифри
+                    formatted += ') ' + value.substring(5, 8);
                 }
-                if (value.length > 9) {
-                    formatted += ' ' + value.substring(9, 11);
+                if (value.length > 8) {
+                    // Наступні 2 цифри
+                    formatted += ' ' + value.substring(8, 10);
                 }
-                if (value.length > 11) {
-                    formatted += ' ' + value.substring(11, 13);
+                if (value.length > 10) {
+                    // Останні 2 цифри
+                    formatted += ' ' + value.substring(10, 12);
                 }
                 e.target.value = formatted;
+            } else if (value.length > 0) {
+                e.target.value = '+' + value;
             }
         });
         
         input.addEventListener('focus', function(e) {
             if (!e.target.value) {
-                e.target.placeholder = '+380 (__) ___ __ __';
+                e.target.placeholder = '+380 (XX) XXX XX XX';
             }
         });
     });
