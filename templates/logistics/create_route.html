@@ -266,36 +266,36 @@
         });
         
         function updateCoordinates(type, lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
-            .then(response => response.json())
-            .then(data => {
-                const address = data.address || {};
-                const city = address.city || address.town || address.village || address.municipality || 'Не вказано';
-                const country = address.country || 'Україна';
-                
-                if (type === 'origin') {
-                    document.getElementById('id_origin_lat').value = lat.toFixed(6);
-                    document.getElementById('id_origin_lng').value = lng.toFixed(6);
-                    document.getElementById('id_origin_city').value = city;
-                    document.getElementById('id_origin_country').value = country;
-                    document.getElementById('originPoint').innerHTML = `
-                        <h6><i class="bi bi-geo-alt text-success"></i> Відправлення:</h6>
-                        <p class="mb-0"><strong>${city}, ${country}</strong></p>
-                    `;
-                } else {
-                    document.getElementById('id_destination_lat').value = lat.toFixed(6);
-                    document.getElementById('id_destination_lng').value = lng.toFixed(6);
-                    document.getElementById('id_destination_city').value = city;
-                    document.getElementById('id_destination_country').value = country;
-                    document.getElementById('destinationPoint').innerHTML = `
-                        <h6><i class="bi bi-geo-alt-fill text-success"></i> Призначення:</h6>
-                        <p class="mb-0"><strong>${city}, ${country}</strong></p>
-                    `;
-                }
-                updateRouteLine();
-            });
-    }
-    
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.address || {};
+                    const city = address.city || address.town || address.village || address.municipality || 'Не вказано';
+                    const country = address.country || 'Україна';
+                    
+                    if (type === 'origin') {
+                        document.getElementById('id_origin_lat').value = lat.toFixed(6);
+                        document.getElementById('id_origin_lng').value = lng.toFixed(6);
+                        document.getElementById('id_origin_city').value = city;
+                        document.getElementById('id_origin_country').value = country;
+                        document.getElementById('originPoint').innerHTML = `
+                            <h6><i class="bi bi-geo-alt text-success"></i> Відправлення:</h6>
+                            <p class="mb-0"><strong>${city}, ${country}</strong></p>
+                        `;
+                    } else {
+                        document.getElementById('id_destination_lat').value = lat.toFixed(6);
+                        document.getElementById('id_destination_lng').value = lng.toFixed(6);
+                        document.getElementById('id_destination_city').value = city;
+                        document.getElementById('id_destination_country').value = country;
+                        document.getElementById('destinationPoint').innerHTML = `
+                            <h6><i class="bi bi-geo-alt-fill text-success"></i> Призначення:</h6>
+                            <p class="mb-0"><strong>${city}, ${country}</strong></p>
+                        `;
+                    }
+                    updateRouteLine();
+                });
+        }
+        
         function updateRouteLine() {
             if (routeLine) routeMap.removeLayer(routeLine);
             if (originMarker && destMarker) {
