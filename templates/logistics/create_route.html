@@ -6,9 +6,66 @@
 {% block extra_css %}
 <style>
     .map-selector {
-        height: 300px;
+        height: 400px;
         border-radius: 10px;
         margin-bottom: 20px;
+        position: relative;
+    }
+    .search-box {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        width: 300px;
+    }
+    .city-search {
+        margin-bottom: 10px;
+    }
+    .search-results {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 5px;
+    }
+    .search-result-item {
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        transition: background 0.2s;
+    }
+    .search-result-item:hover {
+        background: #f0f0f0;
+    }
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+    }
+    .step {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 10px;
+        margin: 0 5px;
+        position: relative;
+    }
+    .step.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .step.completed {
+        background: #28a745;
+        color: white;
+    }
+    .form-section {
+        display: none;
+    }
+    .form-section.active {
+        display: block;
     }
 </style>
 {% endblock %}
@@ -25,14 +82,214 @@
                     </div>
                 </div>
                 <div class="card-body p-5">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>Підказка:</strong> Використовуйте карту для вибору координат міст
+                    <!-- Step Indicator -->
+                    <div class="step-indicator">
+                        <div class="step active" id="step1-indicator">
+                            <i class="bi bi-geo-alt"></i><br>
+                            <strong>1. Маршрут</strong>
+                        </div>
+                        <div class="step" id="step2-indicator">
+                            <i class="bi bi-box"></i><br>
+                            <strong>2. Вантаж</strong>
+                        </div>
+                        <div class="step" id="step3-indicator">
+                            <i class="bi bi-calendar"></i><br>
+                            <strong>3. Дати</strong>
+                        </div>
+                        <div class="step" id="step4-indicator">
+                            <i class="bi bi-check-circle"></i><br>
+                            <strong>4. Завершення</strong>
+                        </div>
                     </div>
                     
-                    <div id="routeMap" class="map-selector mb-4"></div>
-                    
-                    {% crispy form %}
+                    <form method="post" id="routeForm">
+                        {% csrf_token %}
+                        
+                        <!-- Step 1: Route -->
+                        <div class="form-section active" id="step1">
+                            <h4 class="mb-4"><i class="bi bi-geo-alt"></i> Виберіть маршрут</h4>
+                            
+                            <!-- Search Box -->
+                            <div class="map-selector">
+                                <div class="search-box">
+                                    <div class="city-search">
+                                        <label class="form-label"><strong>Пошук міста:</strong></label>
+                                        <input type="text" id="citySearch" class="form-control" placeholder="Введіть назву міста...">
+                                        <div class="search-results" id="searchResults" style="display: none;"></div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-primary w-100" onclick="setSearchType('origin')">
+                                            <i class="bi bi-geo-alt"></i> Відправлення
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-success w-100" onclick="setSearchType('destination')">
+                                            <i class="bi bi-geo-alt-fill"></i> Призначення
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="routeMap" style="height: 100%; width: 100%;"></div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <i class="bi bi-geo-alt"></i> Відправлення
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Місто *</label>
+                                                {{ form.origin_city }}
+                                                <small class="text-muted">Або виберіть на карті</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Країна *</label>
+                                                {{ form.origin_country }}
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="form-label">Широта</label>
+                                                    {{ form.origin_lat }}
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">Довгота</label>
+                                                    {{ form.origin_lng }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <i class="bi bi-geo-alt-fill"></i> Призначення
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Місто *</label>
+                                                {{ form.destination_city }}
+                                                <small class="text-muted">Або виберіть на карті</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Країна *</label>
+                                                {{ form.destination_country }}
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="form-label">Широта</label>
+                                                    {{ form.destination_lat }}
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">Довгота</label>
+                                                    {{ form.destination_lng }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="nextStep()">
+                                    Далі <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Cargo -->
+                        <div class="form-section" id="step2">
+                            <h4 class="mb-4"><i class="bi bi-box"></i> Інформація про вантаж</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Тип вантажу *</label>
+                                    {{ form.cargo_type }}
+                                    <small class="text-muted">Наприклад: Пакування, Меблі, Продукти</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ціна (грн) *</label>
+                                    {{ form.price }}
+                                    <small class="text-muted">Максимальна ціна для перевізників</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Вага (кг) *</label>
+                                    {{ form.weight }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Об'єм (м³) *</label>
+                                    {{ form.volume }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Опис вантажу</label>
+                                {{ form.description }}
+                                <small class="text-muted">Додаткова інформація про вантаж</small>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep()">
+                                    <i class="bi bi-arrow-left"></i> Назад
+                                </button>
+                                <button type="button" class="btn btn-primary btn-lg" onclick="nextStep()">
+                                    Далі <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Dates -->
+                        <div class="form-section" id="step3">
+                            <h4 class="mb-4"><i class="bi bi-calendar"></i> Дати забору та доставки</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Дата та час забору *</label>
+                                    {{ form.pickup_date }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Дата та час доставки *</label>
+                                    {{ form.delivery_date }}
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Підказка:</strong> Вкажіть точні дати для кращого планування маршруту
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep()">
+                                    <i class="bi bi-arrow-left"></i> Назад
+                                </button>
+                                <button type="button" class="btn btn-primary btn-lg" onclick="nextStep()">
+                                    Далі <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Submit -->
+                        <div class="form-section" id="step4">
+                            <h4 class="mb-4"><i class="bi bi-check-circle"></i> Перевірка та завершення</h4>
+                            
+                            <div class="card border-success mb-4">
+                                <div class="card-body">
+                                    <h5>Перевірте дані:</h5>
+                                    <div id="reviewData"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep()">
+                                    <i class="bi bi-arrow-left"></i> Назад
+                                </button>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-check-circle"></i> Створити маршрут
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -41,146 +298,192 @@
 
 {% block extra_js %}
 <script>
-    // Ініціалізація карти для вибору координат
+    let currentStep = 1;
+    let searchType = 'origin';
+    let originMarker = null;
+    let destMarker = null;
+    let routeLine = null;
+    let searchTimeout = null;
+    
+    // Ініціалізація карти
     const routeMap = L.map('routeMap').setView([50.45, 30.52], 6);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(routeMap);
     
-    let originMarker = null;
-    let destMarker = null;
-    let routeLine = null;
+    function setSearchType(type) {
+        searchType = type;
+        document.getElementById('citySearch').focus();
+    }
     
-    // Функція пошуку міста
-    function searchCity(query, type) {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+    // Пошук міст
+    document.getElementById('citySearch').addEventListener('input', function(e) {
+        const query = e.target.value;
+        if (query.length < 3) {
+            document.getElementById('searchResults').style.display = 'none';
+            return;
+        }
+        
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('searchResults');
+                    if (data.length > 0) {
+                        resultsDiv.innerHTML = '';
+                        data.forEach(result => {
+                            const item = document.createElement('div');
+                            item.className = 'search-result-item';
+                            item.innerHTML = `<strong>${result.display_name}</strong>`;
+                            item.onclick = () => {
+                                selectCity(result.lat, result.lon, result.display_name, result.address);
+                                resultsDiv.style.display = 'none';
+                            };
+                            resultsDiv.appendChild(item);
+                        });
+                        resultsDiv.style.display = 'block';
+                    } else {
+                        resultsDiv.style.display = 'none';
+                    }
+                });
+        }, 500);
+    });
+    
+    function selectCity(lat, lng, displayName, address) {
+        const city = address.city || address.town || address.village || displayName.split(',')[0];
+        const country = address.country || '';
+        
+        if (searchType === 'origin') {
+            document.getElementById('id_origin_city').value = city;
+            document.getElementById('id_origin_country').value = country;
+            document.getElementById('id_origin_lat').value = parseFloat(lat).toFixed(6);
+            document.getElementById('id_origin_lng').value = parseFloat(lng).toFixed(6);
+            setOriginMarker(lat, lng, city);
+        } else {
+            document.getElementById('id_destination_city').value = city;
+            document.getElementById('id_destination_country').value = country;
+            document.getElementById('id_destination_lat').value = parseFloat(lat).toFixed(6);
+            document.getElementById('id_destination_lng').value = parseFloat(lng).toFixed(6);
+            setDestinationMarker(lat, lng, city);
+        }
+        
+        routeMap.setView([lat, lng], 10);
+    }
+    
+    function setOriginMarker(lat, lng, city) {
+        if (originMarker) routeMap.removeLayer(originMarker);
+        originMarker = L.marker([lat, lng], {draggable: true}).addTo(routeMap)
+            .bindPopup(`📍 Відправлення: ${city}`).openPopup();
+        
+        originMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateCoordinates('origin', pos.lat, pos.lng);
+        });
+        
+        updateRouteLine();
+    }
+    
+    function setDestinationMarker(lat, lng, city) {
+        if (destMarker) routeMap.removeLayer(destMarker);
+        destMarker = L.marker([lat, lng], {draggable: true}).addTo(routeMap)
+            .bindPopup(`📍 Призначення: ${city}`).openPopup();
+        
+        destMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateCoordinates('destination', pos.lat, pos.lng);
+        });
+        
+        updateRouteLine();
+    }
+    
+    function updateCoordinates(type, lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
             .then(response => response.json())
             .then(data => {
-                if (data.length > 0) {
-                    const result = data[0];
-                    const lat = parseFloat(result.lat);
-                    const lng = parseFloat(result.lon);
-                    const address = result.address || {};
-                    const city = address.city || address.town || address.village || query;
-                    const country = address.country || '';
-                    
-                    if (type === 'origin') {
-                        setOriginPoint(lat, lng, city, country);
-                    } else {
-                        setDestinationPoint(lat, lng, city, country);
-                    }
+                const address = data.address || {};
+                const city = address.city || address.town || address.village || '';
+                const country = address.country || '';
+                
+                if (type === 'origin') {
+                    document.getElementById('id_origin_city').value = city;
+                    document.getElementById('id_origin_country').value = country;
+                    document.getElementById('id_origin_lat').value = lat.toFixed(6);
+                    document.getElementById('id_origin_lng').value = lng.toFixed(6);
+                } else {
+                    document.getElementById('id_destination_city').value = city;
+                    document.getElementById('id_destination_country').value = country;
+                    document.getElementById('id_destination_lat').value = lat.toFixed(6);
+                    document.getElementById('id_destination_lng').value = lng.toFixed(6);
                 }
             });
     }
     
-    function setOriginPoint(lat, lng, city, country) {
-        if (originMarker) {
-            routeMap.removeLayer(originMarker);
-        }
-        originMarker = L.marker([lat, lng], {draggable: true}).addTo(routeMap)
-            .bindPopup('📍 Точка відправлення').openPopup();
-        document.getElementById('id_origin_lat').value = lat.toFixed(6);
-        document.getElementById('id_origin_lng').value = lng.toFixed(6);
-        document.getElementById('id_origin_city').value = city;
-        document.getElementById('id_origin_country').value = country;
-        
-        originMarker.on('dragend', function(e) {
-            const pos = e.target.getLatLng();
-            updateOriginFromCoordinates(pos.lat, pos.lng);
-        });
-        
-        updateRouteLine();
-    }
-    
-    function setDestinationPoint(lat, lng, city, country) {
-        if (destMarker) {
-            routeMap.removeLayer(destMarker);
-        }
-        destMarker = L.marker([lat, lng], {draggable: true}).addTo(routeMap)
-            .bindPopup('📍 Точка призначення').openPopup();
-        document.getElementById('id_destination_lat').value = lat.toFixed(6);
-        document.getElementById('id_destination_lng').value = lng.toFixed(6);
-        document.getElementById('id_destination_city').value = city;
-        document.getElementById('id_destination_country').value = country;
-        
-        destMarker.on('dragend', function(e) {
-            const pos = e.target.getLatLng();
-            updateDestinationFromCoordinates(pos.lat, pos.lng);
-        });
-        
-        updateRouteLine();
-    }
-    
-    function updateOriginFromCoordinates(lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-            .then(response => response.json())
-            .then(data => {
-                const address = data.address || {};
-                const city = address.city || address.town || address.village || '';
-                const country = address.country || '';
-                document.getElementById('id_origin_lat').value = lat.toFixed(6);
-                document.getElementById('id_origin_lng').value = lng.toFixed(6);
-                document.getElementById('id_origin_city').value = city;
-                document.getElementById('id_origin_country').value = country;
-            });
-        updateRouteLine();
-    }
-    
-    function updateDestinationFromCoordinates(lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-            .then(response => response.json())
-            .then(data => {
-                const address = data.address || {};
-                const city = address.city || address.town || address.village || '';
-                const country = address.country || '';
-                document.getElementById('id_destination_lat').value = lat.toFixed(6);
-                document.getElementById('id_destination_lng').value = lng.toFixed(6);
-                document.getElementById('id_destination_city').value = city;
-                document.getElementById('id_destination_country').value = country;
-            });
-        updateRouteLine();
-    }
-    
     function updateRouteLine() {
-        if (routeLine) {
-            routeMap.removeLayer(routeLine);
-        }
+        if (routeLine) routeMap.removeLayer(routeLine);
         if (originMarker && destMarker) {
             routeLine = L.polyline([
                 [originMarker.getLatLng().lat, originMarker.getLatLng().lng],
                 [destMarker.getLatLng().lat, destMarker.getLatLng().lng]
             ], {color: '#667eea', weight: 3, dashArray: '10, 5'}).addTo(routeMap);
+            routeMap.fitBounds([originMarker.getLatLng(), destMarker.getLatLng()]);
         }
     }
     
-    // Обробка кліків на карті
+    // Клік по карті
     routeMap.on('click', function(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
-        if (!originMarker) {
-            updateOriginFromCoordinates(lat, lng);
-            setOriginPoint(lat, lng, '', '');
-        } else if (!destMarker) {
-            updateDestinationFromCoordinates(lat, lng);
-            setDestinationPoint(lat, lng, '', '');
+        if (!originMarker || !document.getElementById('id_origin_lat').value) {
+            setOriginMarker(lat, lng, '');
+            updateCoordinates('origin', lat, lng);
+        } else if (!destMarker || !document.getElementById('id_destination_lat').value) {
+            setDestinationMarker(lat, lng, '');
+            updateCoordinates('destination', lat, lng);
         }
     });
     
-    // Пошук міст через поля вводу
-    document.getElementById('id_origin_city').addEventListener('blur', function() {
-        if (this.value && !document.getElementById('id_origin_lat').value) {
-            searchCity(this.value, 'origin');
+    // Навігація по кроках
+    function nextStep() {
+        if (currentStep < 4) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
+            document.getElementById(`step${currentStep}-indicator`).classList.add('completed');
+            
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            document.getElementById(`step${currentStep}-indicator`).classList.add('active');
+            
+            if (currentStep === 4) {
+                updateReview();
+            }
         }
-    });
+    }
     
-    document.getElementById('id_destination_city').addEventListener('blur', function() {
-        if (this.value && !document.getElementById('id_destination_lat').value) {
-            searchCity(this.value, 'destination');
+    function prevStep() {
+        if (currentStep > 1) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
+            document.getElementById(`step${currentStep}-indicator`).classList.remove('completed');
+            
+            currentStep--;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            document.getElementById(`step${currentStep}-indicator`).classList.add('active');
         }
-    });
+    }
+    
+    function updateReview() {
+        const review = document.getElementById('reviewData');
+        review.innerHTML = `
+            <p><strong>Відправлення:</strong> ${document.getElementById('id_origin_city').value || 'Не вказано'}</p>
+            <p><strong>Призначення:</strong> ${document.getElementById('id_destination_city').value || 'Не вказано'}</p>
+            <p><strong>Тип вантажу:</strong> ${document.getElementById('id_cargo_type').value || 'Не вказано'}</p>
+            <p><strong>Вага:</strong> ${document.getElementById('id_weight').value || 'Не вказано'} кг</p>
+            <p><strong>Ціна:</strong> ${document.getElementById('id_price').value || 'Не вказано'} грн</p>
+        `;
+    }
 </script>
 {% endblock %}
 {% endblock %}
-
