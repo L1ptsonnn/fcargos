@@ -137,9 +137,19 @@
                                     <i class="bi bi-cash-coin"></i> Ціна: 
                                     <strong class="text-success">{{ bid.proposed_price }} грн</strong>
                                     {% if route.price %}
-                                        <small class="text-muted">
-                                            ({% if bid.proposed_price < route.price %}знижка{% else %}доплата{% endif %}: {{ route.price|add:bid.proposed_price|add:"-"|add:route.price|abs }} грн)
-                                        </small>
+                                        {% if bid.proposed_price < route.price %}
+                                            {% with discount=route.price|add:bid.proposed_price|add:"-"|add:route.price|add:route.price %}
+                                            <small class="text-muted">
+                                                (знижка: {{ discount }} грн)
+                                            </small>
+                                            {% endwith %}
+                                        {% else %}
+                                            {% with surcharge=bid.proposed_price|add:route.price|add:"-"|add:route.price|add:route.price %}
+                                            <small class="text-muted">
+                                                (доплата: {{ surcharge }} грн)
+                                            </small>
+                                            {% endwith %}
+                                        {% endif %}
                                     {% endif %}
                                 </p>
                                 <p class="mb-1">
@@ -157,6 +167,7 @@
                                     </a>
                                 {% endif %}
                             </div>
+                            {% endwith %}
                         {% endfor %}
                     </div>
                 </div>

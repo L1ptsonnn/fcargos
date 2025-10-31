@@ -59,9 +59,28 @@ def route_detail(request, pk):
                    (request.user.role == 'company' and route.company == request.user)) and \
                    route.status == 'in_transit'
     
+    # Обчислюємо різниці цін для ставок
+    bids_with_diff = []
+    for bid in bids:
+        if route.price:
+            if bid.proposed_price < route.price:
+                diff = float(route.price) - float(bid.proposed_price)
+                diff_type = 'discount'
+            else:
+                diff = float(bid.proposed_price) - float(route.price)
+                diff_type = 'surcharge'
+        else:
+            diff = 0
+            diff_type = None
+        bids_with_diff.append({
+            'bid': bid,
+            'price_diff': diff,
+            'diff_type': diff_type
+        })
+    
     context = {
         'route': route,
-        'bids': bids,
+        'bids_with_diff': bids_with_diff,
         'can_bid': can_bid,
         'can_accept_bids': can_accept_bids,
         'can_complete': can_complete,
