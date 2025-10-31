@@ -205,7 +205,7 @@
     }).addTo(map);
 
     // Дані маршрутів
-    const routesData = {{ routes_data|safe }};
+    const routesData = JSON.parse('{{ routes_data|escapejs }}');
 
     // Додавання маршрутів на карту
     routesData.forEach((route, index) => {
