@@ -50,40 +50,135 @@
     
     let originMarker = null;
     let destMarker = null;
+    let routeLine = null;
+    
+    // Функція пошуку міста
+    function searchCity(query, type) {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const result = data[0];
+                    const lat = parseFloat(result.lat);
+                    const lng = parseFloat(result.lon);
+                    const address = result.address || {};
+                    const city = address.city || address.town || address.village || query;
+                    const country = address.country || '';
+                    
+                    if (type === 'origin') {
+                        setOriginPoint(lat, lng, city, country);
+                    } else {
+                        setDestinationPoint(lat, lng, city, country);
+                    }
+                }
+            });
+    }
+    
+    function setOriginPoint(lat, lng, city, country) {
+        if (originMarker) {
+            routeMap.removeLayer(originMarker);
+        }
+        originMarker = L.marker([lat, lng], {draggable: true}).addTo(routeMap)
+            .bindPopup('📍 Точка відправлення').openPopup();
+        document.getElementById('id_origin_lat').value = lat.toFixed(6);
+        document.getElementById('id_origin_lng').value = lng.toFixed(6);
+        document.getElementById('id_origin_city').value = city;
+        document.getElementById('id_origin_country').value = country;
+        
+        originMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateOriginFromCoordinates(pos.lat, pos.lng);
+        });
+        
+        updateRouteLine();
+    }
+    
+    function setDestinationPoint(lat, lng, city, country) {
+        if (destMarker) {
+            routeMap.removeLayer(destMarker);
+        }
+        destMarker = L.marker([lat, lng], {draggable: true}).addTo(routeMap)
+            .bindPopup('📍 Точка призначення').openPopup();
+        document.getElementById('id_destination_lat').value = lat.toFixed(6);
+        document.getElementById('id_destination_lng').value = lng.toFixed(6);
+        document.getElementById('id_destination_city').value = city;
+        document.getElementById('id_destination_country').value = country;
+        
+        destMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateDestinationFromCoordinates(pos.lat, pos.lng);
+        });
+        
+        updateRouteLine();
+    }
+    
+    function updateOriginFromCoordinates(lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.address || {};
+                const city = address.city || address.town || address.village || '';
+                const country = address.country || '';
+                document.getElementById('id_origin_lat').value = lat.toFixed(6);
+                document.getElementById('id_origin_lng').value = lng.toFixed(6);
+                document.getElementById('id_origin_city').value = city;
+                document.getElementById('id_origin_country').value = country;
+            });
+        updateRouteLine();
+    }
+    
+    function updateDestinationFromCoordinates(lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.address || {};
+                const city = address.city || address.town || address.village || '';
+                const country = address.country || '';
+                document.getElementById('id_destination_lat').value = lat.toFixed(6);
+                document.getElementById('id_destination_lng').value = lng.toFixed(6);
+                document.getElementById('id_destination_city').value = city;
+                document.getElementById('id_destination_country').value = country;
+            });
+        updateRouteLine();
+    }
+    
+    function updateRouteLine() {
+        if (routeLine) {
+            routeMap.removeLayer(routeLine);
+        }
+        if (originMarker && destMarker) {
+            routeLine = L.polyline([
+                [originMarker.getLatLng().lat, originMarker.getLatLng().lng],
+                [destMarker.getLatLng().lat, destMarker.getLatLng().lng]
+            ], {color: '#667eea', weight: 3, dashArray: '10, 5'}).addTo(routeMap);
+        }
+    }
     
     // Обробка кліків на карті
     routeMap.on('click', function(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
-        // Використовуємо геокодування для отримання назви міста
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-            .then(response => response.json())
-            .then(data => {
-                const city = data.address.city || data.address.town || data.address.village || '';
-                const country = data.address.country || '';
-                
-                if (!originMarker) {
-                    originMarker = L.marker([lat, lng]).addTo(routeMap)
-                        .bindPopup('Точка відправлення').openPopup();
-                    document.getElementById('id_origin_lat').value = lat.toFixed(6);
-                    document.getElementById('id_origin_lng').value = lng.toFixed(6);
-                    document.getElementById('id_origin_city').value = city;
-                    document.getElementById('id_origin_country').value = country;
-                } else if (!destMarker) {
-                    destMarker = L.marker([lat, lng]).addTo(routeMap)
-                        .bindPopup('Точка призначення').openPopup();
-                    document.getElementById('id_destination_lat').value = lat.toFixed(6);
-                    document.getElementById('id_destination_lng').value = lng.toFixed(6);
-                    document.getElementById('id_destination_city').value = city;
-                    document.getElementById('id_destination_country').value = country;
-                    
-                    // Малюємо лінію
-                    L.polyline([[originMarker.getLatLng().lat, originMarker.getLatLng().lng], 
-                               [destMarker.getLatLng().lat, destMarker.getLatLng().lng]], 
-                               {color: '#667eea', weight: 3}).addTo(routeMap);
-                }
-            });
+        if (!originMarker) {
+            updateOriginFromCoordinates(lat, lng);
+            setOriginPoint(lat, lng, '', '');
+        } else if (!destMarker) {
+            updateDestinationFromCoordinates(lat, lng);
+            setDestinationPoint(lat, lng, '', '');
+        }
+    });
+    
+    // Пошук міст через поля вводу
+    document.getElementById('id_origin_city').addEventListener('blur', function() {
+        if (this.value && !document.getElementById('id_origin_lat').value) {
+            searchCity(this.value, 'origin');
+        }
+    });
+    
+    document.getElementById('id_destination_city').addEventListener('blur', function() {
+        if (this.value && !document.getElementById('id_destination_lat').value) {
+            searchCity(this.value, 'destination');
+        }
     });
 </script>
 {% endblock %}
