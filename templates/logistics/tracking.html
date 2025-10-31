@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Відстеження - FCargos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-geo-alt"></i> Відстеження вантажу
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div id="trackingMap" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Інформація</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Маршрут:</strong><br>
+                    {{ route.origin_city }} → {{ route.destination_city }}</p>
+                    
+                    <p><strong>Поточна локація:</strong><br>
+                    {{ tracking.current_location }}</p>
+                    
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: {{ tracking.progress_percent }}%">
+                            {{ tracking.progress_percent }}%
+                        </div>
+                    </div>
+                    
+                    <p><strong>Останнє оновлення:</strong><br>
+                    {{ tracking.last_update|date:"d.m.Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Карта відстеження
+    const trackingMap = L.map('trackingMap').setView([{{ route_data.current.lat }}, {{ route_data.current.lng }}], 6);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(trackingMap);
+    
+    const origin = [{{ route_data.origin.lat }}, {{ route_data.origin.lng }}];
+    const destination = [{{ route_data.destination.lat }}, {{ route_data.destination.lng }}];
+    const current = [{{ route_data.current.lat }}, {{ route_data.current.lng }}];
+    
+    // Маркери
+    L.marker(origin, {icon: L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    })}).addTo(trackingMap)
+        .bindPopup('Відправлення: {{ route.origin_city }}');
+    
+    L.marker(destination, {icon: L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    })}).addTo(trackingMap)
+        .bindPopup('Призначення: {{ route.destination_city }}');
+    
+    L.marker(current).addTo(trackingMap)
+        .bindPopup('Поточна позиція: {{ tracking.current_location }}')
+        .openPopup();
+    
+    // Лінії маршруту
+    L.polyline([origin, current], {color: '#28a745', weight: 3, dashArray: '10, 5'}).addTo(trackingMap);
+    L.polyline([current, destination], {color: '#dc3545', weight: 3, dashArray: '5, 5'}).addTo(trackingMap);
+    
+    trackingMap.fitBounds([origin, destination, current]);
+</script>
+{% endblock %}
+{% endblock %}
+

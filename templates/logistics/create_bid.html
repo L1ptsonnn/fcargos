@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Зробити ставку - FCargos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white">
+                    <div class="text-center py-3">
+                        <i class="bi bi-cash-stack" style="font-size: 48px;"></i>
+                        <h3 class="mt-2 mb-0">Зробити ставку</h3>
+                    </div>
+                </div>
+                <div class="card-body p-5">
+                    <div class="alert alert-info mb-4">
+                        <strong>Маршрут:</strong> {{ route.origin_city }} → {{ route.destination_city }}<br>
+                        <strong>Запропонована ціна компанії:</strong> {{ route.price }} грн
+                    </div>
+                    
+                    {% crispy form %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

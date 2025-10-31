@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Деталі маршруту - FCargos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-map"></i> 
+                        {{ route.origin_city }} → {{ route.destination_city }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-geo-alt"></i> Відправлення</h6>
+                            <p class="mb-1"><strong>Місто:</strong> {{ route.origin_city }}</p>
+                            <p class="mb-1"><strong>Країна:</strong> {{ route.origin_country }}</p>
+                            <p class="mb-0"><strong>Координати:</strong> {{ route.origin_lat }}, {{ route.origin_lng }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-geo-alt-fill"></i> Призначення</h6>
+                            <p class="mb-1"><strong>Місто:</strong> {{ route.destination_city }}</p>
+                            <p class="mb-1"><strong>Країна:</strong> {{ route.destination_country }}</p>
+                            <p class="mb-0"><strong>Координати:</strong> {{ route.destination_lat }}, {{ route.destination_lng }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Тип вантажу:</strong> {{ route.cargo_type }}</p>
+                            <p><strong>Вага:</strong> {{ route.weight }} кг</p>
+                            <p><strong>Об'єм:</strong> {{ route.volume }} м³</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Ціна:</strong> {{ route.price }} грн</p>
+                            <p><strong>Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}</p>
+                            <p><strong>Доставка:</strong> {{ route.delivery_date|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    </div>
+                    {% if route.description %}
+                        <hr>
+                        <p><strong>Опис:</strong></p>
+                        <p>{{ route.description }}</p>
+                    {% endif %}
+                    <div class="mt-3">
+                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %} fs-6">
+                            Статус: {{ route.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карта маршруту -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-map"></i> Карта маршруту</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="routeMap" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            {% if user.role == 'carrier' and can_bid %}
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Зробити ставку</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Пропозиція
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if bids %}
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Ставки ({{ bids|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for bid in bids %}
+                            <div class="border-bottom pb-3 mb-3">
+                                <p class="mb-1"><strong>{{ bid.carrier.username }}</strong></p>
+                                <p class="mb-1">Ціна: <strong>{{ bid.proposed_price }} грн</strong></p>
+                                <p class="mb-1">Доставка: {{ bid.estimated_delivery|date:"d.m.Y H:i" }}</p>
+                                {% if bid.message %}
+                                    <p class="mb-0 text-muted"><small>{{ bid.message }}</small></p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Карта маршруту
+    const routeMap = L.map('routeMap').setView([{{ route_data.origin.lat }}, {{ route_data.origin.lng }}], 5);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(routeMap);
+    
+    const origin = [{{ route_data.origin.lat }}, {{ route_data.origin.lng }}];
+    const destination = [{{ route_data.destination.lat }}, {{ route_data.destination.lng }}];
+    
+    L.marker(origin).addTo(routeMap)
+        .bindPopup('Відправлення: {{ route.origin_city }}').openPopup();
+    
+    L.marker(destination).addTo(routeMap)
+        .bindPopup('Призначення: {{ route.destination_city }}');
+    
+    L.polyline([origin, destination], {color: '#667eea', weight: 3}).addTo(routeMap);
+    
+    routeMap.fitBounds([origin, destination]);
+</script>
+{% endblock %}
+{% endblock %}
+

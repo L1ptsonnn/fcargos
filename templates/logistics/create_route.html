@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Створити маршрут - FCargos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .map-selector {
+        height: 300px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="text-center py-3">
+                        <i class="bi bi-plus-circle" style="font-size: 48px;"></i>
+                        <h3 class="mt-2 mb-0">Створити новий маршрут</h3>
+                    </div>
+                </div>
+                <div class="card-body p-5">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Підказка:</strong> Використовуйте карту для вибору координат міст
+                    </div>
+                    
+                    <div id="routeMap" class="map-selector mb-4"></div>
+                    
+                    {% crispy form %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Ініціалізація карти для вибору координат
+    const routeMap = L.map('routeMap').setView([50.45, 30.52], 6);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(routeMap);
+    
+    let originMarker = null;
+    let destMarker = null;
+    
+    // Обробка кліків на карті
+    routeMap.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Використовуємо геокодування для отримання назви міста
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                const city = data.address.city || data.address.town || data.address.village || '';
+                const country = data.address.country || '';
+                
+                if (!originMarker) {
+                    originMarker = L.marker([lat, lng]).addTo(routeMap)
+                        .bindPopup('Точка відправлення').openPopup();
+                    document.getElementById('id_origin_lat').value = lat.toFixed(6);
+                    document.getElementById('id_origin_lng').value = lng.toFixed(6);
+                    document.getElementById('id_origin_city').value = city;
+                    document.getElementById('id_origin_country').value = country;
+                } else if (!destMarker) {
+                    destMarker = L.marker([lat, lng]).addTo(routeMap)
+                        .bindPopup('Точка призначення').openPopup();
+                    document.getElementById('id_destination_lat').value = lat.toFixed(6);
+                    document.getElementById('id_destination_lng').value = lng.toFixed(6);
+                    document.getElementById('id_destination_city').value = city;
+                    document.getElementById('id_destination_country').value = country;
+                    
+                    // Малюємо лінію
+                    L.polyline([[originMarker.getLatLng().lat, originMarker.getLatLng().lng], 
+                               [destMarker.getLatLng().lat, destMarker.getLatLng().lng]], 
+                               {color: '#667eea', weight: 3}).addTo(routeMap);
+                }
+            });
+    });
+</script>
+{% endblock %}
+{% endblock %}
+
