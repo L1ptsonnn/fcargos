@@ -107,13 +107,14 @@
                 </div>
             {% endif %}
             
-            {% if bids %}
+            {% if bids_with_diff %}
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Ставки ({{ bids|length }})</h5>
+                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})</h5>
                     </div>
                     <div class="card-body">
-                        {% for bid in bids %}
+                        {% for item in bids_with_diff %}
+                            {% with bid=item.bid %}
                             <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
@@ -136,20 +137,10 @@
                                 <p class="mb-1">
                                     <i class="bi bi-cash-coin"></i> Ціна: 
                                     <strong class="text-success">{{ bid.proposed_price }} грн</strong>
-                                    {% if route.price %}
-                                        {% if bid.proposed_price < route.price %}
-                                            {% with discount=route.price|add:bid.proposed_price|add:"-"|add:route.price|add:route.price %}
-                                            <small class="text-muted">
-                                                (знижка: {{ discount }} грн)
-                                            </small>
-                                            {% endwith %}
-                                        {% else %}
-                                            {% with surcharge=bid.proposed_price|add:route.price|add:"-"|add:route.price|add:route.price %}
-                                            <small class="text-muted">
-                                                (доплата: {{ surcharge }} грн)
-                                            </small>
-                                            {% endwith %}
-                                        {% endif %}
+                                    {% if item.price_diff > 0 %}
+                                        <small class="text-muted">
+                                            ({% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн)
+                                        </small>
                                     {% endif %}
                                 </p>
                                 <p class="mb-1">
