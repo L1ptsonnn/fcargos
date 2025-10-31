@@ -49,10 +49,22 @@ def route_detail(request, pk):
                route.status == 'pending' and
                not Bid.objects.filter(route=route, carrier=request.user).exists())
     
+    # Перевірка можливості прийняти ставку (для компанії)
+    can_accept_bids = (request.user.role == 'company' and 
+                       route.company == request.user and 
+                       route.status == 'pending')
+    
+    # Перевірка можливості завершити маршрут
+    can_complete = ((request.user.role == 'carrier' and route.carrier == request.user) or
+                   (request.user.role == 'company' and route.company == request.user)) and \
+                   route.status == 'in_transit'
+    
     context = {
         'route': route,
         'bids': bids,
         'can_bid': can_bid,
+        'can_accept_bids': can_accept_bids,
+        'can_complete': can_complete,
         'route_data': {
             'origin': {
                 'lat': float(route.origin_lat),

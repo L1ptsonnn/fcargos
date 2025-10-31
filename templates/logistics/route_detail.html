@@ -67,72 +67,33 @@
         </div>
         
         <div class="col-md-4">
-            <!-- Дії для перевізників -->
-            {% if user.role == 'carrier' %}
-                {% if can_bid %}
-                    <div class="card shadow-lg border-0 mb-4">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Зробити ставку</h5>
-                        </div>
-                        <div class="card-body">
-                            <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100 mb-2">
-                                <i class="bi bi-plus-circle"></i> Зробити ставку
-                            </a>
-                        </div>
+            {% if user.role == 'carrier' and can_bid %}
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Зробити ставку</h5>
                     </div>
-                {% endif %}
-                
-                {% if can_accept_direct %}
-                    <div class="card shadow-lg border-0 mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><i class="bi bi-check-circle"></i> Прийняти замовлення</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted">Прийняти маршрут безпосередньо за запропонованою ціною</p>
-                            <a href="{% url 'accept_route' route.pk %}" class="btn btn-primary w-100">
-                                <i class="bi bi-check-lg"></i> Прийняти маршрут
-                            </a>
-                        </div>
+                    <div class="card-body">
+                        <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Пропозиція
+                        </a>
                     </div>
-                {% endif %}
-                
-                {% if route.carrier == user and route.status == 'in_transit' %}
-                    <div class="card shadow-lg border-0 mb-4">
-                        <div class="card-header bg-warning text-dark">
-                            <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Управління</h5>
-                        </div>
-                        <div class="card-body">
-                            <a href="{% url 'reject_route' route.pk %}" class="btn btn-outline-danger w-100 mb-2" 
-                               onclick="return confirm('Ви впевнені, що хочете відхилити цей маршрут?')">
-                                <i class="bi bi-x-circle"></i> Відхилити маршрут
-                            </a>
-                            {% if can_complete %}
-                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100">
-                                <i class="bi bi-check2-all"></i> Завершити доставку
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endif %}
+                </div>
             {% endif %}
             
-            <!-- Дії для компаній -->
-            {% if user.role == 'company' and route.company == user %}
-                {% if can_complete %}
-                    <div class="card shadow-lg border-0 mb-4">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="bi bi-check2-all"></i> Завершити маршрут</h5>
-                        </div>
-                        <div class="card-body">
-                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100">
-                                <i class="bi bi-check-lg"></i> Підтвердити доставку
-                            </a>
-                        </div>
+            {% if can_complete %}
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-check-circle"></i> Завершити маршрут</h5>
                     </div>
-                {% endif %}
+                    <div class="card-body">
+                        <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100" 
+                           onclick="return confirm('Підтвердити завершення доставки?')">
+                            <i class="bi bi-check-lg"></i> Підтвердити доставку
+                        </a>
+                    </div>
+                </div>
             {% endif %}
             
-            <!-- Відстеження -->
             {% if route.status == 'in_transit' or route.status == 'delivered' %}
                 <div class="card shadow-lg border-0 mb-4">
                     <div class="card-header bg-info text-white">
@@ -177,7 +138,7 @@
                                     <strong class="text-success">{{ bid.proposed_price }} грн</strong>
                                     {% if route.price %}
                                         <small class="text-muted">
-                                            (знижка: {{ route.price|add:"-"|add:bid.proposed_price }} грн)
+                                            ({% if bid.proposed_price < route.price %}знижка{% else %}доплата{% endif %}: {{ route.price|add:bid.proposed_price|add:"-"|add:route.price|abs }} грн)
                                         </small>
                                     {% endif %}
                                 </p>
