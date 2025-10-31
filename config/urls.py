@@ -3,6 +3,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Admin site configuration
+admin.site.site_header = 'FCargos Адмін-панель'
+admin.site.site_title = 'FCargos'
+admin.site.index_title = 'Управління системою'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('dashboard.urls')),

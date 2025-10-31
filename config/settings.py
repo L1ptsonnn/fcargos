@@ -141,8 +141,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Language and Timezone
 LANGUAGE_CODE = 'uk'
 TIME_ZONE = 'Europe/Kyiv'
-
-# Admin site header
-admin.site.site_header = 'FCargos Адмін-панель'
-admin.site.site_title = 'FCargos'
-admin.site.index_title = 'Управління системою'
