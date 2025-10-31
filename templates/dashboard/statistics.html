@@ -179,7 +179,7 @@
     
     // Маршрути по місяцях
     const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    const monthlyData = {{ monthly_data|safe }};
+    const monthlyData = JSON.parse('{{ monthly_data|escapejs }}');
     new Chart(monthlyCtx, {
         type: 'line',
         data: {

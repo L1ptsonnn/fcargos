@@ -70,7 +70,7 @@ def statistics(request):
                 'in_transit': routes.filter(status='in_transit').count(),
                 'delivered': routes.filter(status='delivered').count(),
             },
-            'monthly_data': last_6_months,
+            'monthly_data': json.dumps(last_6_months),
         })
     elif request.user.role == 'carrier':
         bids = Bid.objects.filter(carrier=request.user)

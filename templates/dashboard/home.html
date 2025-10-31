@@ -206,54 +206,107 @@
 
     // Дані маршрутів
     const routesData = JSON.parse('{{ routes_data|escapejs }}');
+    const animatedMarkers = {};
 
-    // Додавання маршрутів на карту
+    // Додавання маршрутів на карту з покращеним функціоналом
     routesData.forEach((route, index) => {
         const origin = [route.origin.lat, route.origin.lng];
         const destination = [route.destination.lat, route.destination.lng];
         
-        // Маркери
-        const originMarker = L.marker(origin).addTo(map)
-            .bindPopup(`<b>${route.origin.city}</b><br>${route.origin.country}`);
+        // Кольорові маркери залежно від статусу
+        const originIcon = L.divIcon({
+            className: 'route-marker',
+            html: `<div style="background: #198754; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>`,
+            iconSize: [20, 20]
+        });
         
-        const destMarker = L.marker(destination).addTo(map)
-            .bindPopup(`<b>${route.destination.city}</b><br>${route.destination.country}`);
+        const destIcon = L.divIcon({
+            className: 'route-marker',
+            html: `<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>`,
+            iconSize: [20, 20]
+        });
+        
+        // Маркери з попапами
+        const originMarker = L.marker(origin, {icon: originIcon}).addTo(map)
+            .bindPopup(`
+                <b>📍 ${route.origin.city}</b><br>
+                ${route.origin.country}<br>
+                <small>Тип: ${route.cargo_type}</small>
+            `);
+        
+        const destMarker = L.marker(destination, {icon: destIcon}).addTo(map)
+            .bindPopup(`
+                <b>📍 ${route.destination.city}</b><br>
+                ${route.destination.country}<br>
+                <small>Тип: ${route.cargo_type}</small>
+            `);
         
         // Лінія маршруту з анімацією
+        const routeColor = route.status === 'pending' ? '#ffc107' : '#0dcaf0';
         const polyline = L.polyline([origin, destination], {
-            color: route.status === 'pending' ? '#ffc107' : '#0dcaf0',
+            color: routeColor,
             weight: 4,
-            opacity: 0.7
+            opacity: 0.8,
+            dashArray: route.status === 'in_transit' ? '10, 5' : null
         }).addTo(map);
         
-        // Анімація точки на лінії
-        let progress = 0;
-        const animateMarker = () => {
-            if (progress <= 100) {
-                const lat = route.origin.lat + (route.destination.lat - route.origin.lat) * (progress / 100);
-                const lng = route.origin.lng + (route.destination.lng - route.origin.lng) * (progress / 100);
-                
-                if (window.animatedMarkers && window.animatedMarkers[index]) {
-                    map.removeLayer(window.animatedMarkers[index]);
+        // Анімація руху для активних маршрутів
+        if (route.status === 'in_transit') {
+            let progress = 0;
+            const animateRoute = () => {
+                if (progress <= 100) {
+                    const lat = route.origin.lat + (route.destination.lat - route.origin.lat) * (progress / 100);
+                    const lng = route.origin.lng + (route.destination.lng - route.origin.lng) * (progress / 100);
+                    
+                    if (animatedMarkers[index]) {
+                        map.removeLayer(animatedMarkers[index]);
+                    }
+                    
+                    const animatedIcon = L.divIcon({
+                        className: 'animated-route-marker',
+                        html: `<div style="background: ${routeColor}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px ${routeColor}; animation: pulse 2s infinite;"></div>`,
+                        iconSize: [18, 18]
+                    });
+                    
+                    animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map)
+                        .bindPopup(`<b>🚚 Вантаж в дорозі</b><br>Прогрес: ${Math.round(progress)}%`);
+                    
+                    progress += 1;
+                    setTimeout(animateRoute, 150);
+                } else {
+                    // Перезапускаємо анімацію
+                    setTimeout(() => {
+                        progress = 0;
+                        animateRoute();
+                    }, 1000);
                 }
-                
-                if (!window.animatedMarkers) window.animatedMarkers = {};
-                
-                const animatedIcon = L.divIcon({
-                    className: 'animated-route-marker',
-                    html: `<div style="background: #667eea; width: 15px; height: 15px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);"></div>`,
-                    iconSize: [15, 15]
-                });
-                
-                window.animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map);
-                
-                progress += 2;
-                setTimeout(animateMarker, 100);
-            }
-        };
+            };
+            
+            animateRoute();
+        }
         
-        animateMarker();
+        // Додавання інформації про маршрут до попапу лінії
+        polyline.bindPopup(`
+            <b>${route.origin.city} → ${route.destination.city}</b><br>
+            Тип вантажу: ${route.cargo_type}<br>
+            Статус: ${route.status === 'pending' ? 'Очікує' : 'В дорозі'}
+        `);
     });
+    
+    // Фіт бігокс для всіх маршрутів
+    if (routesData.length > 0) {
+        const bounds = routesData.reduce((acc, route) => {
+            return [
+                [...acc[0], [route.origin.lat, route.origin.lng]],
+                [...acc[1], [route.destination.lat, route.destination.lng]]
+            ];
+        }, [[], []]);
+        
+        const allPoints = [...bounds[0].flat(), ...bounds[1].flat()];
+        if (allPoints.length > 0) {
+            map.fitBounds(allPoints, {padding: [50, 50]});
+        }
+    }
 </script>
 {% endblock %}
 
