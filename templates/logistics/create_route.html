@@ -153,21 +153,30 @@
 
 {% block extra_js %}
 <script>
-    let originMarker = null;
-    let destMarker = null;
-    let routeLine = null;
-    let originSelected = false;
-    let destSelected = false;
+    // Очікуємо завантаження DOM та Leaflet
+    document.addEventListener('DOMContentLoaded', function() {
+        // Перевірка чи Leaflet завантажений
+        if (typeof L === 'undefined') {
+            console.error('Leaflet не завантажений!');
+            alert('Помилка: Бібліотека карт не завантажилась. Перезавантажте сторінку.');
+            return;
+        }
+        
+        let originMarker = null;
+        let destMarker = null;
+        let routeLine = null;
+        let originSelected = false;
+        let destSelected = false;
+        
+        // Ініціалізація карти
+        const routeMap = L.map('routeMap').setView([50.45, 30.52], 6);
     
-    // Ініціалізація карти
-    const routeMap = L.map('routeMap').setView([50.45, 30.52], 6);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(routeMap);
-    
-    // Обробка кліку на карті
-    routeMap.on('click', function(e) {
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(routeMap);
+        
+        // Обробка кліку на карті
+        routeMap.on('click', function(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
@@ -236,6 +245,17 @@
                     
                     destSelected = true;
                     
+                    // Додаємо обробник для перетягування маркерів
+                    originMarker.on('dragend', function(e) {
+                        const pos = e.target.getLatLng();
+                        updateCoordinates('origin', pos.lat, pos.lng);
+                    });
+                    
+                    destMarker.on('dragend', function(e) {
+                        const pos = e.target.getLatLng();
+                        updateCoordinates('destination', pos.lat, pos.lng);
+                    });
+                    
                     // Малюємо лінію маршруту
                     updateRouteLine();
                     
@@ -243,24 +263,9 @@
                     document.getElementById('submitBtn').disabled = false;
                 }
             });
-    });
-    
-    // Оновлення координат при перетягуванні маркерів
-    if (originMarker) {
-        originMarker.on('dragend', function(e) {
-            const pos = e.target.getLatLng();
-            updateCoordinates('origin', pos.lat, pos.lng);
         });
-    }
-    
-    if (destMarker) {
-        destMarker.on('dragend', function(e) {
-            const pos = e.target.getLatLng();
-            updateCoordinates('destination', pos.lat, pos.lng);
-        });
-    }
-    
-    function updateCoordinates(type, lat, lng) {
+        
+        function updateCoordinates(type, lat, lng) {
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
             .then(response => response.json())
             .then(data => {
@@ -291,31 +296,32 @@
             });
     }
     
-    function updateRouteLine() {
-        if (routeLine) routeMap.removeLayer(routeLine);
-        if (originMarker && destMarker) {
-            routeLine = L.polyline([
-                [originMarker.getLatLng().lat, originMarker.getLatLng().lng],
-                [destMarker.getLatLng().lat, destMarker.getLatLng().lng]
-            ], {
-                color: '#667eea',
-                weight: 4,
-                dashArray: '10, 5'
-            }).addTo(routeMap);
-            
-            routeMap.fitBounds([originMarker.getLatLng(), destMarker.getLatLng()], {
-                padding: [50, 50]
-            });
+        function updateRouteLine() {
+            if (routeLine) routeMap.removeLayer(routeLine);
+            if (originMarker && destMarker) {
+                routeLine = L.polyline([
+                    [originMarker.getLatLng().lat, originMarker.getLatLng().lng],
+                    [destMarker.getLatLng().lat, destMarker.getLatLng().lng]
+                ], {
+                    color: '#667eea',
+                    weight: 4,
+                    dashArray: '10, 5'
+                }).addTo(routeMap);
+                
+                routeMap.fitBounds([originMarker.getLatLng(), destMarker.getLatLng()], {
+                    padding: [50, 50]
+                });
+            }
         }
-    }
-    
-    // Валідація форми перед відправкою
-    document.getElementById('routeForm').addEventListener('submit', function(e) {
-        if (!originSelected || !destSelected) {
-            e.preventDefault();
-            alert('Будь ласка, оберіть обидві точки на карті!');
-            return false;
-        }
+        
+        // Валідація форми перед відправкою
+        document.getElementById('routeForm').addEventListener('submit', function(e) {
+            if (!originSelected || !destSelected) {
+                e.preventDefault();
+                alert('Будь ласка, оберіть обидві точки на карті!');
+                return false;
+            }
+        });
     });
 </script>
 {% endblock %}
