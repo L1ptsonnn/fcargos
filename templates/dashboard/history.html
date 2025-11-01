@@ -2,56 +2,150 @@
 
 {% block title %}Історія - FCargos{% endblock %}
 
+{% block extra_css %}
+<style>
+    .history-header {
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 3rem 0;
+        margin: -2rem -15px 3rem -15px;
+        border-radius: 0 0 30px 30px;
+        color: white;
+        box-shadow: var(--shadow-lg);
+    }
+    .history-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: var(--transition-base);
+    }
+    .history-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+    }
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .action-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+    .history-item {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        transition: var(--transition-base);
+    }
+    .history-item:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+    .history-item:last-child {
+        border-bottom: none;
+    }
+    .stats-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">
-        <i class="bi bi-clock-history"></i> Історія
-    </h2>
-    
-    {% if user.role == 'company' %}
-        <div class="card shadow-lg border-0 mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-map"></i> Історія маршрутів</h5>
+<div class="history-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-2">
+                    <i class="bi bi-clock-history"></i> Історія
+                </h2>
+                <p class="mb-0 opacity-75">Перегляд всіх ваших маршрутів та ставок</p>
             </div>
-            <div class="card-body">
+            {% if user.role == 'company' %}
+                <a href="{% url 'create_route' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Створити маршрут
+                </a>
+            {% else %}
+                <a href="{% url 'routes_list' %}" class="btn btn-light">
+                    <i class="bi bi-search"></i> Знайти маршрути
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    {% if user.role == 'company' %}
+        <div class="card shadow-lg border-0 mb-4 history-card fade-in-up">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-map"></i> Історія маршрутів</h5>
+                    <span class="badge bg-light text-dark">{{ routes|length }}</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
                 {% if routes %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover mb-0">
+                            <thead style="background: rgba(102, 126, 234, 0.1);">
                                 <tr>
-                                    <th>Маршрут</th>
-                                    <th>Тип вантажу</th>
-                                    <th>Ціна</th>
-                                    <th>Дата створення</th>
-                                    <th>Статус</th>
-                                    <th>Дії</th>
+                                    <th><i class="bi bi-route"></i> Маршрут</th>
+                                    <th><i class="bi bi-box"></i> Тип вантажу</th>
+                                    <th><i class="bi bi-cash-coin"></i> Ціна</th>
+                                    <th><i class="bi bi-calendar"></i> Дата створення</th>
+                                    <th><i class="bi bi-info-circle"></i> Статус</th>
+                                    <th><i class="bi bi-lightning-charge"></i> Дії</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for route in routes %}
-                                <tr>
+                                <tr class="history-item">
                                     <td>
-                                        <i class="bi bi-geo-alt"></i> {{ route.origin_city }}
-                                        <i class="bi bi-arrow-right"></i>
-                                        {{ route.destination_city }}
+                                        <strong>
+                                            <i class="bi bi-geo-alt-fill text-success"></i> {{ route.origin_city }}
+                                            <i class="bi bi-arrow-right text-primary"></i>
+                                            <i class="bi bi-geo-alt text-danger"></i> {{ route.destination_city }}
+                                        </strong>
                                     </td>
-                                    <td>{{ route.cargo_type }}</td>
-                                    <td><strong>{{ route.price }} грн</strong></td>
-                                    <td>{{ route.created_at|date:"d.m.Y H:i" }}</td>
                                     <td>
-                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                                        <span class="badge bg-secondary">{{ route.cargo_type }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">{{ route.price }} грн</strong>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            <i class="bi bi-calendar3"></i> {{ route.created_at|date:"d.m.Y" }}<br>
+                                            <i class="bi bi-clock"></i> {{ route.created_at|date:"H:i" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="stats-badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
                                             {{ route.get_status_display }}
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-eye"></i> Деталі
-                                        </a>
-                                        {% if route.status == 'in_transit' or route.status == 'delivered' %}
-                                            <a href="{% url 'tracking' route.pk %}" class="btn btn-sm btn-info">
-                                                <i class="bi bi-radar"></i> Відстежити
+                                        <div class="action-buttons">
+                                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary action-btn" title="Переглянути деталі">
+                                                <i class="bi bi-eye"></i> Деталі
                                             </a>
-                                        {% endif %}
+                                            {% if route.status == 'in_transit' or route.status == 'delivered' %}
+                                                <a href="{% url 'tracking' route.pk %}" class="btn btn-sm btn-info action-btn" title="Відстежити вантаж">
+                                                    <i class="bi bi-radar"></i> Відстежити
+                                                </a>
+                                            {% endif %}
+                                            {% if route.status == 'pending' %}
+                                                <a href="{% url 'routes_list' %}" class="btn btn-sm btn-secondary action-btn" title="Переглянути ставки">
+                                                    <i class="bi bi-list-ul"></i> Ставки
+                                                </a>
+                                            {% endif %}
+                                            {% if route.status == 'delivered' %}
+                                                <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-success action-btn" title="Переглянути завершений маршрут">
+                                                    <i class="bi bi-check-circle"></i> Завершено
+                                                </a>
+                                            {% endif %}
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -59,86 +153,70 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-center text-muted py-5">
-                        <i class="bi bi-inbox" style="font-size: 64px;"></i><br>
-                        Поки немає маршрутів
-                    </p>
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 80px; color: var(--primary-gradient-start); opacity: 0.3;"></i>
+                        <h4 class="mt-3 text-muted">Поки немає маршрутів</h4>
+                        <p class="text-muted mb-4">Створіть свій перший маршрут для початку роботи</p>
+                        <a href="{% url 'create_route' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle"></i> Створити маршрут
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>
     {% elif user.role == 'carrier' %}
         <div class="row">
             <div class="col-md-6 mb-4">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Історія ставок</h5>
+                <div class="card shadow-lg border-0 history-card fade-in-up">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Історія ставок</h5>
+                            <span class="badge bg-light text-dark">{{ bids|length }}</span>
+                        </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         {% if bids %}
                             <div class="list-group list-group-flush">
                                 {% for bid in bids %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
+                                <div class="list-group-item history-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="flex-grow-1">
                                             <h6 class="mb-1">
-                                                {{ bid.route.origin_city }} → {{ bid.route.destination_city }}
+                                                <i class="bi bi-geo-alt-fill text-success"></i> {{ bid.route.origin_city }}
+                                                <i class="bi bi-arrow-right text-primary"></i>
+                                                <i class="bi bi-geo-alt text-danger"></i> {{ bid.route.destination_city }}
                                             </h6>
-                                            <p class="mb-1"><strong>{{ bid.proposed_price }} грн</strong></p>
-                                            <small class="text-muted">{{ bid.created_at|date:"d.m.Y H:i" }}</small>
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="badge bg-success" style="font-size: 1rem;">
+                                                    <i class="bi bi-cash-coin"></i> {{ bid.proposed_price }} грн
+                                                </span>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar3"></i> {{ bid.created_at|date:"d.m.Y H:i" }}
+                                                </small>
+                                            </div>
                                         </div>
                                         {% if bid.is_accepted %}
-                                            <span class="badge bg-success">Прийнято</span>
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Прийнято
+                                            </span>
                                         {% else %}
-                                            <span class="badge bg-warning">Очікує</span>
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-hourglass-split"></i> Очікує
+                                            </span>
                                         {% endif %}
                                     </div>
-                                    <a href="{% url 'route_detail' bid.route.pk %}" class="btn btn-sm btn-outline-primary mt-2">
-                                        Деталі
-                                    </a>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-center text-muted py-5">
-                                <i class="bi bi-inbox" style="font-size: 48px;"></i><br>
-                                Поки немає ставок
-                            </p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-truck"></i> Мої маршрути</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if my_routes %}
-                            <div class="list-group list-group-flush">
-                                {% for route in my_routes %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">
-                                                <i class="bi bi-geo-alt"></i> {{ route.origin_city }}
-                                                <i class="bi bi-arrow-right"></i>
-                                                {{ route.destination_city }}
-                                            </h6>
-                                            <p class="mb-1"><strong>{{ route.price }} грн</strong></p>
-                                            <small class="text-muted">{{ route.created_at|date:"d.m.Y H:i" }}</small>
-                                        </div>
-                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
-                                            {{ route.get_status_display }}
-                                        </span>
-                                    </div>
-                                    <div class="mt-2">
-                                        <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary">
-                                            Деталі
+                                    <div class="action-buttons">
+                                        <a href="{% url 'route_detail' bid.route.pk %}" class="btn btn-sm btn-primary action-btn">
+                                            <i class="bi bi-eye"></i> Деталі
                                         </a>
-                                        {% if route.status == 'in_transit' or route.status == 'delivered' %}
-                                            <a href="{% url 'tracking' route.pk %}" class="btn btn-sm btn-info">
-                                                Відстежити
+                                        {% if bid.route.status == 'in_transit' and bid.is_accepted %}
+                                            <a href="{% url 'tracking' bid.route.pk %}" class="btn btn-sm btn-info action-btn">
+                                                <i class="bi bi-radar"></i> Відстежити
+                                            </a>
+                                        {% endif %}
+                                        {% if bid.route.status == 'pending' and not bid.is_accepted %}
+                                            <a href="{% url 'route_detail' bid.route.pk %}" class="btn btn-sm btn-secondary action-btn">
+                                                <i class="bi bi-pencil"></i> Редагувати
                                             </a>
                                         {% endif %}
                                     </div>
@@ -146,10 +224,84 @@
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <p class="text-center text-muted py-5">
-                                <i class="bi bi-inbox" style="font-size: 48px;"></i><br>
-                                Поки немає маршрутів
-                            </p>
+                            <div class="text-center py-5">
+                                <i class="bi bi-inbox" style="font-size: 64px; color: var(--accent-gradient-start); opacity: 0.3;"></i>
+                                <h5 class="mt-3 text-muted">Поки немає ставок</h5>
+                                <p class="text-muted mb-4">Перегляньте доступні маршрути та зробіть свою першу ставку</p>
+                                <a href="{% url 'routes_list' %}" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Знайти маршрути
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-lg border-0 history-card fade-in-up" style="animation-delay: 200ms;">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--success-gradient-start), var(--success-gradient-end)); color: white;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-truck"></i> Мої маршрути</h5>
+                            <span class="badge bg-light text-dark">{{ my_routes|length }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if my_routes %}
+                            <div class="list-group list-group-flush">
+                                {% for route in my_routes %}
+                                <div class="list-group-item history-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                <i class="bi bi-geo-alt-fill text-success"></i> {{ route.origin_city }}
+                                                <i class="bi bi-arrow-right text-primary"></i>
+                                                <i class="bi bi-geo-alt text-danger"></i> {{ route.destination_city }}
+                                            </h6>
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="badge bg-info" style="font-size: 1rem;">
+                                                    <i class="bi bi-cash-coin"></i> {{ route.price }} грн
+                                                </span>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar3"></i> {{ route.created_at|date:"d.m.Y" }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <span class="stats-badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                                            {{ route.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary action-btn">
+                                            <i class="bi bi-eye"></i> Деталі
+                                        </a>
+                                        {% if route.status == 'in_transit' or route.status == 'delivered' %}
+                                            <a href="{% url 'tracking' route.pk %}" class="btn btn-sm btn-info action-btn">
+                                                <i class="bi bi-radar"></i> Відстежити
+                                            </a>
+                                        {% endif %}
+                                        {% if route.status == 'in_transit' %}
+                                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-sm btn-success action-btn" onclick="return confirm('Підтвердити завершення доставки?')">
+                                                <i class="bi bi-check-circle"></i> Завершити
+                                            </a>
+                                        {% endif %}
+                                        {% if route.status == 'pending' %}
+                                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-secondary action-btn">
+                                                <i class="bi bi-clock-history"></i> Очікує
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-inbox" style="font-size: 64px; color: var(--success-gradient-start); opacity: 0.3;"></i>
+                                <h5 class="mt-3 text-muted">Поки немає маршрутів</h5>
+                                <p class="text-muted mb-4">Ваші активні маршрути будуть відображатися тут</p>
+                                <a href="{% url 'routes_list' %}" class="btn btn-success">
+                                    <i class="bi bi-search"></i> Знайти маршрути
+                                </a>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -158,4 +310,3 @@
     {% endif %}
 </div>
 {% endblock %}
-
