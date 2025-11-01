@@ -636,9 +636,6 @@ def notifications_api(request):
 @login_required
 def mark_notification_read(request, notification_id):
     """Позначити сповіщення як прочитане"""
-    from django.views.decorators.csrf import csrf_exempt
-    from django.utils.decorators import method_decorator
-    
     notification = get_object_or_404(Notification, pk=notification_id, user=request.user)
     notification.is_read = True
     notification.save()
