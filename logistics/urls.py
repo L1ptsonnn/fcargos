@@ -13,7 +13,7 @@ urlpatterns = [
     path('routes/<int:pk>/messages/', views.route_messages, name='route_messages'),
     path('chats/', views.chats_list, name='chats_list'),
     path('profile/<int:user_id>/', views.user_profile, name='user_profile'),
-    path('notifications/', views.notifications_view, name='notifications'),
+    path('api/notifications/', views.notifications_api, name='notifications_api'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

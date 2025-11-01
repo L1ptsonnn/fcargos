@@ -126,11 +126,9 @@
                             <i class="bi bi-{% if other_user.role == 'company' %}building{% else %}truck{% endif %}"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h6 class="mb-0">
-                                <a href="{% url 'user_profile' other_user.pk %}" class="text-white text-decoration-none">
-                                    {{ other_user.username }}
-                                </a>
-                            </h6>
+                             <h6 class="mb-0">
+                                 <a href="{% url 'user_profile' other_user.pk %}" class="text-white text-decoration-none">{{ other_user.username }}</a>
+                             </h6>
                             <small class="text-muted">{{ other_user.get_role_display }}</small>
                             {% if other_user.phone %}
                             <div class="mt-1">

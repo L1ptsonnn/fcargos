@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from accounts.models import User
 from .models import Route, Bid, Tracking, Message, Notification
 from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm
 
@@ -589,6 +589,7 @@ def chats_list(request):
 @login_required
 def user_profile(request, user_id):
     """Профіль користувача"""
+    from accounts.models import User
     profile_user = get_object_or_404(User, pk=user_id)
     
     # Статистика маршрутів
@@ -611,13 +612,23 @@ def user_profile(request, user_id):
 
 
 @login_required
-def notifications_view(request):
-    """Список сповіщень"""
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+def notifications_api(request):
+    """API для отримання сповіщень (AJAX)"""
+    notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:10]
+    
+    notifications_data = [{
+        'id': n.id,
+        'type': n.notification_type,
+        'title': n.title,
+        'message': n.message,
+        'created_at': n.created_at.strftime('%d.%m.%Y %H:%M'),
+        'route_id': n.route.id if n.route else None,
+    } for n in notifications]
+    
     unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
     
-    return render(request, 'logistics/notifications.html', {
-        'notifications': notifications,
+    return JsonResponse({
+        'notifications': notifications_data,
         'unread_count': unread_count,
     })
 
@@ -628,12 +639,18 @@ def mark_notification_read(request, notification_id):
     notification = get_object_or_404(Notification, pk=notification_id, user=request.user)
     notification.is_read = True
     notification.save()
-    return redirect('notifications')
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True})
+    return redirect('home')
 
 
 @login_required
 def mark_all_notifications_read(request):
     """Позначити всі сповіщення як прочитані"""
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True})
     messages.success(request, 'Всі сповіщення позначено як прочитані')
-    return redirect('notifications')
+    return redirect('home')

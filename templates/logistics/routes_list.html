@@ -50,39 +50,38 @@
     </div>
 </div>
 
-<div class="container">
-    <!-- Фільтр по місту старту -->
+<div class="container mt-4">
+    <!-- Фільтр по місту -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="origin_city" class="form-label">
-                        <i class="bi bi-funnel"></i> Фільтр по місту старту
+                        <i class="bi bi-geo-alt"></i> Місто відправлення
                     </label>
                     <select class="form-select" id="origin_city" name="origin_city">
                         <option value="">Всі міста</option>
                         {% for city in origin_cities %}
-                        <option value="{{ city }}" {% if origin_city_filter == city %}selected{% endif %}>
-                            {{ city }}
-                        </option>
+                        <option value="{{ city }}" {% if origin_city_filter == city %}selected{% endif %}>{{ city }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i> Застосувати
+                        <i class="bi bi-search"></i> Фільтрувати
                     </button>
                 </div>
-                {% if origin_city_filter %}
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <a href="{% url 'routes_list' %}" class="btn btn-outline-secondary w-100">
                         <i class="bi bi-x-circle"></i> Скинути
                     </a>
                 </div>
-                {% endif %}
             </form>
         </div>
     </div>
+</div>
+
+<div class="container">
     {% if routes %}
         <div class="row">
             {% for route in routes %}
