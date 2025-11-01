@@ -741,6 +741,7 @@ footer {
 
 .chat-item .d-flex {
     gap: 1rem;
+    align-items: flex-start;
 }
 
 .chat-avatar {

@@ -464,7 +464,7 @@
                                 return `
                                     <div class="chat-item" data-route-id="${chat.route_id}" data-other-user="${escapeHtml(chat.other_user)}" data-other-user-id="${chat.other_user_id}" data-route-origin="${escapeHtml(chat.route_origin)}" data-route-dest="${escapeHtml(chat.route_destination)}">
                                         <div class="chat-item-body">
-                                            <div class="d-flex align-items-center">
+                                            <div class="d-flex align-items-start">
                                                 <div class="chat-avatar">
                                                     <i class="bi bi-${chat.other_user_role === 'Компанія' ? 'building' : 'truck'}"></i>
                                                 </div>
@@ -489,6 +489,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                 `;
                             }).join('');
                             
