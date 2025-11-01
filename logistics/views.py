@@ -324,7 +324,17 @@ def tracking_view(request, pk):
 def update_tracking(request, pk):
     """Оновлення прогресу доставки"""
     route = get_object_or_404(Route, pk=pk)
-    tracking = get_object_or_404(Tracking, route=route)
+    
+    try:
+        tracking = route.tracking
+    except Tracking.DoesNotExist:
+        tracking = Tracking.objects.create(
+            route=route,
+            current_location=route.origin_city,
+            current_lat=route.origin_lat,
+            current_lng=route.origin_lng,
+            progress_percent=0
+        )
     
     # Перевірка доступу - тільки перевізник або компанія можуть оновлювати
     if not ((request.user.role == 'carrier' and route.carrier == request.user) or 
@@ -342,22 +352,33 @@ def update_tracking(request, pk):
         if form.is_valid():
             tracking = form.save(commit=False)
             
+            # Обмежуємо прогрес до 100%
+            if tracking.progress_percent > 100:
+                tracking.progress_percent = 100
+            if tracking.progress_percent < 0:
+                tracking.progress_percent = 0
+            
             # Автоматичне розрахунок координат на основі прогресу, якщо не вказано
             if not tracking.current_lat or not tracking.current_lng:
-                origin_lat = float(route.origin_lat)
-                origin_lng = float(route.origin_lng)
-                dest_lat = float(route.destination_lat)
-                dest_lng = float(route.destination_lng)
-                
-                progress = tracking.progress_percent / 100.0
-                tracking.current_lat = origin_lat + (dest_lat - origin_lat) * progress
-                tracking.current_lng = origin_lng + (dest_lng - origin_lng) * progress
+                try:
+                    origin_lat = float(route.origin_lat)
+                    origin_lng = float(route.origin_lng)
+                    dest_lat = float(route.destination_lat)
+                    dest_lng = float(route.destination_lng)
+                    
+                    progress = tracking.progress_percent / 100.0
+                    tracking.current_lat = origin_lat + (dest_lat - origin_lat) * progress
+                    tracking.current_lng = origin_lng + (dest_lng - origin_lng) * progress
+                except (ValueError, TypeError):
+                    pass
             
             # Якщо прогрес 100%, автоматично оновлюємо локацію на призначення
             if tracking.progress_percent >= 100:
                 tracking.current_location = route.destination_city
                 tracking.current_lat = route.destination_lat
                 tracking.current_lng = route.destination_lng
+                tracking.progress_percent = 100  # Забезпечуємо максимум
+                messages.info(request, 'Прогрес доставки 100%! Рекомендується завершити маршрут на сторінці деталей.')
             
             tracking.save()
             messages.success(request, f'Прогрес оновлено до {tracking.progress_percent}%')
