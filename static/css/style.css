@@ -712,3 +712,160 @@ footer {
 * {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Chat items styling - improved glassmorphism with mirror effect */
+.chat-item {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 
+        0 4px 16px rgba(99, 102, 241, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1rem !important;
+}
+
+.chat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, 
+        var(--primary-gradient-start) 0%, 
+        var(--primary-gradient-end) 50%,
+        var(--secondary-gradient-start) 100%);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+}
+
+.chat-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        transparent 50%,
+        rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.chat-item:hover::before {
+    width: 6px;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+.chat-item:hover {
+    transform: translateY(-3px) translateX(6px);
+    box-shadow: 
+        0 12px 32px rgba(99, 102, 241, 0.2),
+        0 6px 16px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+        0 0 0 1px rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    background: rgba(255, 255, 255, 1) !important;
+}
+
+.chat-item .card-body {
+    position: relative;
+    z-index: 2;
+    background: transparent;
+}
+
+/* Offcanvas body for chats - subtle gradient */
+#chatsOffcanvas .offcanvas-body,
+#chatsOffcanvas #chatsList {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+    padding: 1rem;
+}
+
+#chatsOffcanvas #chatsList {
+    min-height: calc(100vh - 120px);
+}
+
+/* Chat avatar improvements with glow effect */
+.chat-item .card-body [style*="background: linear-gradient"] {
+    box-shadow: 
+        0 4px 16px rgba(99, 102, 241, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: var(--transition-base);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.chat-item:hover .card-body [style*="background: linear-gradient"] {
+    transform: scale(1.08) rotate(5deg);
+    box-shadow: 
+        0 8px 24px rgba(99, 102, 241, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Message bubbles in chat - refined glassmorphism */
+.message-bubble {
+    position: relative;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+
+.message-bubble.sent {
+    box-shadow: 
+        0 4px 12px rgba(99, 102, 241, 0.25),
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.message-bubble.received {
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 2px 6px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Badge improvements in chat items */
+.chat-item .badge {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.65rem !important;
+}
+
+/* Route text styling in chat items */
+.chat-item .text-muted {
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+}
+
+.chat-item:hover .text-muted {
+    opacity: 1;
+}
+
+/* Link styling in chat items */
+.chat-item a {
+    transition: var(--transition-base);
+}
+
+.chat-item a:hover {
+    text-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+}
