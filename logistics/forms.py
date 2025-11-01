@@ -92,7 +92,7 @@ class BidForm(forms.ModelForm):
 class TrackingUpdateForm(forms.ModelForm):
     class Meta:
         model = Tracking
-        fields = ['progress_percent', 'current_location']
+        fields = ['progress_percent', 'current_location', 'current_lat', 'current_lng']
         widgets = {
             'progress_percent': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -104,7 +104,17 @@ class TrackingUpdateForm(forms.ModelForm):
             }),
             'current_location': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Поточна локація (опціонально)'
+                'placeholder': 'Введіть поточну локацію'
+            }),
+            'current_lat': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.000001',
+                'placeholder': 'Широта'
+            }),
+            'current_lng': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.000001',
+                'placeholder': 'Довгота'
             }),
         }
     
@@ -117,6 +127,10 @@ class TrackingUpdateForm(forms.ModelForm):
             ),
             Row(
                 Column('current_location', css_class='col-12'),
+            ),
+            Row(
+                Column('current_lat', css_class='col-md-6'),
+                Column('current_lng', css_class='col-md-6'),
             ),
             Submit('submit', 'Оновити прогрес', css_class='btn btn-primary w-100 mt-3')
         )

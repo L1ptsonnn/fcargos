@@ -222,13 +222,13 @@ class Message(models.Model):
         verbose_name='Маршрут'
     )
     sender = models.ForeignKey(
-        User,
+        'accounts.User',
         on_delete=models.CASCADE,
         related_name='sent_messages',
         verbose_name='Відправник'
     )
     recipient = models.ForeignKey(
-        User,
+        'accounts.User',
         on_delete=models.CASCADE,
         related_name='received_messages',
         verbose_name='Отримувач'

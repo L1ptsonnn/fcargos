@@ -248,33 +248,39 @@ def tracking_view(request, pk):
             progress_percent=0
         )
     
-    # Перевірка та валідація координат та автоматичний розрахунок на основі прогресу
+    # Перевірка та валідація координат
     try:
         origin_lat = float(route.origin_lat) if route.origin_lat else 50.45
         origin_lng = float(route.origin_lng) if route.origin_lng else 30.52
         dest_lat = float(route.destination_lat) if route.destination_lat else 49.84
         dest_lng = float(route.destination_lng) if route.destination_lng else 24.03
         
-        # Автоматично розраховуємо координати на основі прогресу
+        # Розраховуємо позицію на основі прогресу
         progress = max(0, min(100, tracking.progress_percent)) / 100.0
         current_lat = origin_lat + (dest_lat - origin_lat) * progress
         current_lng = origin_lng + (dest_lng - origin_lng) * progress
         
-        # Оновлюємо Tracking якщо координати не відповідають прогресу
-        if abs(float(tracking.current_lat or 0) - current_lat) > 0.01 or \
-           abs(float(tracking.current_lng or 0) - current_lng) > 0.01:
-            tracking.current_lat = current_lat
-            tracking.current_lng = current_lng
-            tracking.save()
+        # Розраховуємо прогрес на основі часу (якщо маршрут в дорозі)
+        if route.status == 'in_transit' and route.pickup_date and route.delivery_date:
+            from django.utils import timezone
+            now = timezone.now()
+            if route.pickup_date <= now <= route.delivery_date:
+                total_time = (route.delivery_date - route.pickup_date).total_seconds()
+                elapsed_time = (now - route.pickup_date).total_seconds()
+                time_progress = min(100, max(0, int((elapsed_time / total_time) * 100)))
+                # Оновлюємо прогрес якщо він відрізняється більше ніж на 5%
+                if abs(time_progress - tracking.progress_percent) > 5:
+                    tracking.progress_percent = time_progress
+                    tracking.current_lat = current_lat
+                    tracking.current_lng = current_lng
+                    tracking.save()
     except (ValueError, TypeError):
         origin_lat, origin_lng = 50.45, 30.52
         dest_lat, dest_lng = 49.84, 24.03
-        progress = 0.0
         current_lat, current_lng = origin_lat, origin_lng
     
     # Форма для оновлення прогресу (тільки для перевізника)
-    can_update = (request.user.role == 'carrier' and route.carrier == request.user) and \
-                 route.status == 'in_transit'
+    can_update = (request.user.role == 'carrier' and route.carrier == request.user and route.status == 'in_transit')
     
     form = None
     if can_update and request.method == 'GET':
@@ -292,20 +298,8 @@ def tracking_view(request, pk):
                 dest_lng = float(route.destination_lng)
                 
                 progress = max(0, min(100, tracking.progress_percent)) / 100.0
-                
-                # Розраховуємо координати на основі прогресу
                 tracking.current_lat = origin_lat + (dest_lat - origin_lat) * progress
                 tracking.current_lng = origin_lng + (dest_lng - origin_lng) * progress
-                
-                # Оновлюємо локацію на основі прогресу (опціонально, якщо не вказано)
-                if not tracking.current_location or tracking.current_location.strip() == '':
-                    if progress >= 1.0:
-                        tracking.current_location = route.destination_city
-                    elif progress <= 0.0:
-                        tracking.current_location = route.origin_city
-                    else:
-                        tracking.current_location = f"{route.origin_city} → {route.destination_city}"
-                        
             except (ValueError, TypeError):
                 pass
             
@@ -314,8 +308,6 @@ def tracking_view(request, pk):
                 tracking.current_location = route.destination_city
                 tracking.current_lat = route.destination_lat
                 tracking.current_lng = route.destination_lng
-                tracking.progress_percent = 100
-                messages.info(request, 'Прогрес доставки 100%! Рекомендується завершити маршрут на сторінці деталей.')
             
             tracking.save()
             messages.success(request, f'Прогрес оновлено до {tracking.progress_percent}%')
@@ -394,20 +386,8 @@ def update_tracking(request, pk):
                 dest_lng = float(route.destination_lng)
                 
                 progress = max(0, min(100, tracking.progress_percent)) / 100.0
-                
-                # Розраховуємо координати на основі прогресу
                 tracking.current_lat = origin_lat + (dest_lat - origin_lat) * progress
                 tracking.current_lng = origin_lng + (dest_lng - origin_lng) * progress
-                
-                # Оновлюємо локацію на основі прогресу (опціонально, якщо не вказано)
-                if not tracking.current_location or tracking.current_location.strip() == '':
-                    if progress >= 1.0:
-                        tracking.current_location = route.destination_city
-                    elif progress <= 0.0:
-                        tracking.current_location = route.origin_city
-                    else:
-                        tracking.current_location = f"{route.origin_city} → {route.destination_city}"
-                        
             except (ValueError, TypeError):
                 pass
             
@@ -426,62 +406,3 @@ def update_tracking(request, pk):
         form = TrackingUpdateForm(instance=tracking)
     
     return redirect('tracking', pk=route.pk)
-
-
-@login_required
-def route_messages(request, pk):
-    """Месенджер для маршруту"""
-    route = get_object_or_404(Route, pk=pk)
-    
-    # Перевірка доступу
-    if route.company != request.user and route.carrier != request.user:
-        messages.error(request, 'У вас немає доступу до цього маршруту')
-        return redirect('home')
-    
-    # Визначаємо співрозмовника
-    if request.user == route.company:
-        other_user = route.carrier
-    elif request.user == route.carrier:
-        other_user = route.company
-    else:
-        other_user = None
-    
-    # Якщо перевізник ще не призначений, не показуємо месенджер
-    if not route.carrier:
-        messages.info(request, 'Месенджер стане доступним після призначення перевізника')
-        return redirect('route_detail', pk=route.pk)
-    
-    if not other_user:
-        messages.error(request, 'Неможливо визначити співрозмовника')
-        return redirect('route_detail', pk=route.pk)
-    
-    # Отримуємо повідомлення для цього маршруту
-    route_messages_list = Message.objects.filter(route=route).order_by('created_at')
-    
-    # Позначаємо повідомлення як прочитані
-    if request.user == route.company:
-        route_messages_list.filter(recipient=request.user, is_read=False).update(is_read=True)
-    else:
-        route_messages_list.filter(recipient=request.user, is_read=False).update(is_read=True)
-    
-    # Обробка форми відправки повідомлення
-    if request.method == 'POST':
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.route = route
-            message.sender = request.user
-            message.recipient = other_user
-            message.save()
-            messages.success(request, 'Повідомлення відправлено!')
-            return redirect('route_messages', pk=route.pk)
-    else:
-        form = MessageForm()
-    
-    context = {
-        'route': route,
-        'other_user': other_user,
-        'messages_list': route_messages_list,
-        'form': form,
-    }
-    return render(request, 'logistics/messages.html', context)

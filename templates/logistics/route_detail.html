@@ -198,21 +198,21 @@
                     <hr>
                     <div class="d-grid gap-2">
                         {% if route.carrier %}
-                        <a href="{% url 'route_messages' route.pk %}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-chat-dots"></i> Написати повідомлення
-                        </a>
-                        {% endif %}
-                        {% if route.company.phone %}
-                        <button class="btn btn-sm btn-outline-secondary" 
-                                onclick="alert('Телефон: {{ route.company.phone }}')">
-                            <i class="bi bi-telephone"></i> Зателефонувати
-                        </button>
+                            <a href="{% url 'route_messages' route.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-chat-dots"></i> Написати повідомлення
+                                {% if route.messages.filter recipient=request.user is_read=False %}
+                                <span class="badge bg-danger ms-1">{{ route.messages.filter|recipient=request.user|is_read=False|length }}</span>
+                                {% endif %}
+                            </a>
                         {% endif %}
                         {% if route.carrier and route.carrier.phone %}
-                        <button class="btn btn-sm btn-outline-secondary" 
-                                onclick="alert('Телефон перевізника: {{ route.carrier.phone }}')">
-                            <i class="bi bi-telephone-fill"></i> Телефон перевізника
-                        </button>
+                            <a href="tel:{{ route.carrier.phone }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-telephone"></i> {{ route.carrier.phone }}
+                            </a>
+                        {% elif route.company and route.company.phone %}
+                            <a href="tel:{{ route.company.phone }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-telephone"></i> {{ route.company.phone }}
+                            </a>
                         {% endif %}
                     </div>
                 </div>
@@ -308,14 +308,10 @@
             {% else %}
                 <!-- Якщо немає ставок, показуємо корисну інформацію -->
                 {% if user.role == 'company' %}
-                <div class="card shadow-lg border-0 fade-in-up tips-card" id="tipsCard" style="animation-delay: 400ms;">
-                    <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Поради</h5>
-                            <button type="button" class="btn btn-sm btn-light" onclick="hideTips()" title="Приховати поради">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </div>
+                <div class="card shadow-lg border-0 fade-in-up tips-card" style="animation-delay: 400ms;" id="tipsCard">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Поради</h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="hideTips()" aria-label="Закрити"></button>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info mb-3">
@@ -337,24 +333,7 @@
 
 {% block extra_js %}
 <script>
-    // Функція для приховування порад
-    function hideTips() {
-        const tipsCard = document.getElementById('tipsCard');
-        if (tipsCard) {
-            tipsCard.style.display = 'none';
-            localStorage.setItem('route_tips_hidden', 'true');
-        }
-    }
-    
-    // Перевірка чи поради приховані
     document.addEventListener('DOMContentLoaded', function() {
-        if (localStorage.getItem('route_tips_hidden') === 'true') {
-            const tipsCard = document.getElementById('tipsCard');
-            if (tipsCard) {
-                tipsCard.style.display = 'none';
-            }
-        }
-        
         const mapElement = document.getElementById('routeMap');
         const fallbackElement = document.getElementById('mapFallback');
         
@@ -434,6 +413,27 @@
             if (fallbackElement) fallbackElement.style.display = 'block';
         }
     });
+    
+    function hideTips() {
+        const tipsCard = document.getElementById('tipsCard');
+        if (tipsCard) {
+            tipsCard.style.transition = 'opacity 0.3s, transform 0.3s';
+            tipsCard.style.opacity = '0';
+            tipsCard.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                tipsCard.style.display = 'none';
+                localStorage.setItem('tips_hidden', 'true');
+            }, 300);
+        }
+    }
+    
+    // Перевіряємо чи поради були приховані
+    if (localStorage.getItem('tips_hidden') === 'true') {
+        const tipsCard = document.getElementById('tipsCard');
+        if (tipsCard) {
+            tipsCard.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}
 
