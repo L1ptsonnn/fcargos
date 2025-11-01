@@ -161,13 +161,17 @@ class MessageForm(forms.ModelForm):
 
 class RatingForm(forms.ModelForm):
     """Форма для оцінки перевізника"""
+    rating = forms.ChoiceField(
+        choices=[(i, '★' * i + ' ' + str(i)) for i in range(1, 6)],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Оцінка',
+        required=True
+    )
+    
     class Meta:
         model = Rating
         fields = ['rating', 'comment']
         widgets = {
-            'rating': forms.Select(choices=[(i, '★' * i + ' ' + str(i)) for i in range(1, 6)], attrs={
-                'class': 'form-select'
-            }),
             'comment': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
