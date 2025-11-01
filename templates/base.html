@@ -203,7 +203,7 @@
                                 const icon = getNotificationIcon(n.type);
                                 const routeLink = n.route_id ? `href="/logistics/routes/${n.route_id}/"` : '';
                                 return `
-                                    <div class="card mb-2 notification-item" data-id="${n.id}" style="cursor: pointer; transition: all 0.3s;">
+                                    <div class="card mb-2 notification-item" data-id="${n.id}" data-route-id="${n.route_id || ''}" style="cursor: pointer; transition: all 0.3s; border-left: 4px solid var(--primary-gradient-start);">
                                         <div class="card-body p-3">
                                             <div class="d-flex align-items-start">
                                                 <div class="me-3" style="font-size: 1.5rem; color: var(--primary-gradient-start);">
@@ -222,24 +222,37 @@
                             
                             // Додаємо обробники подій для кліків
                             document.querySelectorAll('.notification-item').forEach(item => {
+                                item.addEventListener('mouseenter', function() {
+                                    this.style.transform = 'translateX(5px)';
+                                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                                });
+                                item.addEventListener('mouseleave', function() {
+                                    this.style.transform = 'translateX(0)';
+                                    this.style.boxShadow = 'none';
+                                });
                                 item.addEventListener('click', function() {
-                                    const notificationId = this.dataset.id;
-                                    const routeId = data.notifications.find(n => n.id == notificationId)?.route_id;
+                                    const notificationId = parseInt(this.dataset.id);
+                                    const routeId = this.dataset.routeId;
                                     
                                     // Позначаємо як прочитане
+                                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
                                     fetch(`/logistics/notifications/${notificationId}/read/`, {
                                         method: 'POST',
                                         headers: {
                                             'X-Requested-With': 'XMLHttpRequest',
-                                            'X-CSRFToken': getCookie('csrftoken')
-                                        }
+                                            'X-CSRFToken': csrftoken,
+                                            'Content-Type': 'application/json'
+                                        },
+                                        credentials: 'same-origin'
                                     }).then(() => {
                                         loadNotifications();
                                     });
                                     
                                     // Переходимо на маршрут якщо є
                                     if (routeId) {
-                                        window.location.href = `/logistics/routes/${routeId}/`;
+                                        setTimeout(() => {
+                                            window.location.href = `/logistics/routes/${routeId}/`;
+                                        }, 100);
                                     }
                                 });
                             });
@@ -287,12 +300,14 @@
             // Обробник для кнопки "Позначити всі як прочитані"
             if (markAllReadBtn) {
                 markAllReadBtn.addEventListener('click', function() {
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
                     fetch('{% url "mark_all_notifications_read" %}', {
                         method: 'POST',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        }
+                            'X-CSRFToken': csrftoken
+                        },
+                        credentials: 'same-origin'
                     }).then(() => {
                         loadNotifications();
                     });
