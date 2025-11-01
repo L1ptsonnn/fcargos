@@ -54,15 +54,14 @@
         <div class="mt-3">
             <div class="rating-display">
                 <span class="rating-stars">
-                    {% with rating_int=carrier_profile.rating|floatformat:0|add:"0"|add:0 %}
                     {% for i in "12345" %}
+                        {% widthratio carrier_profile.rating 1 1 as rating_int %}
                         {% if forloop.counter <= rating_int %}
                             <i class="bi bi-star-fill text-warning"></i>
                         {% else %}
                             <i class="bi bi-star text-warning"></i>
                         {% endif %}
                     {% endfor %}
-                    {% endwith %}
                 </span>
                 <span class="ms-2 fw-bold">{{ carrier_profile.rating }}/5.00</span>
                 {% if ratings %}
