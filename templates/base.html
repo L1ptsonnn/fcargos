@@ -613,13 +613,11 @@
             }
             
             // Завантаження чатів при відкритті offcanvas
-            const chatsTrigger = document.getElementById('chatsTrigger');
-            if (chatsTrigger) {
-                chatsTrigger.addEventListener('click', function() {
-                    // Невелика затримка для завантаження після відкриття offcanvas
-                    setTimeout(() => {
-                        loadChats();
-                    }, 300);
+            const chatsOffcanvasEl = document.getElementById('chatsOffcanvas');
+            if (chatsOffcanvasEl) {
+                chatsOffcanvasEl.addEventListener('show.bs.offcanvas', function() {
+                    // Завантажуємо чати коли offcanvas відкривається
+                    loadChats();
                 });
             }
             
