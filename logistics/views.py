@@ -16,10 +16,12 @@ def routes_list(request):
     else:
         routes = Route.objects.none()
     
-    # Фільтрація по місту старту
+    # Фільтрація по місту старту (може бути з пошуку або з фільтра)
     origin_city_filter = request.GET.get('origin_city', '')
-    if origin_city_filter:
-        routes = routes.filter(origin_city__icontains=origin_city_filter)
+    search_city = request.GET.get('search_city', '')
+    city_filter = origin_city_filter or search_city
+    if city_filter:
+        routes = routes.filter(origin_city__icontains=city_filter)
     
     # Фільтрація по статусу
     status_filter = request.GET.getlist('status')

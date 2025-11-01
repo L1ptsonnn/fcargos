@@ -404,6 +404,12 @@
                 return icons[type] || '<i class="bi bi-bell"></i>';
             }
             
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
             let currentRouteId = null;
             
             // Завантаження чатів
@@ -522,13 +528,14 @@
                                 </div>
                             `;
                         } else {
+                            const currentUserId = {{ user.id|default:0 }};
                             messagesContainer.innerHTML = data.messages.map(msg => {
-                                const isSent = msg.sender_id === {{ request.user.id|default:0 }};
+                                const isSent = msg.sender_id === currentUserId;
                                 return `
                                     <div class="d-flex ${isSent ? 'justify-content-end' : 'justify-content-start'} mb-3 px-3">
                                         <div class="message-bubble ${isSent ? 'sent' : 'received'}" style="max-width: 70%; padding: 0.75rem 1rem; border-radius: 18px; ${isSent ? 'background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;' : 'background: rgba(255,255,255,0.95); color: var(--text-primary); border: 1px solid rgba(226,232,240,0.8);'}">
                                             ${!isSent ? `<div class="fw-bold mb-1" style="font-size: 0.85rem;">${msg.sender}</div>` : ''}
-                                            <div>${msg.content}</div>
+                                            <div>${escapeHtml(msg.content)}</div>
                                             <small style="font-size: 0.75rem; opacity: 0.7; display: block; margin-top: 0.25rem;">${msg.created_at}</small>
                                         </div>
                                     </div>
@@ -589,10 +596,19 @@
                 const formData = new FormData(form);
                 const params = new URLSearchParams();
                 
-                for (const [key, value] of formData.entries()) {
-                    if (value) params.append(key, value);
+                // Додаємо пошук по місту
+                const searchCity = document.getElementById('searchCity').value;
+                if (searchCity) {
+                    params.append('origin_city', searchCity);
                 }
                 
+                // Додаємо місто відправлення
+                const originCity = document.getElementById('origin_city_window').value;
+                if (originCity) {
+                    params.append('origin_city', originCity);
+                }
+                
+                // Додаємо статуси
                 const statusSelect = document.getElementById('statusFilter');
                 const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value);
                 selectedStatuses.forEach(status => params.append('status', status));
@@ -605,7 +621,28 @@
                         const routesList = doc.querySelector('.container .row');
                         if (routesList) {
                             document.getElementById('routesWindowList').innerHTML = routesList.innerHTML;
+                            // Додаємо обробники кліків для карток
+                            document.querySelectorAll('#routesWindowList .route-card').forEach(card => {
+                                card.style.cursor = 'pointer';
+                                card.addEventListener('click', function() {
+                                    const link = this.querySelector('a.btn-primary');
+                                    if (link) {
+                                        window.location.href = link.href;
+                                    }
+                                });
+                            });
+                        } else {
+                            document.getElementById('routesWindowList').innerHTML = `
+                                <div class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                    <p class="mt-3">Маршрути не знайдені</p>
+                                    <p class="small">Спробуйте змінити фільтри</p>
+                                </div>
+                            `;
                         }
+                    })
+                    .catch(error => {
+                        console.error('Помилка фільтрації:', error);
                     });
             }
             
