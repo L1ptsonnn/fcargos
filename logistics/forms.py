@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit
-from .models import Route, Bid, Tracking, Message
+from .models import Route, Bid, Tracking, Message, Rating
 
 
 class RouteForm(forms.ModelForm):
@@ -156,5 +156,31 @@ class MessageForm(forms.ModelForm):
         self.helper.layout = Layout(
             'content',
             Submit('submit', 'Відправити', css_class='btn btn-primary mt-2')
+        )
+
+
+class RatingForm(forms.ModelForm):
+    """Форма для оцінки перевізника"""
+    class Meta:
+        model = Rating
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.Select(choices=[(i, '★' * i + ' ' + str(i)) for i in range(1, 6)], attrs={
+                'class': 'form-select'
+            }),
+            'comment': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Залиште коментар (необов\'язково)...'
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'rating',
+            'comment',
+            Submit('rating_submit', 'Зберегти оцінку', css_class='btn btn-primary w-100 mt-3')
         )
 

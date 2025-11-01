@@ -2,8 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Route, Bid, Tracking, Message, Notification
-from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm
+from .models import Route, Bid, Tracking, Message, Notification, Rating
+from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm, RatingForm
 
 
 @login_required
@@ -762,7 +762,7 @@ def history_api(request):
 @login_required
 def user_profile(request, user_id):
     """Профіль користувача"""
-    from accounts.models import User
+    from accounts.models import User, CarrierProfile
     profile_user = get_object_or_404(User, pk=user_id)
     
     # Статистика маршрутів
@@ -770,16 +770,69 @@ def user_profile(request, user_id):
         routes_created = Route.objects.filter(company=profile_user).count()
         routes_in_transit = Route.objects.filter(company=profile_user, status='in_transit').count()
         routes_completed = Route.objects.filter(company=profile_user, status='delivered').count()
+        carrier_profile = None
+        ratings = None
+        user_rating = None
     else:
         routes_created = 0
         routes_in_transit = Route.objects.filter(carrier=profile_user, status='in_transit').count()
         routes_completed = Route.objects.filter(carrier=profile_user, status='delivered').count()
+        try:
+            carrier_profile = CarrierProfile.objects.get(user=profile_user)
+        except CarrierProfile.DoesNotExist:
+            carrier_profile = None
+        ratings = Rating.objects.filter(carrier=profile_user).select_related('company', 'route').order_by('-created_at')[:10]
+        
+        # Перевіряємо чи поточна компанія вже ставила оцінку цьому перевізнику
+        if request.user.role == 'company':
+            user_rating = Rating.objects.filter(
+                carrier=profile_user,
+                company=request.user
+            ).first()
+        else:
+            user_rating = None
+    
+    # Обробка форми оцінки
+    rating_form = None
+    if request.user.role == 'company' and profile_user.role == 'carrier':
+        if request.method == 'POST' and 'rating_submit' in request.POST:
+            rating_form = RatingForm(request.POST)
+            if rating_form.is_valid():
+                route_id = request.POST.get('route_id')
+                route = None
+                if route_id:
+                    try:
+                        route = Route.objects.get(pk=route_id, company=request.user, carrier=profile_user)
+                    except Route.DoesNotExist:
+                        pass
+                
+                rating_obj, created = Rating.objects.update_or_create(
+                    carrier=profile_user,
+                    company=request.user,
+                    route=route,
+                    defaults={
+                        'rating': rating_form.cleaned_data['rating'],
+                        'comment': rating_form.cleaned_data['comment']
+                    }
+                )
+                
+                messages.success(request, 'Оцінку успішно збережено!')
+                return redirect('user_profile', user_id=user_id)
+        else:
+            if user_rating:
+                rating_form = RatingForm(instance=user_rating)
+            else:
+                rating_form = RatingForm()
     
     context = {
         'profile_user': profile_user,
         'routes_created': routes_created,
         'routes_in_transit': routes_in_transit,
         'routes_completed': routes_completed,
+        'carrier_profile': carrier_profile,
+        'ratings': ratings,
+        'user_rating': user_rating,
+        'rating_form': rating_form,
     }
     return render(request, 'logistics/user_profile.html', context)
 

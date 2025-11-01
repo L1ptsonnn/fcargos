@@ -308,3 +308,99 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.title}"
+
+
+class Rating(models.Model):
+    """Оцінка перевізника від компанії"""
+    carrier = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ratings_received',
+        limit_choices_to={'role': 'carrier'},
+        verbose_name='Перевізник'
+    )
+    company = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ratings_given',
+        limit_choices_to={'role': 'company'},
+        verbose_name='Компанія'
+    )
+    route = models.ForeignKey(
+        Route,
+        on_delete=models.CASCADE,
+        related_name='ratings',
+        null=True,
+        blank=True,
+        verbose_name='Маршрут'
+    )
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name='Оцінка',
+        help_text='Оцінка від 1 до 5'
+    )
+    comment = models.TextField(
+        blank=True,
+        verbose_name='Коментар'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Створено'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Оновлено'
+    )
+
+    class Meta:
+        verbose_name = 'Оцінка'
+        verbose_name_plural = 'Оцінки'
+        unique_together = ('carrier', 'company', 'route')  # Одна оцінка від компанії для маршруту
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.company.username} → {self.carrier.username}: {self.rating}/5"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Оновлюємо середній рейтинг перевізника
+        self.update_carrier_rating()
+
+    def delete(self, *args, **kwargs):
+        carrier = self.carrier
+        super().delete(*args, **kwargs)
+        # Оновлюємо рейтинг після видалення
+        self._update_carrier_rating_for(carrier)
+
+    def update_carrier_rating(self):
+        """Оновлює середній рейтинг перевізника"""
+        from accounts.models import CarrierProfile
+        from django.db.models import Avg
+        try:
+            carrier_profile = CarrierProfile.objects.get(user=self.carrier)
+            ratings = Rating.objects.filter(carrier=self.carrier)
+            if ratings.exists():
+                avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
+                carrier_profile.rating = round(avg_rating, 2)
+            else:
+                carrier_profile.rating = 0.00
+            carrier_profile.save()
+        except CarrierProfile.DoesNotExist:
+            pass
+
+    @staticmethod
+    def _update_carrier_rating_for(carrier):
+        """Оновлює рейтинг для конкретного перевізника"""
+        from accounts.models import CarrierProfile
+        from django.db.models import Avg
+        try:
+            carrier_profile = CarrierProfile.objects.get(user=carrier)
+            ratings = Rating.objects.filter(carrier=carrier)
+            if ratings.exists():
+                avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
+                carrier_profile.rating = round(avg_rating, 2)
+            else:
+                carrier_profile.rating = 0.00
+            carrier_profile.save()
+        except CarrierProfile.DoesNotExist:
+            pass
