@@ -8,20 +8,50 @@
         background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
         background-size: 200% 200%;
         animation: gradientShift 5s ease infinite;
-        padding: 3rem 0;
-        margin: -2rem -15px 3rem -15px;
+        padding: 2.5rem 0;
+        margin: -2rem -15px 2rem -15px;
         border-radius: 0 0 30px 30px;
         color: white;
         box-shadow: var(--shadow-lg);
-    }
-    .history-card {
-        border-radius: 20px;
+        position: relative;
         overflow: hidden;
-        transition: var(--transition-base);
     }
-    .history-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-xl);
+    .history-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: shimmer 4s infinite;
+    }
+    .filter-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+    .filter-btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 25px;
+        border: 2px solid transparent;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: var(--transition-base);
+        cursor: pointer;
+    }
+    .filter-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-gradient-start);
+    }
+    .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+        color: white;
+        border-color: transparent;
     }
     .action-buttons {
         display: flex;
@@ -29,25 +59,74 @@
         flex-wrap: wrap;
     }
     .action-btn {
-        flex: 1;
-        min-width: 120px;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: var(--transition-base);
+        white-space: nowrap;
     }
-    .history-item {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    .route-card-history {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
         padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-gradient-start);
         transition: var(--transition-base);
     }
-    .history-item:hover {
-        background: rgba(102, 126, 234, 0.05);
+    .route-card-history:hover {
+        transform: translateX(5px);
+        box-shadow: var(--shadow-md);
+        border-left-width: 6px;
     }
-    .history-item:last-child {
-        border-bottom: none;
+    .stats-mini {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
     }
-    .stats-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
+    .stat-mini-item {
+        padding: 0.75rem 1rem;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 10px;
+        border-left: 3px solid var(--primary-gradient-start);
+        flex: 1;
+        min-width: 150px;
+    }
+    .stat-mini-item strong {
+        display: block;
+        color: var(--primary-gradient-start);
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+    .empty-state i {
+        font-size: 80px;
+        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+    @media (max-width: 768px) {
+        .filter-buttons {
+            justify-content: center;
+        }
+        .action-buttons {
+            flex-direction: column;
+        }
+        .action-btn {
+            width: 100%;
+        }
     }
 </style>
 {% endblock %}
@@ -55,95 +134,119 @@
 {% block content %}
 <div class="history-header">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class="mb-2">
-                    <i class="bi bi-clock-history"></i> Історія
-                </h2>
-                <p class="mb-0 opacity-75">Перегляд всіх ваших маршрутів та ставок</p>
-            </div>
-            {% if user.role == 'company' %}
-                <a href="{% url 'create_route' %}" class="btn btn-light">
-                    <i class="bi bi-plus-circle"></i> Створити маршрут
-                </a>
-            {% else %}
-                <a href="{% url 'routes_list' %}" class="btn btn-light">
-                    <i class="bi bi-search"></i> Знайти маршрути
-                </a>
-            {% endif %}
-        </div>
+        <h2 class="mb-2">
+            <i class="bi bi-clock-history"></i> Історія
+        </h2>
+        <p class="mb-0 opacity-75">Перегляд всіх ваших маршрутів та ставок</p>
     </div>
 </div>
 
 <div class="container">
     {% if user.role == 'company' %}
-        <div class="card shadow-lg border-0 mb-4 history-card fade-in-up">
-            <div class="card-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-map"></i> Історія маршрутів</h5>
-                    <span class="badge bg-light text-dark">{{ routes|length }}</span>
-                </div>
+        <!-- Фільтри для компанії -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">
+                <i class="bi bi-list-ul"></i> Всі
+            </button>
+            <button class="filter-btn" data-filter="pending">
+                <i class="bi bi-hourglass-split"></i> Очікує ({{ routes|length }})
+            </button>
+            <button class="filter-btn" data-filter="in_transit">
+                <i class="bi bi-truck"></i> В дорозі
+            </button>
+            <button class="filter-btn" data-filter="delivered">
+                <i class="bi bi-check-circle"></i> Доставлено
+            </button>
+            <button class="filter-btn" data-filter="cancelled">
+                <i class="bi bi-x-circle"></i> Скасовано
+            </button>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats-mini mb-4">
+            <div class="stat-mini-item">
+                <strong><i class="bi bi-map"></i> Всього маршрутів</strong>
+                <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary-gradient-start);">{{ routes|length }}</span>
             </div>
-            <div class="card-body p-0">
+            <div class="stat-mini-item">
+                <strong><i class="bi bi-hourglass-split"></i> Очікує</strong>
+                <span style="font-size: 1.5rem; font-weight: 700; color: #ffc107;">{{ routes|length }}</span>
+            </div>
+            <div class="stat-mini-item">
+                <strong><i class="bi bi-truck"></i> В дорозі</strong>
+                <span style="font-size: 1.5rem; font-weight: 700; color: #0dcaf0;">0</span>
+            </div>
+            <div class="stat-mini-item">
+                <strong><i class="bi bi-check-circle"></i> Доставлено</strong>
+                <span style="font-size: 1.5rem; font-weight: 700; color: #198754;">0</span>
+            </div>
+        </div>
+
+        <div class="card shadow-lg border-0 mb-4 fade-in-up">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
+                <h5 class="mb-0"><i class="bi bi-map"></i> Історія маршрутів</h5>
+            </div>
+            <div class="card-body">
                 {% if routes %}
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead style="background: rgba(102, 126, 234, 0.1);">
+                        <table class="table table-hover align-middle">
+                            <thead>
                                 <tr>
                                     <th><i class="bi bi-route"></i> Маршрут</th>
                                     <th><i class="bi bi-box"></i> Тип вантажу</th>
                                     <th><i class="bi bi-cash-coin"></i> Ціна</th>
                                     <th><i class="bi bi-calendar"></i> Дата створення</th>
                                     <th><i class="bi bi-info-circle"></i> Статус</th>
-                                    <th><i class="bi bi-lightning-charge"></i> Дії</th>
+                                    <th><i class="bi bi-gear"></i> Дії</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for route in routes %}
-                                <tr class="history-item">
+                                <tr class="route-row" data-status="{{ route.status }}">
                                     <td>
-                                        <strong>
-                                            <i class="bi bi-geo-alt-fill text-success"></i> {{ route.origin_city }}
-                                            <i class="bi bi-arrow-right text-primary"></i>
-                                            <i class="bi bi-geo-alt text-danger"></i> {{ route.destination_city }}
-                                        </strong>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-success me-2">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ route.origin_city }}
+                                            </span>
+                                            <i class="bi bi-arrow-right mx-2 text-primary"></i>
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-geo-alt"></i> {{ route.destination_city }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary">{{ route.cargo_type }}</span>
                                     </td>
                                     <td>
-                                        <strong class="text-success">{{ route.price }} грн</strong>
+                                        <strong style="color: var(--success-gradient-start);">{{ route.price }} грн</strong>
                                     </td>
                                     <td>
-                                        <small>
-                                            <i class="bi bi-calendar3"></i> {{ route.created_at|date:"d.m.Y" }}<br>
-                                            <i class="bi bi-clock"></i> {{ route.created_at|date:"H:i" }}
-                                        </small>
+                                        <small>{{ route.created_at|date:"d.m.Y" }}<br>{{ route.created_at|date:"H:i" }}</small>
                                     </td>
                                     <td>
-                                        <span class="stats-badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% elif route.status == 'delivered' %}success{% else %}secondary{% endif %}">
                                             {{ route.get_status_display }}
                                         </span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary action-btn" title="Переглянути деталі">
+                                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary action-btn">
                                                 <i class="bi bi-eye"></i> Деталі
                                             </a>
                                             {% if route.status == 'in_transit' or route.status == 'delivered' %}
-                                                <a href="{% url 'tracking' route.pk %}" class="btn btn-sm btn-info action-btn" title="Відстежити вантаж">
+                                                <a href="{% url 'tracking' route.pk %}" class="btn btn-sm btn-info action-btn">
                                                     <i class="bi bi-radar"></i> Відстежити
                                                 </a>
                                             {% endif %}
                                             {% if route.status == 'pending' %}
-                                                <a href="{% url 'routes_list' %}" class="btn btn-sm btn-secondary action-btn" title="Переглянути ставки">
-                                                    <i class="bi bi-list-ul"></i> Ставки
+                                                <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-warning action-btn">
+                                                    <i class="bi bi-pencil"></i> Редагувати
                                                 </a>
                                             {% endif %}
-                                            {% if route.status == 'delivered' %}
-                                                <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-success action-btn" title="Переглянути завершений маршрут">
-                                                    <i class="bi bi-check-circle"></i> Завершено
-                                                </a>
+                                            {% if route.status != 'delivered' and route.status != 'cancelled' %}
+                                                <button class="btn btn-sm btn-outline-danger action-btn" onclick="alert('Функція в розробці')">
+                                                    <i class="bi bi-x-circle"></i> Скасувати
+                                                </button>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -153,47 +256,61 @@
                         </table>
                     </div>
                 {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox" style="font-size: 80px; color: var(--primary-gradient-start); opacity: 0.3;"></i>
-                        <h4 class="mt-3 text-muted">Поки немає маршрутів</h4>
-                        <p class="text-muted mb-4">Створіть свій перший маршрут для початку роботи</p>
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h4 class="mb-3">Поки немає маршрутів</h4>
+                        <p class="text-muted mb-4">Почніть створювати маршрути для своїх вантажів</p>
                         <a href="{% url 'create_route' %}" class="btn btn-primary btn-lg">
-                            <i class="bi bi-plus-circle"></i> Створити маршрут
+                            <i class="bi bi-plus-circle"></i> Створити перший маршрут
                         </a>
                     </div>
                 {% endif %}
             </div>
         </div>
     {% elif user.role == 'carrier' %}
+        <!-- Фільтри для перевізника -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">
+                <i class="bi bi-list-ul"></i> Всі
+            </button>
+            <button class="filter-btn" data-filter="pending">
+                <i class="bi bi-hourglass-split"></i> Очікує
+            </button>
+            <button class="filter-btn" data-filter="accepted">
+                <i class="bi bi-check-circle"></i> Прийняті
+            </button>
+        </div>
+
         <div class="row">
             <div class="col-md-6 mb-4">
-                <div class="card shadow-lg border-0 history-card fade-in-up">
+                <div class="card shadow-lg border-0 fade-in-up">
                     <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Історія ставок</h5>
-                            <span class="badge bg-light text-dark">{{ bids|length }}</span>
-                        </div>
+                        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Історія ставок</h5>
                     </div>
-                    <div class="card-body p-0">
+                    <div class="card-body">
                         {% if bids %}
                             <div class="list-group list-group-flush">
                                 {% for bid in bids %}
-                                <div class="list-group-item history-item">
+                                <div class="route-card-history bid-item" data-status="{% if bid.is_accepted %}accepted{% else %}pending{% endif %}">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div class="flex-grow-1">
                                             <h6 class="mb-1">
-                                                <i class="bi bi-geo-alt-fill text-success"></i> {{ bid.route.origin_city }}
-                                                <i class="bi bi-arrow-right text-primary"></i>
-                                                <i class="bi bi-geo-alt text-danger"></i> {{ bid.route.destination_city }}
-                                            </h6>
-                                            <div class="d-flex align-items-center gap-2 mb-2">
-                                                <span class="badge bg-success" style="font-size: 1rem;">
-                                                    <i class="bi bi-cash-coin"></i> {{ bid.proposed_price }} грн
+                                                <span class="badge bg-success me-2">
+                                                    <i class="bi bi-geo-alt-fill"></i> {{ bid.route.origin_city }}
                                                 </span>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-calendar3"></i> {{ bid.created_at|date:"d.m.Y H:i" }}
-                                                </small>
-                                            </div>
+                                                <i class="bi bi-arrow-right mx-2"></i>
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-geo-alt"></i> {{ bid.route.destination_city }}
+                                                </span>
+                                            </h6>
+                                            <p class="mb-1 mt-2">
+                                                <strong style="color: var(--success-gradient-start); font-size: 1.1rem;">
+                                                    <i class="bi bi-cash-coin"></i> {{ bid.proposed_price }} грн
+                                                </strong>
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> {{ bid.created_at|date:"d.m.Y H:i" }}
+                                            </small>
                                         </div>
                                         {% if bid.is_accepted %}
                                             <span class="badge bg-success">
@@ -205,32 +322,26 @@
                                             </span>
                                         {% endif %}
                                     </div>
-                                    <div class="action-buttons">
+                                    <div class="action-buttons mt-3">
                                         <a href="{% url 'route_detail' bid.route.pk %}" class="btn btn-sm btn-primary action-btn">
-                                            <i class="bi bi-eye"></i> Деталі
+                                            <i class="bi bi-eye"></i> Деталі маршруту
                                         </a>
-                                        {% if bid.route.status == 'in_transit' and bid.is_accepted %}
+                                        {% if bid.is_accepted %}
                                             <a href="{% url 'tracking' bid.route.pk %}" class="btn btn-sm btn-info action-btn">
                                                 <i class="bi bi-radar"></i> Відстежити
                                             </a>
                                         {% endif %}
-                                        {% if bid.route.status == 'pending' and not bid.is_accepted %}
-                                            <a href="{% url 'route_detail' bid.route.pk %}" class="btn btn-sm btn-secondary action-btn">
-                                                <i class="bi bi-pencil"></i> Редагувати
-                                            </a>
-                                        {% endif %}
+                                        <button class="btn btn-sm btn-outline-secondary action-btn" onclick="alert('Функція в розробці')">
+                                            <i class="bi bi-file-text"></i> Деталі ставки
+                                        </button>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="text-center py-5">
-                                <i class="bi bi-inbox" style="font-size: 64px; color: var(--accent-gradient-start); opacity: 0.3;"></i>
-                                <h5 class="mt-3 text-muted">Поки немає ставок</h5>
-                                <p class="text-muted mb-4">Перегляньте доступні маршрути та зробіть свою першу ставку</p>
-                                <a href="{% url 'routes_list' %}" class="btn btn-primary">
-                                    <i class="bi bi-search"></i> Знайти маршрути
-                                </a>
+                            <div class="empty-state py-4">
+                                <i class="bi bi-inbox"></i>
+                                <p class="text-muted mt-3">Поки немає ставок</p>
                             </div>
                         {% endif %}
                     </div>
@@ -238,39 +349,40 @@
             </div>
             
             <div class="col-md-6 mb-4">
-                <div class="card shadow-lg border-0 history-card fade-in-up" style="animation-delay: 200ms;">
+                <div class="card shadow-lg border-0 fade-in-up" style="animation-delay: 200ms;">
                     <div class="card-header" style="background: linear-gradient(135deg, var(--success-gradient-start), var(--success-gradient-end)); color: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="bi bi-truck"></i> Мої маршрути</h5>
-                            <span class="badge bg-light text-dark">{{ my_routes|length }}</span>
-                        </div>
+                        <h5 class="mb-0"><i class="bi bi-truck"></i> Мої маршрути</h5>
                     </div>
-                    <div class="card-body p-0">
+                    <div class="card-body">
                         {% if my_routes %}
                             <div class="list-group list-group-flush">
                                 {% for route in my_routes %}
-                                <div class="list-group-item history-item">
+                                <div class="route-card-history">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div class="flex-grow-1">
                                             <h6 class="mb-1">
-                                                <i class="bi bi-geo-alt-fill text-success"></i> {{ route.origin_city }}
-                                                <i class="bi bi-arrow-right text-primary"></i>
-                                                <i class="bi bi-geo-alt text-danger"></i> {{ route.destination_city }}
-                                            </h6>
-                                            <div class="d-flex align-items-center gap-2 mb-2">
-                                                <span class="badge bg-info" style="font-size: 1rem;">
-                                                    <i class="bi bi-cash-coin"></i> {{ route.price }} грн
+                                                <span class="badge bg-success me-2">
+                                                    <i class="bi bi-geo-alt-fill"></i> {{ route.origin_city }}
                                                 </span>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-calendar3"></i> {{ route.created_at|date:"d.m.Y" }}
-                                                </small>
-                                            </div>
+                                                <i class="bi bi-arrow-right mx-2"></i>
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-geo-alt"></i> {{ route.destination_city }}
+                                                </span>
+                                            </h6>
+                                            <p class="mb-1 mt-2">
+                                                <strong style="color: var(--success-gradient-start);">
+                                                    <i class="bi bi-cash-coin"></i> {{ route.price }} грн
+                                                </strong>
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> {{ route.created_at|date:"d.m.Y H:i" }}
+                                            </small>
                                         </div>
-                                        <span class="stats-badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
                                             {{ route.get_status_display }}
                                         </span>
                                     </div>
-                                    <div class="action-buttons">
+                                    <div class="action-buttons mt-3">
                                         <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary action-btn">
                                             <i class="bi bi-eye"></i> Деталі
                                         </a>
@@ -280,27 +392,21 @@
                                             </a>
                                         {% endif %}
                                         {% if route.status == 'in_transit' %}
-                                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-sm btn-success action-btn" onclick="return confirm('Підтвердити завершення доставки?')">
+                                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-sm btn-success action-btn">
                                                 <i class="bi bi-check-circle"></i> Завершити
                                             </a>
                                         {% endif %}
-                                        {% if route.status == 'pending' %}
-                                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-secondary action-btn">
-                                                <i class="bi bi-clock-history"></i> Очікує
-                                            </a>
-                                        {% endif %}
+                                        <button class="btn btn-sm btn-outline-secondary action-btn" onclick="alert('Функція в розробці')">
+                                            <i class="bi bi-chat"></i> Чат
+                                        </button>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="text-center py-5">
-                                <i class="bi bi-inbox" style="font-size: 64px; color: var(--success-gradient-start); opacity: 0.3;"></i>
-                                <h5 class="mt-3 text-muted">Поки немає маршрутів</h5>
-                                <p class="text-muted mb-4">Ваші активні маршрути будуть відображатися тут</p>
-                                <a href="{% url 'routes_list' %}" class="btn btn-success">
-                                    <i class="bi bi-search"></i> Знайти маршрути
-                                </a>
+                            <div class="empty-state py-4">
+                                <i class="bi bi-inbox"></i>
+                                <p class="text-muted mt-3">Поки немає маршрутів</p>
                             </div>
                         {% endif %}
                     </div>
@@ -309,4 +415,43 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Фільтрація маршрутів
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const routeRows = document.querySelectorAll('.route-row');
+        const bidItems = document.querySelectorAll('.bid-item');
+        
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filter = this.dataset.filter;
+                
+                // Активна кнопка
+                filterButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Фільтрація рядків таблиці
+                routeRows.forEach(row => {
+                    if (filter === 'all' || row.dataset.status === filter) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Фільтрація ставок
+                bidItems.forEach(item => {
+                    if (filter === 'all' || item.dataset.status === filter) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}

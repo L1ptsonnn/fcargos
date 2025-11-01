@@ -5,156 +5,28 @@
 
 {% block extra_css %}
 <style>
-    /* Покращені кольори з високим контрастом */
     .route-header {
-        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 50%, var(--secondary-gradient-start) 100%);
-        background-size: 200% 200%;
-        animation: gradientShift 5s ease infinite;
-        padding: 2rem;
-        border-radius: 20px 20px 0 0;
-        position: relative;
-        overflow: hidden;
-    }
-    .route-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-        animation: shimmer 4s infinite;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px 15px 0 0;
     }
     .info-card {
-        transition: var(--transition-base);
-        height: 100%;
+        transition: transform 0.2s;
     }
     .info-card:hover {
-        transform: translateY(-5px);
-    }
-    .info-card .border {
-        transition: var(--transition-base);
-        border-width: 3px !important;
-    }
-    .info-card:hover .border {
-        box-shadow: var(--shadow-lg);
-        border-width: 3px !important;
+        transform: translateY(-2px);
     }
     .status-badge {
         font-size: 1rem;
-        padding: 0.75rem 1.5rem;
+        padding: 10px 20px;
         border-radius: 25px;
-        font-weight: 600;
-        box-shadow: var(--shadow-md);
-        animation: fadeInUp 0.6s ease-out;
     }
     .coordinate-box {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        padding: 0.875rem;
-        border-radius: 12px;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
         font-family: 'Courier New', monospace;
         font-size: 0.9rem;
-        border: 2px solid rgba(102, 126, 234, 0.3);
-        transition: var(--transition-base);
-        color: var(--text-primary);
-    }
-    .coordinate-box:hover {
-        border-color: rgba(102, 126, 234, 0.6);
-        transform: scale(1.02);
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
-    }
-    .map-header {
-        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 50%, var(--secondary-gradient-start) 100%);
-        background-size: 200% 200%;
-        animation: gradientShift 5s ease infinite;
-        padding: 1.5rem 2rem;
-        color: white;
-    }
-    
-    /* Права колонка - покращені стилі */
-    .sidebar-card {
-        margin-bottom: 1.5rem;
-        border-radius: 20px;
-        overflow: hidden;
-        transition: var(--transition-base);
-    }
-    .sidebar-card:hover {
-        transform: translateY(-3px);
-    }
-    .sidebar-header {
-        padding: 1.25rem 1.5rem;
-        color: white;
-        font-weight: 600;
-    }
-    .info-box {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 1.25rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        border-left: 4px solid transparent;
-        transition: var(--transition-base);
-    }
-    .info-box:hover {
-        border-left-color: var(--primary-gradient-start);
-        transform: translateX(5px);
-        box-shadow: var(--shadow-sm);
-    }
-    .info-box-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-weight: 700;
-        color: var(--text-secondary);
-        margin-bottom: 0.5rem;
-    }
-    .info-box-value {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-    .quick-action-btn {
-        width: 100%;
-        margin-bottom: 0.75rem;
-        padding: 0.875rem 1rem;
-        border-radius: 12px;
-        font-weight: 600;
-        transition: var(--transition-base);
-        text-align: left;
-    }
-    .quick-action-btn i {
-        margin-right: 0.75rem;
-        font-size: 1.1rem;
-    }
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    .stat-item {
-        text-align: center;
-        padding: 1rem;
-        background: rgba(102, 126, 234, 0.05);
-        border-radius: 12px;
-        transition: var(--transition-base);
-    }
-    .stat-item:hover {
-        background: rgba(102, 126, 234, 0.1);
-        transform: scale(1.05);
-    }
-    .stat-number {
-        font-size: 1.75rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    .stat-label {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        margin-top: 0.25rem;
     }
 </style>
 {% endblock %}
@@ -162,120 +34,74 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row">
-        <div class="col-lg-8">
-            <!-- Основна інформація про маршрут -->
-            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="border-radius: 20px; overflow: hidden;">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
                 <div class="route-header text-white">
-                    <h3 class="mb-3">
+                    <h3 class="mb-2">
                         <i class="bi bi-route"></i> 
                         <strong>{{ route.origin_city }}</strong> → <strong>{{ route.destination_city }}</strong>
                     </h3>
                     <span class="status-badge badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
-                        <i class="bi bi-{% if route.status == 'pending' %}clock{% elif route.status == 'in_transit' %}truck{% else %}check-circle{% endif %}"></i>
-                        {{ route.get_status_display }}
+                        Статус: {{ route.get_status_display }}
                     </span>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-4">
                         <div class="col-md-6 info-card mb-3">
-                            <div class="border rounded p-4 h-100" style="border-color: #198754 !important;">
-                                <h5 class="text-success mb-3">
-                                    <i class="bi bi-geo-alt-fill"></i> Відправлення
-                                </h5>
-                                <p class="mb-2">
-                                    <strong><i class="bi bi-building"></i> Місто:</strong> 
-                                    <span class="text-dark">{{ route.origin_city }}</span>
-                                </p>
-                                <p class="mb-2">
-                                    <strong><i class="bi bi-globe"></i> Країна:</strong> 
-                                    <span class="text-dark">{{ route.origin_country }}</span>
-                                </p>
-                                <p class="mb-0">
-                                    <strong><i class="bi bi-geo"></i> Координати:</strong>
-                                </p>
+                            <div class="border rounded p-3 h-100" style="border-color: #198754 !important; border-width: 2px !important;">
+                                <h5 class="text-success mb-3"><i class="bi bi-geo-alt-fill"></i> Відправлення</h5>
+                                <p class="mb-2"><strong><i class="bi bi-building"></i> Місто:</strong> {{ route.origin_city }}</p>
+                                <p class="mb-2"><strong><i class="bi bi-globe"></i> Країна:</strong> {{ route.origin_country }}</p>
+                                <p class="mb-0"><strong><i class="bi bi-geo"></i> Координати:</strong></p>
                                 <div class="coordinate-box mt-1">{{ route.origin_lat }}, {{ route.origin_lng }}</div>
                             </div>
                         </div>
                         <div class="col-md-6 info-card mb-3">
-                            <div class="border rounded p-4 h-100" style="border-color: #dc3545 !important;">
-                                <h5 class="text-danger mb-3">
-                                    <i class="bi bi-geo-alt"></i> Призначення
-                                </h5>
-                                <p class="mb-2">
-                                    <strong><i class="bi bi-building"></i> Місто:</strong> 
-                                    <span class="text-dark">{{ route.destination_city }}</span>
-                                </p>
-                                <p class="mb-2">
-                                    <strong><i class="bi bi-globe"></i> Країна:</strong> 
-                                    <span class="text-dark">{{ route.destination_country }}</span>
-                                </p>
-                                <p class="mb-0">
-                                    <strong><i class="bi bi-geo"></i> Координати:</strong>
-                                </p>
+                            <div class="border rounded p-3 h-100" style="border-color: #dc3545 !important; border-width: 2px !important;">
+                                <h5 class="text-danger mb-3"><i class="bi bi-geo-alt"></i> Призначення</h5>
+                                <p class="mb-2"><strong><i class="bi bi-building"></i> Місто:</strong> {{ route.destination_city }}</p>
+                                <p class="mb-2"><strong><i class="bi bi-globe"></i> Країна:</strong> {{ route.destination_country }}</p>
+                                <p class="mb-0"><strong><i class="bi bi-geo"></i> Координати:</strong></p>
                                 <div class="coordinate-box mt-1">{{ route.destination_lat }}, {{ route.destination_lng }}</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <div class="info-box">
-                                <h6 class="mb-3" style="color: var(--primary-gradient-start);">
-                                    <i class="bi bi-box"></i> Інформація про вантаж
-                                </h6>
-                                <p class="mb-2">
-                                    <strong>Тип:</strong> 
-                                    <span class="badge bg-secondary ms-2">{{ route.cargo_type }}</span>
-                                </p>
-                                <p class="mb-2">
-                                    <strong>Вага:</strong> 
-                                    <span class="badge bg-info ms-2">{{ route.weight }} кг</span>
-                                </p>
-                                <p class="mb-0">
-                                    <strong>Об'єм:</strong> 
-                                    <span class="badge bg-info ms-2">{{ route.volume }} м³</span>
-                                </p>
+                        <div class="col-md-6">
+                            <div class="bg-light rounded p-3">
+                                <h6 class="text-primary mb-3"><i class="bi bi-box"></i> Інформація про вантаж</h6>
+                                <p class="mb-2"><strong>Тип:</strong> <span class="badge bg-secondary">{{ route.cargo_type }}</span></p>
+                                <p class="mb-2"><strong>Вага:</strong> <span class="badge bg-info">{{ route.weight }} кг</span></p>
+                                <p class="mb-0"><strong>Об'єм:</strong> <span class="badge bg-info">{{ route.volume }} м³</span></p>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="info-box">
-                                <h6 class="mb-3" style="color: var(--success-gradient-start);">
-                                    <i class="bi bi-currency-exchange"></i> Фінанси та терміни
-                                </h6>
-                                <p class="mb-2">
-                                    <strong>Ціна:</strong> 
-                                    <span class="badge bg-success ms-2" style="font-size: 1rem;">{{ route.price }} грн</span>
-                                </p>
-                                <p class="mb-2">
-                                    <i class="bi bi-calendar-event"></i> 
-                                    <strong>Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}
-                                </p>
-                                <p class="mb-0">
-                                    <i class="bi bi-calendar-check"></i> 
-                                    <strong>Доставка:</strong> {{ route.delivery_date|date:"d.m.Y H:i" }}
-                                </p>
+                        <div class="col-md-6">
+                            <div class="bg-light rounded p-3">
+                                <h6 class="text-success mb-3"><i class="bi bi-currency-exchange"></i> Фінанси та терміни</h6>
+                                <p class="mb-2"><strong>Ціна:</strong> <span class="badge bg-success" style="font-size: 1rem;">{{ route.price }} грн</span></p>
+                                <p class="mb-2"><strong><i class="bi bi-calendar-event"></i> Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}</p>
+                                <p class="mb-0"><strong><i class="bi bi-calendar-check"></i> Доставка:</strong> {{ route.delivery_date|date:"d.m.Y H:i" }}</p>
                             </div>
                         </div>
                     </div>
                     
                     {% if route.description %}
-                        <div class="alert alert-info mb-0" style="border-radius: 12px; border-left: 4px solid var(--accent-gradient-start);">
-                            <h6 class="mb-2">
-                                <i class="bi bi-info-circle"></i> Опис вантажу:
-                            </h6>
+                        <div class="alert alert-info mb-0">
+                            <h6 class="mb-2"><i class="bi bi-info-circle"></i> Опис вантажу:</h6>
                             <p class="mb-0">{{ route.description }}</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Карта маршруту -->
-            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="border-radius: 20px; overflow: hidden;">
-                <div class="map-header">
+            <!-- Візуалізація маршруту -->
+            <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
+                <div class="text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px;">
                     <h5 class="mb-0"><i class="bi bi-map"></i> Карта маршруту</h5>
                 </div>
                 <div class="card-body p-0" style="position: relative;">
-                    <div id="routeMap" style="height: 500px; width: 100%; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);"></div>
+                    <div id="routeMap" style="height: 450px; width: 100%; background: #f8f9fa;"></div>
                     <div id="mapFallback" style="display: none; padding: 40px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
                         <div class="mb-4">
                             <i class="bi bi-route" style="font-size: 80px; color: #667eea; opacity: 0.5;"></i>
@@ -309,160 +135,122 @@
             </div>
         </div>
         
-        <!-- Права колонка з додатковою інформацією -->
-        <div class="col-lg-4">
+        <div class="col-md-4">
             <!-- Швидкі дії -->
-            <div class="sidebar-card card shadow-lg border-0">
-                <div class="sidebar-header" style="background: linear-gradient(135deg, var(--success-gradient-start), var(--success-gradient-end));">
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 100ms;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
                     <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Швидкі дії</h5>
                 </div>
-                <div class="card-body p-3">
+                <div class="card-body">
                     {% if user.role == 'carrier' and can_bid %}
-                        <a href="{% url 'create_bid' route.pk %}" class="quick-action-btn btn btn-success">
+                        <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100 mb-2">
                             <i class="bi bi-cash-stack"></i> Зробити ставку
                         </a>
                     {% endif %}
-                    
                     {% if can_complete %}
-                        <a href="{% url 'complete_route' route.pk %}" class="quick-action-btn btn btn-success" 
+                        <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100 mb-2" 
                            onclick="return confirm('Підтвердити завершення доставки?')">
                             <i class="bi bi-check-circle"></i> Завершити маршрут
                         </a>
                     {% endif %}
-                    
                     {% if route.status == 'in_transit' or route.status == 'delivered' %}
-                        <a href="{% url 'tracking' route.pk %}" class="quick-action-btn btn btn-info">
+                        <a href="{% url 'tracking' route.pk %}" class="btn btn-info w-100 mb-2">
                             <i class="bi bi-radar"></i> Відстежити вантаж
                         </a>
                     {% endif %}
-                    
-                    <a href="{% url 'routes_list' %}" class="quick-action-btn btn btn-outline-primary">
+                    <a href="{% url 'routes_list' %}" class="btn btn-outline-primary w-100 mb-2">
                         <i class="bi bi-arrow-left"></i> Назад до списку
                     </a>
+                    <button class="btn btn-outline-secondary w-100" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Друк
+                    </button>
                 </div>
             </div>
-            
-            <!-- Інформація про маршрут -->
-            <div class="sidebar-card card shadow-lg border-0">
-                <div class="sidebar-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Інформація</h5>
+
+            <!-- Інформація про компанію/перевізника -->
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 200ms;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-{% if user.role == 'company' %}building{% else %}person-circle{% endif %}"></i> 
+                        {% if user.role == 'company' %}Компанія{% else %}Перевізник{% endif %}
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <div class="info-box">
-                        <div class="info-box-label">
-                            <i class="bi bi-building"></i> Компанія
+                    <div class="text-center mb-3">
+                        <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;">
+                            <i class="bi bi-{% if user.role == 'company' %}building{% else %}truck{% endif %}"></i>
                         </div>
-                        <div class="info-box-value">
-                            {{ route.company.get_full_name|default:route.company.username }}
-                        </div>
-                        {% if route.company.email %}
-                            <small class="text-muted mt-1 d-block">
-                                <i class="bi bi-envelope"></i> {{ route.company.email }}
-                            </small>
+                        <h6 class="mt-2 mb-0">{{ route.company.username }}</h6>
+                        {% if route.company.company_name %}
+                            <small class="text-muted">{{ route.company.company_name }}</small>
                         {% endif %}
                     </div>
-                    
                     {% if route.carrier %}
-                        <div class="info-box">
-                            <div class="info-box-label">
-                                <i class="bi bi-truck"></i> Перевізник
+                        <hr>
+                        <div class="text-center">
+                            <small class="text-muted d-block mb-2">Перевізник:</small>
+                            <div style="width: 60px; height: 60px; margin: 0 auto; background: linear-gradient(135deg, var(--success-gradient-start), var(--success-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
+                                <i class="bi bi-truck"></i>
                             </div>
-                            <div class="info-box-value">
-                                {{ route.carrier.get_full_name|default:route.carrier.username }}
-                            </div>
-                            {% if route.carrier.carrier_profile %}
-                                <small class="text-muted mt-1 d-block">
-                                    <i class="bi bi-star-fill text-warning"></i> 
-                                    Рейтинг: {{ route.carrier.carrier_profile.rating }}/5
-                                </small>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <div class="info-box">
-                            <div class="info-box-label">
-                                <i class="bi bi-truck"></i> Перевізник
-                            </div>
-                            <div class="info-box-value text-muted">
-                                Не призначено
-                            </div>
+                            <h6 class="mt-2 mb-0">{{ route.carrier.username }}</h6>
                         </div>
                     {% endif %}
-                    
-                    <div class="info-box">
-                        <div class="info-box-label">
-                            <i class="bi bi-calendar-plus"></i> Створено
-                        </div>
-                        <div class="info-box-value">
-                            {{ route.created_at|date:"d.m.Y" }}
-                        </div>
-                        <small class="text-muted mt-1 d-block">
-                            <i class="bi bi-clock"></i> {{ route.created_at|date:"H:i" }}
-                        </small>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="alert('Функція в розробці')">
+                            <i class="bi bi-chat-dots"></i> Написати повідомлення
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="alert('Функція в розробці')">
+                            <i class="bi bi-telephone"></i> Зателефонувати
+                        </button>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Статистика маршруту -->
-            <div class="sidebar-card card shadow-lg border-0">
-                <div class="sidebar-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end));">
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 300ms;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--secondary-gradient-start), var(--secondary-gradient-end)); color: white;">
                     <h5 class="mb-0"><i class="bi bi-graph-up"></i> Статистика</h5>
                 </div>
                 <div class="card-body">
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-number">{{ bids_with_diff|length|default:0 }}</div>
-                            <div class="stat-label">Ставок</div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><i class="bi bi-calendar-event"></i> Дата створення:</span>
+                            <strong>{{ route.created_at|date:"d.m.Y" }}</strong>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-number">
-                                {% if route.delivery_date and route.pickup_date %}
-                                    {{ route.delivery_date|timesince:route.pickup_date }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </div>
-                            <div class="stat-label">Термін</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><i class="bi bi-clock"></i> Час створення:</span>
+                            <strong>{{ route.created_at|date:"H:i" }}</strong>
+                        </div>
+                        {% if route.updated_at %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><i class="bi bi-pencil"></i> Оновлено:</span>
+                            <strong>{{ route.updated_at|date:"d.m.Y H:i" }}</strong>
+                        </div>
+                        {% endif %}
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><i class="bi bi-list-ul"></i> Ставок:</span>
+                            <strong class="badge bg-info">{{ bids_with_diff|length|default:0 }}</strong>
                         </div>
                     </div>
-                    
-                    {% if route.weight and route.volume %}
-                        <div class="info-box mt-3">
-                            <div class="info-box-label">
-                                <i class="bi bi-calculator"></i> Параметри
-                            </div>
-                            <div class="mt-2">
-                                <small class="d-block mb-1">
-                                    <strong>Щільність:</strong> 
-                                    {{ route.weight|floatformat:2 }} / {{ route.volume|floatformat:2 }} = 
-                                    {% widthratio route.weight 1 route.volume|add:"0.001" as density %}
-                                    {{ density|floatformat:2 }} кг/м³
-                                </small>
-                            </div>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
             
-            <!-- Ставки -->
             {% if bids_with_diff %}
-                <div class="sidebar-card card shadow-lg border-0">
-                    <div class="sidebar-header" style="background: linear-gradient(135deg, var(--secondary-gradient-start), var(--secondary-gradient-end));">
-                        <h5 class="mb-0">
-                            <i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})
-                        </h5>
+                <div class="card shadow-lg border-0 fade-in-up" style="animation-delay: 400ms;">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})</h5>
                     </div>
-                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    <div class="card-body">
                         {% for item in bids_with_diff %}
                             {% with bid=item.bid %}
-                            <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}" 
-                                 style="{% if bid.is_accepted %}border: 2px solid var(--success-gradient-start) !important;{% endif %}">
+                            <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
-                                        <p class="mb-1">
-                                            <strong style="color: var(--text-primary);">
-                                                <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
-                                            </strong>
-                                        </p>
+                                        <p class="mb-1"><strong>
+                                            <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
+                                        </strong></p>
                                         {% if bid.carrier.carrier_profile %}
                                             <small class="text-muted">
                                                 <i class="bi bi-star-fill text-warning"></i> 
@@ -480,36 +268,51 @@
                                     <i class="bi bi-cash-coin"></i> Ціна: 
                                     <strong class="text-success">{{ bid.proposed_price }} грн</strong>
                                     {% if item.price_diff > 0 %}
-                                        <small class="text-muted d-block mt-1">
-                                            {% if item.diff_type == 'discount' %}
-                                                <i class="bi bi-arrow-down text-success"></i> Знижка: {{ item.price_diff|floatformat:0 }} грн
-                                            {% else %}
-                                                <i class="bi bi-arrow-up text-danger"></i> Доплата: {{ item.price_diff|floatformat:0 }} грн
-                                            {% endif %}
+                                        <small class="text-muted">
+                                            ({% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн)
                                         </small>
                                     {% endif %}
                                 </p>
-                                <p class="mb-2">
+                                <p class="mb-1">
                                     <i class="bi bi-calendar-check"></i> Доставка: 
                                     {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
                                 </p>
                                 {% if bid.message %}
-                                    <p class="mb-2 text-muted">
-                                        <small><i class="bi bi-chat-left-text"></i> {{ bid.message }}</small>
-                                    </p>
+                                    <p class="mb-2 text-muted"><small>{{ bid.message }}</small></p>
                                 {% endif %}
                                 {% if can_accept_bids and not bid.is_accepted %}
-                                    <a href="{% url 'accept_bid' bid.pk %}" 
-                                       class="btn btn-sm btn-success w-100"
-                                       onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
-                                        <i class="bi bi-check"></i> Прийняти ставку
-                                    </a>
+                                    <div class="mt-2">
+                                        <a href="{% url 'accept_bid' bid.pk %}" 
+                                           class="btn btn-sm btn-success w-100"
+                                           onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
+                                            <i class="bi bi-check"></i> Прийняти ставку
+                                        </a>
+                                    </div>
                                 {% endif %}
                             </div>
                             {% endwith %}
                         {% endfor %}
                     </div>
                 </div>
+            {% else %}
+                <!-- Якщо немає ставок, показуємо корисну інформацію -->
+                {% if user.role == 'company' %}
+                <div class="card shadow-lg border-0 fade-in-up" style="animation-delay: 400ms;">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Поради</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-lightbulb"></i> <strong>Порада:</strong><br>
+                            Додайте детальний опис вантажу, щоб привернути більше перевізників.
+                        </div>
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-hourglass-split"></i> <strong>Очікування:</strong><br>
+                            Ставки від перевізників з'являться тут.
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -526,23 +329,20 @@
         
         // Безпечне отримання координат
         function getFloat(value, defaultVal) {
-            if (value === null || value === undefined || value === '' || value === 'null') {
-                return defaultVal;
-            }
             const num = parseFloat(String(value).replace(',', '.'));
             return isNaN(num) ? defaultVal : num;
         }
         
         const routeData = {
             origin: {
-                lat: getFloat({{ route.origin_lat|default:"null" }}, 50.45),
-                lng: getFloat({{ route.origin_lng|default:"null" }}, 30.52),
+                lat: getFloat('{{ route.origin_lat }}', 50.45),
+                lng: getFloat('{{ route.origin_lng }}', 30.52),
                 city: '{{ route.origin_city|escapejs }}',
                 country: '{{ route.origin_country|escapejs }}'
             },
             destination: {
-                lat: getFloat({{ route.destination_lat|default:"null" }}, 49.84),
-                lng: getFloat({{ route.destination_lng|default:"null" }}, 24.03),
+                lat: getFloat('{{ route.destination_lat }}', 49.84),
+                lng: getFloat('{{ route.destination_lng }}', 24.03),
                 city: '{{ route.destination_city|escapejs }}',
                 country: '{{ route.destination_country|escapejs }}'
             }
@@ -603,3 +403,5 @@
     });
 </script>
 {% endblock %}
+
+
