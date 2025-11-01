@@ -416,3 +416,63 @@ def update_tracking(request, pk):
         form = TrackingUpdateForm(instance=tracking)
     
     return redirect('tracking', pk=route.pk)
+
+
+@login_required
+def route_messages(request, pk):
+    """Месенджер для маршруту"""
+    route = get_object_or_404(Route, pk=pk)
+    
+    # Перевірка доступу
+    if route.company != request.user and (not route.carrier or route.carrier != request.user):
+        messages.error(request, 'У вас немає доступу до цього маршруту')
+        return redirect('home')
+    
+    # Визначаємо співрозмовника
+    if request.user == route.company:
+        other_user = route.carrier
+    elif request.user == route.carrier:
+        other_user = route.company
+    else:
+        other_user = None
+    
+    # Якщо перевізник ще не призначений, не показуємо месенджер
+    if not route.carrier:
+        messages.info(request, 'Месенджер стане доступним після призначення перевізника')
+        return redirect('route_detail', pk=route.pk)
+    
+    if not other_user:
+        messages.error(request, 'Неможливо визначити співрозмовника')
+        return redirect('route_detail', pk=route.pk)
+    
+    # Отримуємо повідомлення для цього маршруту
+    messages_list = Message.objects.filter(route=route).order_by('created_at')
+    
+    # Позначаємо повідомлення як прочитані
+    Message.objects.filter(route=route, recipient=request.user, is_read=False).update(is_read=True)
+    
+    # Обробка форми відправки повідомлення
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.route = route
+            message.sender = request.user
+            message.recipient = other_user
+            message.save()
+            messages.success(request, 'Повідомлення відправлено!')
+            return redirect('route_messages', pk=route.pk)
+    else:
+        form = MessageForm()
+    
+    # Рахуємо непрочитані повідомлення
+    unread_count = Message.objects.filter(route=route, recipient=request.user, is_read=False).count()
+    
+    context = {
+        'route': route,
+        'other_user': other_user,
+        'messages_list': messages_list,
+        'form': form,
+        'unread_count': unread_count,
+    }
+    return render(request, 'logistics/messages.html', context)
