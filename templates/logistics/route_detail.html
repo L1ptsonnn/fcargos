@@ -433,16 +433,25 @@
             return isNaN(num) ? defaultVal : num;
         }
         
+        // Безпечне отримання координат
+        function getFloat(value, defaultVal) {
+            if (value === null || value === undefined || value === '' || value === 'null') {
+                return defaultVal;
+            }
+            const num = parseFloat(String(value).replace(',', '.'));
+            return isNaN(num) ? defaultVal : num;
+        }
+        
         const routeData = {
             origin: {
-                lat: getFloat('{{ route.origin_lat }}', 50.45),
-                lng: getFloat('{{ route.origin_lng }}', 30.52),
+                lat: getFloat({{ route.origin_lat|default:"null" }}, 50.45),
+                lng: getFloat({{ route.origin_lng|default:"null" }}, 30.52),
                 city: '{{ route.origin_city|escapejs }}',
                 country: '{{ route.origin_country|escapejs }}'
             },
             destination: {
-                lat: getFloat('{{ route.destination_lat }}', 49.84),
-                lng: getFloat('{{ route.destination_lng }}', 24.03),
+                lat: getFloat({{ route.destination_lat|default:"null" }}, 49.84),
+                lng: getFloat({{ route.destination_lng|default:"null" }}, 24.03),
                 city: '{{ route.destination_city|escapejs }}',
                 country: '{{ route.destination_country|escapejs }}'
             }
