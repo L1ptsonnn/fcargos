@@ -884,14 +884,7 @@
                     });
             }
             
-            // Обробники для відкриття offcanvas
-            const chatsTrigger = document.getElementById('chatsTrigger');
-            if (chatsTrigger) {
-                chatsTrigger.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    loadChats();
-                });
-            }
+            // Обробники для відкриття offcanvas (chat trigger вже налаштований вище)
             
             const historyTrigger = document.getElementById('historyTrigger');
             if (historyTrigger) {
