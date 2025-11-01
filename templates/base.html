@@ -58,7 +58,13 @@
                                 <i class="bi bi-graph-up"></i> Статистика
                             </a>
                         </li>
-                        <li class="nav-item ms-auto d-flex align-items-center">
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="nav-link position-relative p-2" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
+                                <i class="bi bi-chat-dots fs-5"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="chatsBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item d-flex align-items-center">
                             <a class="nav-link position-relative p-2" href="#" id="routesFilterTrigger" data-bs-toggle="offcanvas" data-bs-target="#routesFilterOffcanvas" title="Фільтри маршрутів">
                                 <i class="bi bi-funnel fs-5"></i>
                             </a>
@@ -66,12 +72,6 @@
                         <li class="nav-item d-flex align-items-center">
                             <a class="nav-link position-relative p-2" href="#" id="historyTrigger" data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" title="Історія маршрутів">
                                 <i class="bi bi-clock-history fs-5"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item d-flex align-items-center">
-                            <a class="nav-link position-relative p-2" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
-                                <i class="bi bi-chat-dots fs-5"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="chatsBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
                         </li>
                         <li class="nav-item d-flex align-items-center">
@@ -374,38 +374,6 @@
                 return icons[type] || '<i class="bi bi-bell"></i>';
             }
             
-            // Завантажуємо сповіщення при завантаженні сторінки
-            loadNotifications();
-            
-            // Оновлюємо кожні 30 секунд
-            setInterval(loadNotifications, 30000);
-            
-            // Обробник для кнопки "Позначити всі як прочитані"
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', function() {
-                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
-                    fetch('{% url "mark_all_notifications_read" %}', {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': csrftoken
-                        },
-                        credentials: 'same-origin'
-                    }).then(() => {
-                        loadNotifications();
-                    });
-                });
-            }
-            
-            // Відкриваємо сповіщення при кліку на дзвіночок
-            const notificationsTrigger = document.getElementById('notificationsTrigger');
-            if (notificationsTrigger) {
-                notificationsTrigger.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    loadNotifications();
-                });
-            }
-            
             // Завантаження чатів
             function loadChats() {
                 fetch('{% url "chats_api" %}')
@@ -536,6 +504,39 @@
             
             // Завантажуємо чати при завантаженні сторінки для оновлення бейджа
             loadChats();
+            
+            // Завантажуємо сповіщення при завантаженні сторінки
+            loadNotifications();
+            
+            // Оновлюємо кожні 30 секунд
+            setInterval(loadNotifications, 30000);
+            setInterval(loadChats, 30000);
+            
+            // Обробник для кнопки "Позначити всі як прочитані"
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function() {
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+                    fetch('{% url "mark_all_notifications_read" %}', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrftoken
+                        },
+                        credentials: 'same-origin'
+                    }).then(() => {
+                        loadNotifications();
+                    });
+                });
+            }
+            
+            // Відкриваємо сповіщення при кліку на дзвіночок
+            const notificationsTrigger = document.getElementById('notificationsTrigger');
+            if (notificationsTrigger) {
+                notificationsTrigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadNotifications();
+                });
+            }
         });
     </script>
 </body>
