@@ -198,10 +198,10 @@
                     <hr>
                     <div class="d-grid gap-2">
                         {% if route.carrier %}
-                            <a href="{% url 'route_messages' route.pk %}" class="btn btn-sm btn-outline-primary">
+                            <a href="{% url 'route_messages' route.pk %}" class="btn btn-sm btn-outline-primary position-relative">
                                 <i class="bi bi-chat-dots"></i> Написати повідомлення
-                                {% if route.messages.filter recipient=request.user is_read=False %}
-                                <span class="badge bg-danger ms-1">{{ route.messages.filter|recipient=request.user|is_read=False|length }}</span>
+                                {% if unread_messages_count > 0 %}
+                                <span class="badge bg-danger ms-1">{{ unread_messages_count }}</span>
                                 {% endif %}
                             </a>
                         {% endif %}

@@ -95,12 +95,22 @@ def route_detail(request, pk):
         origin_lat, origin_lng = 50.45, 30.52
         dest_lat, dest_lng = 49.84, 24.03
     
+    # Рахуємо непрочитані повідомлення
+    unread_messages_count = 0
+    if route.carrier:
+        unread_messages_count = Message.objects.filter(
+            route=route, 
+            recipient=request.user, 
+            is_read=False
+        ).count()
+    
     context = {
         'route': route,
         'bids_with_diff': bids_with_diff,
         'can_bid': can_bid,
         'can_accept_bids': can_accept_bids,
         'can_complete': can_complete,
+        'unread_messages_count': unread_messages_count,
         'route_data': {
             'origin': {
                 'lat': origin_lat,

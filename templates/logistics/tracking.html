@@ -459,7 +459,7 @@
                 iconAnchor: [25, 25]
             });
             
-            const cargoMarker = L.marker(current, { icon: cargoIcon })
+                const cargoMarker = L.marker(current, { icon: cargoIcon })
                 .addTo(map)
                 .bindPopup(`
                     <div style="text-align: center; min-width: 150px;">
@@ -471,7 +471,7 @@
                 .openPopup();
             
             // Лінія від початку до поточної позиції (зелена, пройдена частина)
-            const completedRoute = L.polyline([origin, current], {
+            let completedRoute = L.polyline([origin, current], {
                 color: '#28a745',
                 weight: 5,
                 opacity: 0.8,
@@ -479,7 +479,7 @@
             }).addTo(map);
             
             // Лінія від поточної позиції до кінця (червона, що залишилася)
-            const remainingRoute = L.polyline([current, destination], {
+            let remainingRoute = L.polyline([current, destination], {
                 color: '#dc3545',
                 weight: 5,
                 opacity: 0.6,
@@ -541,6 +541,66 @@
                 </div>
             `;
         }
+        
+        // Автоматичне оновлення позиції маячка на основі часу
+        {% if route.status == 'in_transit' and route.pickup_date and route.delivery_date %}
+        function updateProgressByTime() {
+            const pickupDate = new Date('{{ route.pickup_date|date:"c" }}');
+            const deliveryDate = new Date('{{ route.delivery_date|date:"c" }}');
+            const now = new Date();
+            
+            if (now >= pickupDate && now <= deliveryDate) {
+                const totalTime = deliveryDate - pickupDate;
+                const elapsedTime = now - pickupDate;
+                const timeProgress = Math.min(100, Math.max(0, Math.round((elapsedTime / totalTime) * 100)));
+                
+                // Оновлюємо прогрес тільки якщо він відрізняється більше ніж на 5%
+                const currentProgress = {{ tracking.progress_percent|default:0 }};
+                if (Math.abs(timeProgress - currentProgress) > 5) {
+                    // Оновлюємо позицію маячка
+                    const progress = timeProgress / 100.0;
+                    const newLat = originLat + (destLat - originLat) * progress;
+                    const newLng = originLng + (destLng - originLng) * progress;
+                    
+                    // Оновлюємо маркер на карті
+                    if (cargoMarker) {
+                        cargoMarker.setLatLng([newLat, newLng]);
+                        cargoMarker.setPopupContent(`
+                            <div style="text-align: center; min-width: 150px;">
+                                <h6 style="margin: 0; color: #0dcaf0;"><i class="bi bi-truck"></i> Поточна позиція</h6>
+                                <p style="margin: 5px 0 0 0;"><strong>{{ tracking.current_location|escapejs }}</strong></p>
+                                <small style="color: #666;">Прогрес: ${timeProgress}%</small>
+                            </div>
+                        `);
+                    }
+                    
+                    // Оновлюємо лінії
+                    if (completedRoute) {
+                        map.removeLayer(completedRoute);
+                        completedRoute = L.polyline([origin, [newLat, newLng]], {
+                            color: '#28a745',
+                            weight: 5,
+                            opacity: 0.8,
+                            dashArray: '10, 5'
+                        }).addTo(map);
+                    }
+                    
+                    if (remainingRoute) {
+                        map.removeLayer(remainingRoute);
+                        remainingRoute = L.polyline([[newLat, newLng], destination], {
+                            color: '#dc3545',
+                            weight: 5,
+                            opacity: 0.6,
+                            dashArray: '5, 10'
+                        }).addTo(map);
+                    }
+                }
+            }
+        }
+        
+        // Оновлюємо кожні 30 секунд
+        setInterval(updateProgressByTime, 30000);
+        {% endif %}
     });
 </script>
 {% endif %}
