@@ -56,6 +56,7 @@
             </div>
             
             <!-- Карта маршруту -->
+            {% if route_data %}
             <div class="card shadow-lg border-0 mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="bi bi-map"></i> Карта маршруту</h5>
@@ -64,6 +65,7 @@
                     <div id="routeMap" style="height: 400px;"></div>
                 </div>
             </div>
+            {% endif %}
         </div>
         
         <div class="col-md-4">
@@ -168,84 +170,65 @@
 </div>
 {% endblock %}
 
+{% if route_data %}
 {% block extra_js %}
 <script>
-    // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
         const mapElement = document.getElementById('routeMap');
-        if (!mapElement) {
-            console.error('Елемент карти не знайдено!');
-            return;
-        }
-        
-        // Перевірка чи Leaflet завантажений
-        if (typeof L === 'undefined') {
-            console.error('Leaflet не завантажений!');
-            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+        if (!mapElement || typeof L === 'undefined') {
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="alert alert-warning m-3">Карта тимчасово недоступна.</div>';
+            }
             return;
         }
         
         try {
-            // Перевірка наявності даних маршруту
-            const routeData = {
-                origin: {
-                    lat: {{ route_data.origin.lat|default:"50.45" }},
-                    lng: {{ route_data.origin.lng|default:"30.52" }}
-                },
-                destination: {
-                    lat: {{ route_data.destination.lat|default:"49.84" }},
-                    lng: {{ route_data.destination.lng|default:"24.03" }}
-                }
-            };
+            const originLat = {{ route_data.origin.lat|default:"50.45" }};
+            const originLng = {{ route_data.origin.lng|default:"30.52" }};
+            const destLat = {{ route_data.destination.lat|default:"49.84" }};
+            const destLng = {{ route_data.destination.lng|default:"24.03" }};
             
-            // Валідація координат
-            if (!routeData.origin.lat || !routeData.origin.lng || !routeData.destination.lat || !routeData.destination.lng) {
-                mapElement.innerHTML = '<div class="alert alert-warning m-3">Невірні координати маршруту.</div>';
+            if (!originLat || !originLng || !destLat || !destLng) {
+                if (mapElement) {
+                    mapElement.innerHTML = '<div class="alert alert-warning m-3">Координати не вказані.</div>';
+                }
                 return;
             }
             
-            // Карта маршруту
-            const routeMap = L.map('routeMap').setView([routeData.origin.lat, routeData.origin.lng], 5);
-            
+            const map = L.map('routeMap').setView([originLat, originLng], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(routeMap);
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
             
-            const origin = [routeData.origin.lat, routeData.origin.lng];
-            const destination = [routeData.destination.lat, routeData.destination.lng];
+            const origin = [originLat, originLng];
+            const destination = [destLat, destLng];
             
-            // Маркери
-            const originIcon = L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #198754; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>',
-                iconSize: [25, 25]
-            });
+            L.marker(origin, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #198754; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
+                    iconSize: [25, 25]
+                })
+            }).addTo(map).bindPopup('📍 {{ route.origin_city|escapejs }}').openPopup();
             
-            const destIcon = L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #dc3545; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>',
-                iconSize: [25, 25]
-            });
+            L.marker(destination, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #dc3545; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
+                    iconSize: [25, 25]
+                })
+            }).addTo(map).bindPopup('📍 {{ route.destination_city|escapejs }}');
             
-            L.marker(origin, {icon: originIcon}).addTo(routeMap)
-                .bindPopup(`<b>📍 Відправлення</b><br>{{ route.origin_city|escapejs }}, {{ route.origin_country|escapejs }}`).openPopup();
-            
-            L.marker(destination, {icon: destIcon}).addTo(routeMap)
-                .bindPopup(`<b>📍 Призначення</b><br>{{ route.destination_city|escapejs }}, {{ route.destination_country|escapejs }}`);
-            
-            L.polyline([origin, destination], {
-                color: '#667eea',
-                weight: 4,
-                opacity: 0.8
-            }).addTo(routeMap);
-            
-            routeMap.fitBounds([origin, destination], {padding: [50, 50]});
+            L.polyline([origin, destination], {color: '#667eea', weight: 4}).addTo(map);
+            map.fitBounds([origin, destination], {padding: [50, 50]});
         } catch (error) {
-            console.error('Помилка ініціалізації карти:', error);
-            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
+            console.error('Помилка карти:', error);
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти.</div>';
+            }
         }
     });
 </script>
 {% endblock %}
+{% endif %}
 

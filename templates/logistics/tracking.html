@@ -6,6 +6,7 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8">
+            {% if route_data %}
             <div class="card shadow-lg border-0 mb-4">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
@@ -16,6 +17,13 @@
                     <div id="trackingMap" style="height: 500px;"></div>
                 </div>
             </div>
+            {% else %}
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-body">
+                    <div class="alert alert-warning">Карта відстеження недоступна.</div>
+                </div>
+            </div>
+            {% endif %}
         </div>
         
         <div class="col-md-4">
@@ -46,110 +54,78 @@
     </div>
 </div>
 
+{% if route_data %}
 {% block extra_js %}
 <script>
-    // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
         const mapElement = document.getElementById('trackingMap');
-        if (!mapElement) {
-            console.error('Елемент карти не знайдено!');
-            return;
-        }
-        
-        // Перевірка чи Leaflet завантажений
-        if (typeof L === 'undefined') {
-            console.error('Leaflet не завантажений!');
-            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+        if (!mapElement || typeof L === 'undefined') {
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="alert alert-warning m-3">Карта недоступна.</div>';
+            }
             return;
         }
         
         try {
-            // Перевірка наявності даних маршруту з дефолтними значеннями
-            const routeData = {
-                origin: {
-                    lat: {{ route_data.origin.lat|default:"50.45" }},
-                    lng: {{ route_data.origin.lng|default:"30.52" }}
-                },
-                destination: {
-                    lat: {{ route_data.destination.lat|default:"49.84" }},
-                    lng: {{ route_data.destination.lng|default:"24.03" }}
-                },
-                current: {
-                    lat: {{ route_data.current.lat|default:"50.45" }},
-                    lng: {{ route_data.current.lng|default:"30.52" }}
-                }
-            };
+            const originLat = {{ route_data.origin.lat|default:"50.45" }};
+            const originLng = {{ route_data.origin.lng|default:"30.52" }};
+            const destLat = {{ route_data.destination.lat|default:"49.84" }};
+            const destLng = {{ route_data.destination.lng|default:"24.03" }};
+            const currentLat = {{ route_data.current.lat|default:"50.45" }};
+            const currentLng = {{ route_data.current.lng|default:"30.52" }};
             
-            // Валідація координат
-            if (!routeData.origin.lat || !routeData.origin.lng || 
-                !routeData.destination.lat || !routeData.destination.lng ||
-                !routeData.current.lat || !routeData.current.lng) {
-                mapElement.innerHTML = '<div class="alert alert-warning m-3">Невірні координати маршруту.</div>';
+            if (!originLat || !originLng || !destLat || !destLng || !currentLat || !currentLng) {
+                if (mapElement) {
+                    mapElement.innerHTML = '<div class="alert alert-warning m-3">Координати не вказані.</div>';
+                }
                 return;
             }
             
-            // Карта відстеження
-            const trackingMap = L.map('trackingMap').setView([routeData.current.lat, routeData.current.lng], 6);
-            
+            const map = L.map('trackingMap').setView([currentLat, currentLng], 6);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(trackingMap);
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
             
-            const origin = [routeData.origin.lat, routeData.origin.lng];
-            const destination = [routeData.destination.lat, routeData.destination.lng];
-            const current = [routeData.current.lat, routeData.current.lng];
+            const origin = [originLat, originLng];
+            const destination = [destLat, destLng];
+            const current = [currentLat, currentLng];
             
-            // Маркери з іконками
-            const originIcon = L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #198754; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>',
-                iconSize: [25, 25]
-            });
+            L.marker(origin, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #198754; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
+                    iconSize: [25, 25]
+                })
+            }).addTo(map).bindPopup('📍 {{ route.origin_city|escapejs }}');
             
-            const destIcon = L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #dc3545; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>',
-                iconSize: [25, 25]
-            });
+            L.marker(destination, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #dc3545; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
+                    iconSize: [25, 25]
+                })
+            }).addTo(map).bindPopup('📍 {{ route.destination_city|escapejs }}');
             
-            const currentIcon = L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="background: #0dcaf0; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(13, 202, 240, 0.8); animation: pulse 2s infinite;"></div>',
-                iconSize: [30, 30]
-            });
+            L.marker(current, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #0dcaf0; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white;"></div>',
+                    iconSize: [30, 30]
+                })
+            }).addTo(map).bindPopup('🚚 {{ tracking.current_location|escapejs }}').openPopup();
             
-            L.marker(origin, {icon: originIcon}).addTo(trackingMap)
-                .bindPopup(`<b>📍 Відправлення</b><br>{{ route.origin_city|escapejs }}, {{ route.origin_country|escapejs }}`);
+            L.polyline([origin, current], {color: '#28a745', weight: 4, dashArray: '10, 5'}).addTo(map);
+            L.polyline([current, destination], {color: '#dc3545', weight: 4, dashArray: '5, 5'}).addTo(map);
             
-            L.marker(destination, {icon: destIcon}).addTo(trackingMap)
-                .bindPopup(`<b>📍 Призначення</b><br>{{ route.destination_city|escapejs }}, {{ route.destination_country|escapejs }}`);
-            
-            L.marker(current, {icon: currentIcon}).addTo(trackingMap)
-                .bindPopup(`<b>🚚 Поточна позиція</b><br>{{ tracking.current_location|escapejs }}`)
-                .openPopup();
-            
-            // Лінії маршруту
-            L.polyline([origin, current], {
-                color: '#28a745',
-                weight: 4,
-                opacity: 0.7,
-                dashArray: '10, 5'
-            }).addTo(trackingMap);
-            
-            L.polyline([current, destination], {
-                color: '#dc3545',
-                weight: 4,
-                opacity: 0.7,
-                dashArray: '5, 5'
-            }).addTo(trackingMap);
-            
-            trackingMap.fitBounds([origin, destination, current], {padding: [50, 50]});
+            map.fitBounds([origin, destination, current], {padding: [50, 50]});
         } catch (error) {
-            console.error('Помилка ініціалізації карти:', error);
-            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
+            console.error('Помилка карти:', error);
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення.</div>';
+            }
         }
     });
 </script>
 {% endblock %}
+{% endif %}
 
