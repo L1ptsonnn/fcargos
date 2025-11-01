@@ -30,32 +30,32 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="bi bi-house"></i> Головна
+                        <a class="nav-link" href="{% url 'home' %}" title="Головна">
+                            <i class="bi bi-house"></i>
                         </a>
                     </li>
                     {% if user.is_authenticated %}
                         {% if user.role == 'company' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'routes_list' %}">
-                                    <i class="bi bi-map"></i> Мої маршрути
+                                <a class="nav-link" href="{% url 'routes_list' %}" title="Мої маршрути">
+                                    <i class="bi bi-map"></i>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'create_route' %}">
-                                    <i class="bi bi-plus-circle"></i> Створити маршрут
+                                <a class="nav-link" href="{% url 'create_route' %}" title="Створити маршрут">
+                                    <i class="bi bi-plus-circle"></i>
                                 </a>
                             </li>
                         {% elif user.role == 'carrier' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'routes_list' %}">
-                                    <i class="bi bi-search"></i> Доступні маршрути
+                                <a class="nav-link" href="{% url 'routes_list' %}" title="Доступні маршрути">
+                                    <i class="bi bi-search"></i>
                                 </a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'statistics' %}">
-                                <i class="bi bi-graph-up"></i> Статистика
+                            <a class="nav-link" href="{% url 'statistics' %}" title="Статистика">
+                                <i class="bi bi-graph-up"></i>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -81,13 +81,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile' %}">
-                                <i class="bi bi-person"></i> Профіль
+                            <a class="nav-link" href="{% url 'profile' %}" title="Профіль">
+                                <i class="bi bi-person"></i>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">
-                                <i class="bi bi-box-arrow-right"></i> Вийти
+                            <a class="nav-link" href="{% url 'logout' %}" title="Вийти">
+                                <i class="bi bi-box-arrow-right"></i>
                             </a>
                         </li>
                     {% else %}
@@ -183,9 +183,6 @@
                     </label>
                     <select class="form-select" id="origin_city_filter" name="origin_city">
                         <option value="">Всі міста</option>
-                        {% for city in origin_cities %}
-                        <option value="{{ city }}" {% if origin_city_filter == city %}selected{% endif %}>{{ city }}</option>
-                        {% endfor %}
                     </select>
                 </div>
                 <div class="mb-3">
@@ -482,6 +479,24 @@
                     loadHistory();
                 });
             }
+            
+            // Завантажуємо список міст для фільтра
+            fetch('/logistics/routes/cities/')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('origin_city_filter');
+                    if (select && data.cities) {
+                        data.cities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city;
+                            option.textContent = city;
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .catch(() => {
+                    // Якщо ендпоінт не існує, це нормально
+                });
             
             // Завантажуємо кількість непрочитаних чатів при завантаженні сторінки
             fetch('/logistics/chats/unread-count/')

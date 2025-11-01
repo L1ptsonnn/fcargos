@@ -24,6 +24,10 @@ def routes_list(request):
     # Отримуємо список унікальних міст для фільтра
     origin_cities = Route.objects.values_list('origin_city', flat=True).distinct().order_by('origin_city')
     
+    # Якщо це AJAX запит, повертаємо тільки список міст
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'cities' in request.GET:
+        return JsonResponse({'cities': list(origin_cities)})
+    
     return render(request, 'logistics/routes_list.html', {
         'routes': routes,
         'origin_city_filter': origin_city_filter,
