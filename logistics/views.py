@@ -168,16 +168,22 @@ def route_detail(request, pk):
 def create_bid(request, pk):
     """Створення ставки на маршрут"""
     if request.user.role != 'carrier':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Тільки перевізники можуть робити ставки'}, status=403)
         messages.error(request, 'Тільки перевізники можуть робити ставки')
         return redirect('home')
     
     route = get_object_or_404(Route, pk=pk)
     
     if route.status != 'pending':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'На цей маршрут неможливо зробити ставку'}, status=400)
         messages.error(request, 'На цей маршрут неможливо зробити ставку')
         return redirect('route_detail', pk=pk)
     
     if Bid.objects.filter(route=route, carrier=request.user).exists():
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Ви вже зробили ставку на цей маршрут'}, status=400)
         messages.error(request, 'Ви вже зробили ставку на цей маршрут')
         return redirect('route_detail', pk=pk)
     
@@ -198,10 +204,21 @@ def create_bid(request, pk):
                 route=route
             )
             
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Ставку успішно створено!'})
             messages.success(request, 'Ставку успішно створено!')
             return redirect('route_detail', pk=pk)
     else:
         form = BidForm()
+    
+    # Для AJAX запитів повертаємо тільки форму
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.template.loader import render_to_string
+        html = render_to_string('logistics/create_bid.html', {
+            'route': route,
+            'form': form
+        }, request=request)
+        return JsonResponse({'html': html})
     
     return render(request, 'logistics/create_bid.html', {'form': form, 'route': route})
 

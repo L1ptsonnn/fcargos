@@ -280,34 +280,69 @@
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.text())
+        .then(response => {
+            if (response.headers.get('content-type').includes('application/json')) {
+                return response.json().then(data => {
+                    if (data.error) {
+                        modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                        return;
+                    }
+                    if (data.html) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data.html, 'text/html');
+                        const formContainer = doc.querySelector('.card-body');
+                        
+                        if (formContainer) {
+                            const form = formContainer.querySelector('form');
+                            const alert = formContainer.querySelector('.alert-info');
+                            
+                            if (modalBody) {
+                                modalBody.innerHTML = '';
+                                if (alert) {
+                                    modalBody.appendChild(alert);
+                                }
+                                if (form) {
+                                    form.id = 'bidForm';
+                                    form.addEventListener('submit', function(e) {
+                                        e.preventDefault();
+                                        submitBidForm(routeId);
+                                    });
+                                    modalBody.appendChild(form);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            return response.text();
+        })
         .then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const formContainer = doc.querySelector('.card-body');
-            
-            if (formContainer) {
-                // Видаляємо header та wrapper, залишаємо тільки форму
-                const form = formContainer.querySelector('form');
-                const alert = formContainer.querySelector('.alert-info');
+            if (html && typeof html === 'string') {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const formContainer = doc.querySelector('.card-body');
                 
-                if (modalBody) {
-                    modalBody.innerHTML = '';
-                    if (alert) {
-                        modalBody.appendChild(alert);
+                if (formContainer) {
+                    const form = formContainer.querySelector('form');
+                    const alert = formContainer.querySelector('.alert-info');
+                    
+                    if (modalBody) {
+                        modalBody.innerHTML = '';
+                        if (alert) {
+                            modalBody.appendChild(alert);
+                        }
+                        if (form) {
+                            form.id = 'bidForm';
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                submitBidForm(routeId);
+                            });
+                            modalBody.appendChild(form);
+                        }
                     }
-                    if (form) {
-                        // Обробляємо форму для AJAX відправки
-                        form.id = 'bidForm';
-                        form.addEventListener('submit', function(e) {
-                            e.preventDefault();
-                            submitBidForm(routeId);
-                        });
-                        modalBody.appendChild(form);
-                    }
+                } else {
+                    modalBody.innerHTML = '<div class="alert alert-danger">Помилка завантаження форми</div>';
                 }
-            } else {
-                modalBody.innerHTML = '<div class="alert alert-danger">Помилка завантаження форми</div>';
             }
         })
         .catch(error => {
@@ -346,12 +381,25 @@
             if (response.redirected) {
                 // Якщо редирект, значить успішно
                 window.location.href = response.url;
-            } else {
-                return response.text();
+                return;
             }
+            if (response.headers.get('content-type').includes('application/json')) {
+                return response.json().then(data => {
+                    if (data.success) {
+                        // Закриваємо модальне вікно
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('bidModal'));
+                        if (modal) modal.hide();
+                        // Перезавантажуємо сторінку
+                        window.location.reload();
+                    } else if (data.error) {
+                        alert(data.error);
+                    }
+                });
+            }
+            return response.text();
         })
         .then(html => {
-            if (html) {
+            if (html && typeof html === 'string') {
                 // Перевіряємо чи є помилки
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
@@ -361,15 +409,20 @@
                     // Показуємо помилки
                     const modalBody = document.getElementById('bidModalBody');
                     if (modalBody) {
-                        modalBody.innerHTML = html;
-                        // Додаємо обробник форми знову
-                        const newForm = modalBody.querySelector('form');
-                        if (newForm) {
-                            newForm.id = 'bidForm';
-                            newForm.addEventListener('submit', function(e) {
-                                e.preventDefault();
-                                submitBidForm(routeId);
-                            });
+                        const formContainer = doc.querySelector('.card-body');
+                        if (formContainer) {
+                            modalBody.innerHTML = formContainer.innerHTML;
+                            // Додаємо обробник форми знову
+                            const newForm = modalBody.querySelector('form');
+                            if (newForm) {
+                                newForm.id = 'bidForm';
+                                newForm.addEventListener('submit', function(e) {
+                                    e.preventDefault();
+                                    submitBidForm(routeId);
+                                });
+                            }
+                        } else {
+                            modalBody.innerHTML = html;
                         }
                     }
                 } else {
