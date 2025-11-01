@@ -462,31 +462,37 @@
                                      <small class="text-muted">${chat.last_message_time}</small>` : 
                                     '<p class="mb-0 text-muted small">Повідомлень поки немає</p>';
                                 return `
-                                    <div class="card mb-2 chat-item" data-route-id="${chat.route_id}" data-other-user="${escapeHtml(chat.other_user)}" data-other-user-id="${chat.other_user_id}" data-route-origin="${escapeHtml(chat.route_origin)}" data-route-dest="${escapeHtml(chat.route_destination)}" style="cursor: pointer; transition: all 0.3s; border-left: 4px solid var(--primary-gradient-start);">
-                                        <div class="card-body p-3">
+                                    <div class="chat-item" data-route-id="${chat.route_id}" data-other-user="${escapeHtml(chat.other_user)}" data-other-user-id="${chat.other_user_id}" data-route-origin="${escapeHtml(chat.route_origin)}" data-route-dest="${escapeHtml(chat.route_destination)}">
+                                        <div class="chat-item-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
+                                                <div class="chat-avatar">
                                                     <i class="bi bi-${chat.other_user_role === 'Компанія' ? 'building' : 'truck'}"></i>
                                                 </div>
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1">
-                                                        <a href="/logistics/profile/${chat.other_user_id}/" class="text-decoration-none" onclick="event.stopPropagation();">${escapeHtml(chat.other_user)}</a>
-                                                        ${unreadBadge}
-                                                    </h6>
-                                                    <p class="mb-1 text-muted small">
-                                                        <strong>Маршрут:</strong> ${escapeHtml(chat.route_origin)} → ${escapeHtml(chat.route_destination)}
+                                                <div class="chat-content">
+                                                    <div class="chat-header">
+                                                        <h6 class="chat-name">
+                                                            <a href="/logistics/profile/${chat.other_user_id}/" onclick="event.stopPropagation();">${escapeHtml(chat.other_user)}</a>
+                                                            ${unreadBadge}
+                                                        </h6>
+                                                        <span class="chat-status badge bg-${chat.route_status === 'Очікує' ? 'warning' : chat.route_status === 'В дорозі' ? 'info' : 'success'}">${escapeHtml(chat.route_status)}</span>
+                                                    </div>
+                                                    <p class="chat-route">
+                                                        <i class="bi bi-geo-alt"></i> ${escapeHtml(chat.route_origin)} → ${escapeHtml(chat.route_destination)}
                                                     </p>
-                                                    ${lastMessage ? `<p class="mb-1 text-muted small"><i class="bi bi-chat"></i> ${escapeHtml(chat.last_message)}</p><small class="text-muted">${chat.last_message_time}</small>` : '<p class="mb-0 text-muted small">Повідомлень поки немає</p>'}
-                                                </div>
-                                                <div class="text-end">
-                                                    <span class="badge bg-${chat.route_status === 'Очікує' ? 'warning' : chat.route_status === 'В дорозі' ? 'info' : 'success'}">${escapeHtml(chat.route_status)}</span>
+                                                    ${lastMessage ? `
+                                                        <div class="chat-message">
+                                                            <i class="bi bi-chat-dots"></i>
+                                                            <span>${escapeHtml(chat.last_message)}</span>
+                                                            <small>${chat.last_message_time}</small>
+                                                        </div>
+                                                    ` : '<p class="chat-empty">Повідомлень поки немає</p>'}
                                                 </div>
                                             </div>
                                         </div>
                                 `;
                             }).join('');
                             
-                            // Додаємо обробники кліків (hover ефекти через CSS)
+                            // Додаємо обробники кліків
                             document.querySelectorAll('#chatsList .chat-item').forEach(item => {
                                 item.addEventListener('click', function(e) {
                                     e.preventDefault();
