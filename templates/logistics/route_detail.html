@@ -197,7 +197,7 @@
                     {% endif %}
                     <hr>
                     <div class="d-grid gap-2">
-                        {% if route.carrier and route.status != 'pending' %}
+                        {% if route.carrier %}
                         <a href="{% url 'route_messages' route.pk %}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-chat-dots"></i> Написати повідомлення
                         </a>

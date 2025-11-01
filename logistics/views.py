@@ -248,17 +248,28 @@ def tracking_view(request, pk):
             progress_percent=0
         )
     
-    # Перевірка та валідація координат
+    # Перевірка та валідація координат та автоматичний розрахунок на основі прогресу
     try:
         origin_lat = float(route.origin_lat) if route.origin_lat else 50.45
         origin_lng = float(route.origin_lng) if route.origin_lng else 30.52
         dest_lat = float(route.destination_lat) if route.destination_lat else 49.84
         dest_lng = float(route.destination_lng) if route.destination_lng else 24.03
-        current_lat = float(tracking.current_lat) if tracking.current_lat else origin_lat
-        current_lng = float(tracking.current_lng) if tracking.current_lng else origin_lng
+        
+        # Автоматично розраховуємо координати на основі прогресу
+        progress = max(0, min(100, tracking.progress_percent)) / 100.0
+        current_lat = origin_lat + (dest_lat - origin_lat) * progress
+        current_lng = origin_lng + (dest_lng - origin_lng) * progress
+        
+        # Оновлюємо Tracking якщо координати не відповідають прогресу
+        if abs(float(tracking.current_lat or 0) - current_lat) > 0.01 or \
+           abs(float(tracking.current_lng or 0) - current_lng) > 0.01:
+            tracking.current_lat = current_lat
+            tracking.current_lng = current_lng
+            tracking.save()
     except (ValueError, TypeError):
         origin_lat, origin_lng = 50.45, 30.52
         dest_lat, dest_lng = 49.84, 24.03
+        progress = 0.0
         current_lat, current_lng = origin_lat, origin_lng
     
     # Форма для оновлення прогресу (тільки для перевізника)
