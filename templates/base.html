@@ -183,7 +183,7 @@
         <div class="offcanvas-body p-0">
             <!-- Пошук та фільтри -->
             <div class="routes-filters p-3 border-bottom">
-                <form method="get" action="{% url 'routes_list' %}" id="routesWindowForm" onsubmit="event.preventDefault(); filterRoutes();">
+                <form method="get" action="{% url 'routes_list' %}" id="routesWindowForm" onsubmit="event.preventDefault(); window.filterRoutes(); return false;">
                     <div class="mb-3">
                         <label for="searchCity" class="form-label fw-bold">
                             <i class="bi bi-search"></i> Пошук по місту
@@ -215,7 +215,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i> Застосувати фільтри
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="resetRouteFilters()">
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.resetRouteFilters(); return false;">
                             <i class="bi bi-x-circle"></i> Скинути
                         </button>
                     </div>
@@ -799,28 +799,26 @@
             // Робимо функцію глобальною
             window.sendMessage = sendMessage;
             
-            // Фільтрація маршрутів
-            function filterRoutes() {
-                const form = document.getElementById('routesWindowForm');
-                const formData = new FormData(form);
+            // Глобальні функції для маршрутів
+            window.filterRoutes = function() {
                 const params = new URLSearchParams();
                 
-                // Додаємо пошук по місту
-                const searchCity = document.getElementById('searchCity').value;
+                // Додаємо пошук по місту (пріоритет над вибором зі списку)
+                const searchCity = document.getElementById('searchCity')?.value.trim();
+                const originCity = document.getElementById('origin_city_window')?.value;
+                
                 if (searchCity) {
                     params.append('origin_city', searchCity);
-                }
-                
-                // Додаємо місто відправлення
-                const originCity = document.getElementById('origin_city_window').value;
-                if (originCity) {
+                } else if (originCity) {
                     params.append('origin_city', originCity);
                 }
                 
                 // Додаємо статуси
                 const statusSelect = document.getElementById('statusFilter');
-                const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value);
-                selectedStatuses.forEach(status => params.append('status', status));
+                if (statusSelect) {
+                    const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value);
+                    selectedStatuses.forEach(status => params.append('status', status));
+                }
                 
                 params.append('format', 'json');
                 fetch(`{% url "routes_list" %}?${params.toString()}`, {
@@ -841,12 +839,53 @@
                         console.error('Помилка завантаження маршрутів:', error);
                         showNoRoutes();
                     });
-            }
+            };
             
-            function resetRouteFilters() {
-                document.getElementById('routesWindowForm').reset();
-                document.getElementById('statusFilter').selectedIndex = -1;
-                filterRoutes();
+            window.resetRouteFilters = function() {
+                const form = document.getElementById('routesWindowForm');
+                const statusSelect = document.getElementById('statusFilter');
+                if (form) form.reset();
+                if (statusSelect) {
+                    Array.from(statusSelect.options).forEach(option => {
+                        option.selected = false;
+                    });
+                }
+                // Завантажуємо всі маршрути без фільтрів
+                loadAllRoutes();
+            };
+            
+            // Завантаження всіх маршрутів без фільтрів
+            function loadAllRoutes() {
+                const routesList = document.getElementById('routesWindowList');
+                if (!routesList) return;
+                
+                routesList.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Завантаження...</span>
+                        </div>
+                        <p class="mt-3">Завантаження маршрутів...</p>
+                    </div>
+                `;
+                
+                fetch('{% url "routes_list" %}?format=json', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        renderRoutes(data.routes || []);
+                    })
+                    .catch(error => {
+                        console.error('Помилка завантаження маршрутів:', error);
+                        showNoRoutes();
+                    });
             }
             
             // Завантаження історії
@@ -961,38 +1000,9 @@
                 });
             }
             
-            // Завантаження маршрутів у вікно
+            // Завантаження маршрутів у вікно (завантажує всі маршрути)
             function loadRoutesWindow() {
-                const routesList = document.getElementById('routesWindowList');
-                if (routesList) {
-                    routesList.innerHTML = `
-                        <div class="text-center text-muted py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Завантаження...</span>
-                            </div>
-                            <p class="mt-3">Завантаження маршрутів...</p>
-                        </div>
-                    `;
-                }
-                
-                fetch('{% url "routes_list" %}?format=json', {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        renderRoutes(data.routes || []);
-                    })
-                    .catch(error => {
-                        console.error('Помилка завантаження маршрутів:', error);
-                        showNoRoutes();
-                    });
+                loadAllRoutes();
             }
             
             // Завантажуємо список міст для фільтра
@@ -1022,13 +1032,14 @@
             const routesOffcanvasEl = document.getElementById('routesWindowOffcanvas');
             if (routesOffcanvasEl) {
                 routesOffcanvasEl.addEventListener('show.bs.offcanvas', function() {
-                    loadRoutesWindow();
+                    // Завантажуємо всі маршрути при відкритті
+                    loadAllRoutes();
                 });
             }
             if (routesWindowTrigger) {
                 routesWindowTrigger.addEventListener('click', function(e) {
                     setTimeout(() => {
-                        loadRoutesWindow();
+                        loadAllRoutes();
                     }, 100);
                 });
             }
