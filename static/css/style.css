@@ -713,159 +713,205 @@ footer {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Chat items styling - improved glassmorphism with mirror effect */
-.chat-item {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    border-left: 4px solid transparent !important;
-    border-radius: var(--radius-md) !important;
-    box-shadow: 
-        0 4px 16px rgba(99, 102, 241, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.06),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.3);
-    transition: var(--transition-base);
+/* Chat Items in Offcanvas - Improved Design */
+#chatsOffcanvas .chat-item,
+#chatsList .chat-item {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1rem;
+    padding: 0;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    margin-bottom: 1rem !important;
+    border-left: 4px solid;
+    border-image: linear-gradient(180deg, var(--primary-gradient-start), var(--primary-gradient-end)) 1;
+    border-right: 1px solid rgba(226, 232, 240, 0.6);
+    border-top: 1px solid rgba(226, 232, 240, 0.6);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
 }
 
-.chat-item::before {
+/* Градієнтний бордер з ефектом відблиску */
+#chatsOffcanvas .chat-item::before,
+#chatsList .chat-item::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(180deg, 
-        var(--primary-gradient-start) 0%, 
-        var(--primary-gradient-end) 50%,
-        var(--secondary-gradient-start) 100%);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-    box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.05) 0%,
+        rgba(139, 92, 246, 0.03) 50%,
+        rgba(236, 72, 153, 0.02) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
 }
 
-.chat-item::after {
+#chatsOffcanvas .chat-item:hover::before,
+#chatsList .chat-item:hover::before {
+    opacity: 1;
+}
+
+/* Світлий відблиск для ефекту "зеркала" */
+#chatsOffcanvas .chat-item::after,
+#chatsList .chat-item::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.1) 0%, 
-        transparent 50%,
-        rgba(255, 255, 255, 0.05) 100%);
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.05) 30%,
+        transparent 70%
+    );
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.6s ease;
     pointer-events: none;
     z-index: 1;
 }
 
-.chat-item:hover::before {
-    width: 6px;
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+#chatsOffcanvas .chat-item:hover::after,
+#chatsList .chat-item:hover::after {
+    opacity: 1;
+    transform: rotate(45deg) translate(20%, 20%);
 }
 
-.chat-item:hover {
-    transform: translateY(-3px) translateX(6px);
-    box-shadow: 
-        0 12px 32px rgba(99, 102, 241, 0.2),
-        0 6px 16px rgba(0, 0, 0, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.4),
-        0 0 0 1px rgba(99, 102, 241, 0.1);
-    border-color: rgba(99, 102, 241, 0.3) !important;
-    background: rgba(255, 255, 255, 1) !important;
+#chatsOffcanvas .chat-item:hover,
+#chatsList .chat-item:hover {
+    transform: translateX(8px) translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15), 
+                0 4px 12px rgba(139, 92, 246, 0.1),
+                0 2px 6px rgba(0, 0, 0, 0.08);
+    border-left-width: 5px;
 }
 
-.chat-item .card-body {
+#chatsOffcanvas .chat-item .card-body,
+#chatsList .chat-item .card-body {
+    padding: 1.25rem 1.5rem;
     position: relative;
     z-index: 2;
     background: transparent;
 }
 
-/* Offcanvas body for chats - subtle gradient */
-#chatsOffcanvas .offcanvas-body,
-#chatsOffcanvas #chatsList {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-    padding: 1rem;
-}
-
-#chatsOffcanvas #chatsList {
-    min-height: calc(100vh - 120px);
-}
-
-/* Chat avatar improvements with glow effect */
-.chat-item .card-body [style*="background: linear-gradient"] {
-    box-shadow: 
-        0 4px 16px rgba(99, 102, 241, 0.3),
-        0 2px 8px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transition: var(--transition-base);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.chat-item:hover .card-body [style*="background: linear-gradient"] {
-    transform: scale(1.08) rotate(5deg);
-    box-shadow: 
-        0 8px 24px rgba(99, 102, 241, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        0 0 20px rgba(99, 102, 241, 0.3);
-}
-
-/* Message bubbles in chat - refined glassmorphism */
-.message-bubble {
+/* Аватар у чаті */
+#chatsOffcanvas .chat-item .me-3,
+#chatsList .chat-item .me-3 {
     position: relative;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    transition: all 0.3s ease;
 }
 
-.message-bubble.sent {
-    box-shadow: 
-        0 4px 12px rgba(99, 102, 241, 0.25),
-        0 2px 6px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+#chatsOffcanvas .chat-item:hover .me-3,
+#chatsList .chat-item:hover .me-3 {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
 }
 
-.message-bubble.received {
-    box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.1),
-        0 2px 6px rgba(0, 0, 0, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-/* Badge improvements in chat items */
-.chat-item .badge {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+/* Текст у чатах */
+#chatsOffcanvas .chat-item h6,
+#chatsList .chat-item h6 {
     font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    font-size: 0.7rem !important;
-    padding: 0.35rem 0.65rem !important;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
 }
 
-/* Route text styling in chat items */
-.chat-item .text-muted {
-    opacity: 0.85;
-    transition: opacity 0.3s ease;
+#chatsOffcanvas .chat-item h6 a,
+#chatsList .chat-item h6 a {
+    color: var(--primary-gradient-start);
+    transition: color 0.3s ease;
 }
 
-.chat-item:hover .text-muted {
-    opacity: 1;
+#chatsOffcanvas .chat-item h6 a:hover,
+#chatsList .chat-item h6 a:hover {
+    color: var(--primary-gradient-end);
 }
 
-/* Link styling in chat items */
-.chat-item a {
-    transition: var(--transition-base);
+#chatsOffcanvas .chat-item .text-muted,
+#chatsList .chat-item .text-muted {
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem;
 }
 
-.chat-item a:hover {
-    text-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+/* Badge для непрочитаних */
+#chatsOffcanvas .chat-item .badge,
+#chatsList .chat-item .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+/* Статус badge */
+#chatsOffcanvas .chat-item .badge.bg-warning,
+#chatsList .chat-item .badge.bg-warning,
+#chatsOffcanvas .chat-item .badge.bg-info,
+#chatsList .chat-item .badge.bg-info,
+#chatsOffcanvas .chat-item .badge.bg-success,
+#chatsList .chat-item .badge.bg-success {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 0.7rem;
+    padding: 0.35rem 0.65rem;
+}
+
+/* Offcanvas body для чатів */
+#chatsOffcanvas .offcanvas-body {
+    padding: 1.25rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Плавна анімація появи чатів */
+@keyframes chatItemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#chatsOffcanvas .chat-item,
+#chatsList .chat-item {
+    animation: chatItemFadeIn 0.4s ease-out;
+}
+
+#chatsOffcanvas .chat-item:nth-child(1),
+#chatsList .chat-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+#chatsOffcanvas .chat-item:nth-child(2),
+#chatsList .chat-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+#chatsOffcanvas .chat-item:nth-child(3),
+#chatsList .chat-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+#chatsOffcanvas .chat-item:nth-child(4),
+#chatsList .chat-item:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+#chatsOffcanvas .chat-item:nth-child(n+5),
+#chatsList .chat-item:nth-child(n+5) {
+    animation-delay: 0.25s;
 }
