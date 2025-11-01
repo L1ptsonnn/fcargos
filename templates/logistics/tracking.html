@@ -2,52 +2,209 @@
 
 {% block title %}Відстеження - FCargos{% endblock %}
 
+{% block extra_css %}
+<style>
+    .tracking-header {
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 50%, var(--secondary-gradient-start) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 2rem;
+        border-radius: 20px 20px 0 0;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .tracking-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: shimmer 4s infinite;
+    }
+    .info-header {
+        background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 1.5rem;
+        border-radius: 20px 20px 0 0;
+        color: white;
+    }
+    .tracking-map {
+        height: 600px;
+        min-height: 500px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    @media (max-width: 768px) {
+        .tracking-map {
+            height: 400px;
+            min-height: 400px;
+        }
+    }
+    .progress-container {
+        margin: 1rem 0;
+    }
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    .progress-bar-modern {
+        height: 30px;
+        border-radius: 15px;
+        overflow: hidden;
+        background: rgba(102, 126, 234, 0.1);
+        position: relative;
+    }
+    .progress-bar-modern .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success-gradient-start), var(--success-gradient-end));
+        border-radius: 15px;
+        transition: width 1s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .progress-bar-modern .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    .info-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 12px;
+        border-left: 4px solid var(--primary-gradient-start);
+        transition: var(--transition-base);
+    }
+    .info-item:hover {
+        background: rgba(102, 126, 234, 0.1);
+        transform: translateX(5px);
+    }
+    .info-item strong {
+        color: var(--primary-gradient-start);
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .cargo-marker {
+        animation: pulse 2s infinite;
+    }
+    @keyframes cargoMove {
+        0%, 100% {
+            transform: translateY(0px) scale(1);
+        }
+        50% {
+            transform: translateY(-10px) scale(1.1);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8">
             {% if route_data %}
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-primary text-white">
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="border-radius: 20px; overflow: hidden;">
+                <div class="tracking-header">
                     <h4 class="mb-0">
                         <i class="bi bi-geo-alt"></i> Відстеження вантажу
                     </h4>
+                    <p class="mb-0 mt-2 opacity-75">
+                        <i class="bi bi-truck"></i> {{ route.origin_city }} → {{ route.destination_city }}
+                    </p>
                 </div>
                 <div class="card-body p-0">
-                    <div id="trackingMap" style="height: 500px;"></div>
+                    <div id="trackingMap" class="tracking-map"></div>
                 </div>
             </div>
             {% else %}
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-body">
-                    <div class="alert alert-warning">Карта відстеження недоступна.</div>
+            <div class="card shadow-lg border-0 mb-4 fade-in-up">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 64px; color: var(--primary-gradient-start);"></i>
+                    <h4 class="mt-3">Карта відстеження недоступна</h4>
+                    <p class="text-muted">Не вдалося завантажити дані для відстеження</p>
                 </div>
             </div>
             {% endif %}
         </div>
         
         <div class="col-md-4">
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-info text-white">
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 200ms;">
+                <div class="info-header">
                     <h5 class="mb-0"><i class="bi bi-info-circle"></i> Інформація</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Маршрут:</strong><br>
-                    {{ route.origin_city }} → {{ route.destination_city }}</p>
-                    
-                    <p><strong>Поточна локація:</strong><br>
-                    {{ tracking.current_location }}</p>
-                    
-                    <div class="progress mb-3" style="height: 25px;">
-                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
-                             role="progressbar" 
-                             style="width: {{ tracking.progress_percent }}%">
-                            {{ tracking.progress_percent }}%
+                    <div class="info-item">
+                        <strong><i class="bi bi-route"></i> Маршрут</strong>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-success me-2">
+                                <i class="bi bi-geo-alt-fill"></i> {{ route.origin_city }}
+                            </span>
+                            <i class="bi bi-arrow-right mx-2 text-primary"></i>
+                            <span class="badge bg-danger">
+                                <i class="bi bi-geo-alt"></i> {{ route.destination_city }}
+                            </span>
                         </div>
                     </div>
                     
-                    <p><strong>Останнє оновлення:</strong><br>
-                    {{ tracking.last_update|date:"d.m.Y H:i" }}</p>
+                    <div class="info-item">
+                        <strong><i class="bi bi-pin-map"></i> Поточна локація</strong>
+                        <div class="mt-1">
+                            <span class="badge bg-info" style="font-size: 0.95rem;">
+                                <i class="bi bi-truck"></i> {{ tracking.current_location }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span><i class="bi bi-speedometer2"></i> Прогрес доставки</span>
+                            <span class="badge bg-primary">{{ tracking.progress_percent }}%</span>
+                        </div>
+                        <div class="progress-bar-modern">
+                            <div class="progress-fill" style="width: {{ tracking.progress_percent }}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <strong><i class="bi bi-clock-history"></i> Останнє оновлення</strong>
+                        <div class="mt-1">
+                            <i class="bi bi-calendar3"></i> {{ tracking.last_update|date:"d.m.Y" }}<br>
+                            <i class="bi bi-clock"></i> {{ tracking.last_update|date:"H:i" }}
+                        </div>
+                    </div>
+                    
+                    {% if route.cargo_type %}
+                    <div class="info-item">
+                        <strong><i class="bi bi-box"></i> Інформація про вантаж</strong>
+                        <div class="mt-1">
+                            <small>
+                                <strong>Тип:</strong> {{ route.cargo_type }}<br>
+                                {% if route.weight %}
+                                <strong>Вага:</strong> {{ route.weight }} кг<br>
+                                {% endif %}
+                                {% if route.volume %}
+                                <strong>Об'єм:</strong> {{ route.volume }} м³
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -60,73 +217,232 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const mapElement = document.getElementById('trackingMap');
-        if (!mapElement || typeof L === 'undefined') {
-            if (mapElement) {
-                mapElement.innerHTML = '<div class="alert alert-warning m-3">Карта недоступна.</div>';
+        if (!mapElement) {
+            return;
+        }
+        
+        // Безпечне отримання координат
+        function getFloat(value, defaultVal) {
+            if (value === null || value === undefined || value === '' || value === 'null') {
+                return defaultVal;
             }
+            const num = parseFloat(String(value).replace(',', '.'));
+            return isNaN(num) ? defaultVal : num;
+        }
+        
+        // Отримуємо координати
+        const originLat = getFloat({{ route_data.origin.lat|default:"null" }}, 50.45);
+        const originLng = getFloat({{ route_data.origin.lng|default:"null" }}, 30.52);
+        const destLat = getFloat({{ route_data.destination.lat|default:"null" }}, 49.84);
+        const destLng = getFloat({{ route_data.destination.lng|default:"null" }}, 24.03);
+        const currentLat = getFloat({{ route_data.current.lat|default:"null" }}, originLat);
+        const currentLng = getFloat({{ route_data.current.lng|default:"null" }}, originLng);
+        const progressPercent = {{ tracking.progress_percent|default:0 }};
+        
+        // Перевіряємо чи Leaflet завантажений
+        if (typeof L === 'undefined') {
+            mapElement.innerHTML = '<div class="alert alert-warning m-4"><i class="bi bi-exclamation-triangle"></i> Карта завантажується...</div>';
+            setTimeout(function() {
+                if (typeof L === 'undefined') {
+                    mapElement.innerHTML = '<div class="alert alert-danger m-4"><i class="bi bi-x-circle"></i> Помилка завантаження карти. Перезавантажте сторінку.</div>';
+                }
+            }, 2000);
             return;
         }
         
         try {
-            const originLat = {{ route_data.origin.lat|default:"50.45" }};
-            const originLng = {{ route_data.origin.lng|default:"30.52" }};
-            const destLat = {{ route_data.destination.lat|default:"49.84" }};
-            const destLng = {{ route_data.destination.lng|default:"24.03" }};
-            const currentLat = {{ route_data.current.lat|default:"50.45" }};
-            const currentLng = {{ route_data.current.lng|default:"30.52" }};
+            // Ініціалізація карти
+            const map = L.map('trackingMap').setView([currentLat, currentLng], 7);
             
-            if (!originLat || !originLng || !destLat || !destLng || !currentLat || !currentLng) {
-                if (mapElement) {
-                    mapElement.innerHTML = '<div class="alert alert-warning m-3">Координати не вказані.</div>';
-                }
-                return;
-            }
-            
-            const map = L.map('trackingMap').setView([currentLat, currentLng], 6);
+            // Додавання тайлів карти
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
             }).addTo(map);
             
             const origin = [originLat, originLng];
             const destination = [destLat, destLng];
             const current = [currentLat, currentLng];
             
-            L.marker(origin, {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<div style="background: #198754; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
-                    iconSize: [25, 25]
-                })
-            }).addTo(map).bindPopup('📍 {{ route.origin_city|escapejs }}');
+            // Маркер початку маршруту (зелений)
+            const originIcon = L.divIcon({
+                className: 'route-origin-marker',
+                html: `
+                    <div style="
+                        background: linear-gradient(135deg, #11998e, #38ef7d);
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        border: 4px solid white;
+                        box-shadow: 0 0 20px rgba(17, 153, 142, 0.8);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                    ">
+                        <i class="bi bi-play-fill" style="color: white; margin-left: 3px;"></i>
+                    </div>
+                `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
             
-            L.marker(destination, {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<div style="background: #dc3545; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
-                    iconSize: [25, 25]
-                })
-            }).addTo(map).bindPopup('📍 {{ route.destination_city|escapejs }}');
+            L.marker(origin, { icon: originIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="text-align: center;">
+                        <h6 style="margin: 0; color: #11998e;"><i class="bi bi-geo-alt-fill"></i> Відправлення</h6>
+                        <p style="margin: 5px 0 0 0;"><strong>{{ route.origin_city|escapejs }}</strong></p>
+                    </div>
+                `);
             
-            L.marker(current, {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<div style="background: #0dcaf0; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white;"></div>',
-                    iconSize: [30, 30]
-                })
-            }).addTo(map).bindPopup('🚚 {{ tracking.current_location|escapejs }}').openPopup();
+            // Маркер кінця маршруту (червоний)
+            const destinationIcon = L.divIcon({
+                className: 'route-destination-marker',
+                html: `
+                    <div style="
+                        background: linear-gradient(135deg, #dc3545, #c82333);
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        border: 4px solid white;
+                        box-shadow: 0 0 20px rgba(220, 53, 69, 0.8);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                    ">
+                        <i class="bi bi-flag-fill" style="color: white;"></i>
+                    </div>
+                `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
             
-            L.polyline([origin, current], {color: '#28a745', weight: 4, dashArray: '10, 5'}).addTo(map);
-            L.polyline([current, destination], {color: '#dc3545', weight: 4, dashArray: '5, 5'}).addTo(map);
+            L.marker(destination, { icon: destinationIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="text-align: center;">
+                        <h6 style="margin: 0; color: #dc3545;"><i class="bi bi-geo-alt"></i> Призначення</h6>
+                        <p style="margin: 5px 0 0 0;"><strong>{{ route.destination_city|escapejs }}</strong></p>
+                    </div>
+                `);
             
-            map.fitBounds([origin, destination, current], {padding: [50, 50]});
+            // Анімований маркер вантажу (блакитний з пульсацією)
+            const cargoIcon = L.divIcon({
+                className: 'cargo-marker',
+                html: `
+                    <div style="
+                        background: linear-gradient(135deg, #0dcaf0, #0aa2c0);
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        border: 4px solid white;
+                        box-shadow: 0 0 25px rgba(13, 202, 240, 1);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        animation: cargoMove 2s ease-in-out infinite;
+                        position: relative;
+                    ">
+                        <div style="
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
+                            border-radius: 50%;
+                            border: 3px solid rgba(13, 202, 240, 0.5);
+                            animation: pulse 2s infinite;
+                        "></div>
+                        <i class="bi bi-truck" style="color: white; font-size: 24px; position: relative; z-index: 1;"></i>
+                    </div>
+                `,
+                iconSize: [50, 50],
+                iconAnchor: [25, 25]
+            });
+            
+            const cargoMarker = L.marker(current, { icon: cargoIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="text-align: center; min-width: 150px;">
+                        <h6 style="margin: 0; color: #0dcaf0;"><i class="bi bi-truck"></i> Поточна позиція</h6>
+                        <p style="margin: 5px 0 0 0;"><strong>{{ tracking.current_location|escapejs }}</strong></p>
+                        <small style="color: #666;">Прогрес: {{ tracking.progress_percent }}%</small>
+                    </div>
+                `)
+                .openPopup();
+            
+            // Лінія від початку до поточної позиції (зелена, пройдена частина)
+            const completedRoute = L.polyline([origin, current], {
+                color: '#28a745',
+                weight: 5,
+                opacity: 0.8,
+                dashArray: '10, 5'
+            }).addTo(map);
+            
+            // Лінія від поточної позиції до кінця (червона, що залишилася)
+            const remainingRoute = L.polyline([current, destination], {
+                color: '#dc3545',
+                weight: 5,
+                opacity: 0.6,
+                dashArray: '5, 10'
+            }).addTo(map);
+            
+            // Додавання інформації до ліній
+            completedRoute.bindPopup(`
+                <div style="text-align: center;">
+                    <i class="bi bi-check-circle text-success"></i><br>
+                    <strong>Пройдено:</strong> {{ tracking.progress_percent }}%
+                </div>
+            `);
+            
+            remainingRoute.bindPopup(`
+                <div style="text-align: center;">
+                    <i class="bi bi-hourglass-split text-danger"></i><br>
+                    <strong>Залишилось:</strong> ${100 - progressPercent}%
+                </div>
+            `);
+            
+            // Встановлення меж карти для відображення всіх точок
+            const bounds = L.latLngBounds([origin, destination, current]);
+            map.fitBounds(bounds, { padding: [80, 80] });
+            
+            // Додавання легенди
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                div.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+                div.style.padding = '15px';
+                div.style.borderRadius = '10px';
+                div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+                div.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #11998e, #38ef7d); border-radius: 50%; border: 2px solid white; vertical-align: middle; margin-right: 8px;"></span>
+                        <strong>Відправлення</strong>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #0dcaf0, #0aa2c0); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(13, 202, 240, 0.8); vertical-align: middle; margin-right: 8px; animation: pulse 2s infinite;"></span>
+                        <strong>Вантаж</strong>
+                    </div>
+                    <div>
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #dc3545, #c82333); border-radius: 50%; border: 2px solid white; vertical-align: middle; margin-right: 8px;"></span>
+                        <strong>Призначення</strong>
+                    </div>
+                `;
+                return div;
+            };
+            legend.addTo(map);
+            
         } catch (error) {
-            console.error('Помилка карти:', error);
-            if (mapElement) {
-                mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення.</div>';
-            }
+            console.error('Помилка ініціалізації карти:', error);
+            mapElement.innerHTML = `
+                <div class="alert alert-danger m-4" style="text-align: center;">
+                    <i class="bi bi-exclamation-triangle"></i><br>
+                    <strong>Помилка відображення карти</strong><br>
+                    <small>${error.message}</small>
+                </div>
+            `;
         }
     });
 </script>
 {% endif %}
 {% endblock %}
-
