@@ -811,7 +811,7 @@ def user_profile(request, user_id):
                     company=request.user,
                     route=route,
                     defaults={
-                        'rating': rating_form.cleaned_data['rating'],
+                        'rating': int(rating_form.cleaned_data['rating']),
                         'comment': rating_form.cleaned_data['comment']
                     }
                 )
