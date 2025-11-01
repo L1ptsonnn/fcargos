@@ -9,26 +9,39 @@ def home(request):
     """Головна сторінка з динамічною картою світу"""
     routes = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')[:10]
     
-    # Формуємо дані для карти
+    # Формуємо дані для карти з валідацією
     routes_data = []
     for route in routes:
-        routes_data.append({
-            'id': route.id,
-            'origin': {
-                'city': route.origin_city,
-                'country': route.origin_country,
-                'lat': float(route.origin_lat),
-                'lng': float(route.origin_lng),
-            },
-            'destination': {
-                'city': route.destination_city,
-                'country': route.destination_country,
-                'lat': float(route.destination_lat),
-                'lng': float(route.destination_lng),
-            },
-            'status': route.status,
-            'cargo_type': route.cargo_type,
-        })
+        try:
+            origin_lat = float(route.origin_lat) if route.origin_lat else None
+            origin_lng = float(route.origin_lng) if route.origin_lng else None
+            dest_lat = float(route.destination_lat) if route.destination_lat else None
+            dest_lng = float(route.destination_lng) if route.destination_lng else None
+            
+            # Пропускаємо маршрути з невалідними координатами
+            if origin_lat is None or origin_lng is None or dest_lat is None or dest_lng is None:
+                continue
+                
+            routes_data.append({
+                'id': route.id,
+                'origin': {
+                    'city': route.origin_city or 'Не вказано',
+                    'country': route.origin_country or 'Не вказано',
+                    'lat': origin_lat,
+                    'lng': origin_lng,
+                },
+                'destination': {
+                    'city': route.destination_city or 'Не вказано',
+                    'country': route.destination_country or 'Не вказано',
+                    'lat': dest_lat,
+                    'lng': dest_lng,
+                },
+                'status': route.status,
+                'cargo_type': route.cargo_type or 'Не вказано',
+            })
+        except (ValueError, TypeError):
+            # Пропускаємо маршрути з помилками в даних
+            continue
     
     context = {
         'routes': routes,

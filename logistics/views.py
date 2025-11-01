@@ -78,6 +78,16 @@ def route_detail(request, pk):
             'diff_type': diff_type
         })
     
+    # Перевірка та валідація координат
+    try:
+        origin_lat = float(route.origin_lat) if route.origin_lat else 50.45
+        origin_lng = float(route.origin_lng) if route.origin_lng else 30.52
+        dest_lat = float(route.destination_lat) if route.destination_lat else 49.84
+        dest_lng = float(route.destination_lng) if route.destination_lng else 24.03
+    except (ValueError, TypeError):
+        origin_lat, origin_lng = 50.45, 30.52
+        dest_lat, dest_lng = 49.84, 24.03
+    
     context = {
         'route': route,
         'bids_with_diff': bids_with_diff,
@@ -86,12 +96,12 @@ def route_detail(request, pk):
         'can_complete': can_complete,
         'route_data': {
             'origin': {
-                'lat': float(route.origin_lat),
-                'lng': float(route.origin_lng),
+                'lat': origin_lat,
+                'lng': origin_lng,
             },
             'destination': {
-                'lat': float(route.destination_lat),
-                'lng': float(route.destination_lng),
+                'lat': dest_lat,
+                'lng': dest_lng,
             },
         }
     }
@@ -210,21 +220,34 @@ def tracking_view(request, pk):
     except Tracking.DoesNotExist:
         tracking = Tracking.objects.create(route=route)
     
+    # Перевірка та валідація координат
+    try:
+        origin_lat = float(route.origin_lat) if route.origin_lat else 50.45
+        origin_lng = float(route.origin_lng) if route.origin_lng else 30.52
+        dest_lat = float(route.destination_lat) if route.destination_lat else 49.84
+        dest_lng = float(route.destination_lng) if route.destination_lng else 24.03
+        current_lat = float(tracking.current_lat) if tracking.current_lat else origin_lat
+        current_lng = float(tracking.current_lng) if tracking.current_lng else origin_lng
+    except (ValueError, TypeError):
+        origin_lat, origin_lng = 50.45, 30.52
+        dest_lat, dest_lng = 49.84, 24.03
+        current_lat, current_lng = origin_lat, origin_lng
+    
     context = {
         'route': route,
         'tracking': tracking,
         'route_data': {
             'origin': {
-                'lat': float(route.origin_lat),
-                'lng': float(route.origin_lng),
+                'lat': origin_lat,
+                'lng': origin_lng,
             },
             'destination': {
-                'lat': float(route.destination_lat),
-                'lng': float(route.destination_lng),
+                'lat': dest_lat,
+                'lng': dest_lng,
             },
             'current': {
-                'lat': float(tracking.current_lat) if tracking.current_lat else float(route.origin_lat),
-                'lng': float(tracking.current_lng) if tracking.current_lng else float(route.origin_lng),
+                'lat': current_lat,
+                'lng': current_lng,
             }
         }
     }
