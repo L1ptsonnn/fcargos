@@ -53,17 +53,18 @@
         {% if carrier_profile and carrier_profile.rating > 0 %}
         <div class="mt-3">
             <div class="rating-display">
-                <span class="rating-stars">
-                    {% for i in "12345" %}
-                        {% widthratio carrier_profile.rating 1 1 as rating_int %}
-                        {% if forloop.counter <= rating_int %}
-                            <i class="bi bi-star-fill text-warning"></i>
-                        {% else %}
-                            <i class="bi bi-star text-warning"></i>
-                        {% endif %}
-                    {% endfor %}
+                <span class="rating-stars" style="font-size: 1.5rem;">
+                    {% with rating_rounded=carrier_profile.rating|floatformat:0 %}
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= rating_rounded|add:0 %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    {% endwith %}
                 </span>
-                <span class="ms-2 fw-bold">{{ carrier_profile.rating }}/5.00</span>
+                <span class="ms-2 fw-bold" style="font-size: 1.2rem;">{{ carrier_profile.rating }}/5.00</span>
                 {% if ratings %}
                 <small class="ms-2 opacity-75">({{ ratings|length }} оцінок)</small>
                 {% endif %}
