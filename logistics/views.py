@@ -35,6 +35,21 @@ def routes_list(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'get_cities' in request.GET:
         return JsonResponse({'cities': list(origin_cities)})
     
+    # Якщо це AJAX запит для отримання маршрутів у JSON форматі
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'format' in request.GET and request.GET.get('format') == 'json':
+        routes_data = [{
+            'id': route.id,
+            'origin_city': route.origin_city,
+            'destination_city': route.destination_city,
+            'cargo_type': route.cargo_type,
+            'weight': route.weight,
+            'price': route.price,
+            'status': route.status,
+            'pickup_date': route.pickup_date.strftime('%d.%m.%Y %H:%M') if route.pickup_date else None,
+            'delivery_date': route.delivery_date.strftime('%d.%m.%Y %H:%M') if route.delivery_date else None,
+        } for route in routes]
+        return JsonResponse({'routes': routes_data})
+    
     return render(request, 'logistics/routes_list.html', {
         'routes': routes,
         'origin_city_filter': origin_city_filter,

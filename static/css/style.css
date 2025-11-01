@@ -851,3 +851,141 @@ footer {
 #chatsList {
     padding: 1rem;
 }
+
+/* Route Items Styling */
+.route-item {
+    margin-bottom: 15px; /* ~0.4 см */
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.route-item:last-child {
+    margin-bottom: 0;
+}
+
+.route-item-body {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: var(--transition-base);
+}
+
+.route-item:hover .route-item-body {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-gradient-start);
+}
+
+.route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.route-cities {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.route-city {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.route-city.origin {
+    color: var(--primary-gradient-start);
+}
+
+.route-city.destination {
+    color: var(--success-gradient-start);
+}
+
+.route-city i {
+    font-size: 1.1rem;
+}
+
+.route-arrow {
+    text-align: center;
+    color: var(--primary-gradient-start);
+    font-size: 1.25rem;
+    margin: 0.25rem 0;
+}
+
+.route-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+    align-self: flex-start;
+}
+
+.route-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(248, 250, 252, 0.8);
+    border-radius: var(--radius-sm);
+}
+
+.route-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.route-detail i {
+    color: var(--primary-gradient-start);
+    font-size: 0.9rem;
+    width: 18px;
+    text-align: center;
+}
+
+.route-price {
+    font-weight: 600;
+    color: var(--success-gradient-start);
+    font-size: 0.95rem;
+}
+
+.route-details-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.routes-filters {
+    background: rgba(248, 250, 252, 0.5);
+}
+
+.routes-list {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+.routes-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.routes-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.routes-list::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient-start);
+    border-radius: 10px;
+}
+
+.routes-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-gradient-end);
+}
