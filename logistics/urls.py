@@ -10,5 +10,6 @@ urlpatterns = [
     path('bids/<int:bid_id>/accept/', views.accept_bid, name='accept_bid'),
     path('tracking/<int:pk>/', views.tracking_view, name='tracking'),
     path('tracking/<int:pk>/update/', views.update_tracking, name='update_tracking'),
+    path('routes/<int:pk>/messages/', views.route_messages, name='route_messages'),
 ]
 

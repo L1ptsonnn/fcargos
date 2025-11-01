@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Повідомлення - FCargos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messages-header {
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 2rem;
+        border-radius: 20px 20px 0 0;
+        color: white;
+    }
+    .message-container {
+        max-height: 500px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    .message {
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        max-width: 75%;
+        word-wrap: break-word;
+        animation: fadeInUp 0.3s ease-out;
+    }
+    .message.sent {
+        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+    .message.received {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e2e8f0;
+        color: var(--text-primary);
+    }
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 0.25rem;
+    }
+    .message-form-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 1rem;
+        border-radius: 10px;
+        border-top: 2px solid var(--primary-gradient-start);
+    }
+    .other-user-info {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg border-0 fade-in-up" style="border-radius: 20px; overflow: hidden;">
+                <div class="messages-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">
+                                <i class="bi bi-chat-dots"></i> Повідомлення
+                            </h4>
+                            <p class="mb-0 opacity-75">
+                                <i class="bi bi-route"></i> {{ route.origin_city }} → {{ route.destination_city }}
+                            </p>
+                        </div>
+                        <a href="{% url 'route_detail' route.pk %}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    {% if other_user %}
+                    <div class="other-user-info">
+                        <div style="width: 60px; height: 60px; margin: 0 auto 0.5rem; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
+                            <i class="bi bi-{% if other_user.role == 'company' %}building{% else %}truck{% endif %}"></i>
+                        </div>
+                        <h6 class="mb-0">{{ other_user.username }}</h6>
+                        {% if other_user.phone %}
+                        <small class="text-muted">
+                            <i class="bi bi-telephone"></i> {{ other_user.phone }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="message-container" id="messagesContainer">
+                        {% if messages_list %}
+                            {% for msg in messages_list %}
+                            <div class="message {% if msg.sender == user %}sent{% else %}received{% endif %}">
+                                <div class="mb-1">
+                                    {% if msg.sender == user %}
+                                        <strong>Ви</strong>
+                                    {% else %}
+                                        <strong>{{ msg.sender.username }}</strong>
+                                    {% endif %}
+                                </div>
+                                <div>{{ msg.content|linebreaks }}</div>
+                                <div class="message-time">
+                                    {{ msg.created_at|date:"d.m.Y H:i" }}
+                                    {% if msg.sender == user and not msg.is_read %}
+                                        <i class="bi bi-check"></i>
+                                    {% elif msg.sender == user and msg.is_read %}
+                                        <i class="bi bi-check-all text-primary"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                <p class="mt-3">Повідомлень поки немає</p>
+                                <p class="small">Почніть розмову!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="message-form-container">
+                        <form method="post" id="messageForm">
+                            {% csrf_token %}
+                            {% crispy form %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('messagesContainer');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Автоматичне прокручування до нового повідомлення
+        const observer = new MutationObserver(function() {
+            container.scrollTop = container.scrollHeight;
+        });
+        
+        if (container) {
+            observer.observe(container, { childList: true, subtree: true });
+        }
+    });
+</script>
+{% endblock %}
+

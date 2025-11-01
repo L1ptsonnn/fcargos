@@ -203,28 +203,19 @@
                         
                         <div class="mb-3">
                             <label for="id_current_location" class="form-label">
-                                <i class="bi bi-pin-map"></i> Поточна локація
+                                <i class="bi bi-pin-map"></i> Поточна локація (опціонально)
                             </label>
                             {{ form.current_location }}
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label for="id_current_lat" class="form-label">
-                                    <i class="bi bi-geo-alt"></i> Широта
-                                </label>
-                                {{ form.current_lat }}
-                            </div>
-                            <div class="col-6">
-                                <label for="id_current_lng" class="form-label">
-                                    <i class="bi bi-geo-alt"></i> Довгота
-                                </label>
-                                {{ form.current_lng }}
-                            </div>
+                            <small class="text-muted d-block mt-1">
+                                <i class="bi bi-info-circle"></i> Якщо не вказано, локація буде автоматично оновлена
+                            </small>
                         </div>
                         
                         <div class="alert alert-info mb-3">
-                            <small><i class="bi bi-info-circle"></i> Координати будуть автоматично розраховані на основі прогресу, якщо не вказані</small>
+                            <small>
+                                <i class="bi bi-geo-alt"></i> <strong>Координати та позиція вантажу розраховуються автоматично</strong><br>
+                                Синій маячок на карті рухається відповідно до прогресу доставки
+                            </small>
                         </div>
                         
                         <button type="submit" class="btn btn-success w-100">
@@ -331,9 +322,12 @@
         const originLng = getFloat({{ route_data.origin.lng|default:"null" }}, 30.52);
         const destLat = getFloat({{ route_data.destination.lat|default:"null" }}, 49.84);
         const destLng = getFloat({{ route_data.destination.lng|default:"null" }}, 24.03);
-        const currentLat = getFloat({{ route_data.current.lat|default:"null" }}, originLat);
-        const currentLng = getFloat({{ route_data.current.lng|default:"null" }}, originLng);
         const progressPercent = {{ tracking.progress_percent|default:0 }};
+        
+        // Автоматично розраховуємо координати на основі прогресу
+        const progress = Math.max(0, Math.min(100, progressPercent)) / 100.0;
+        const currentLat = originLat + (destLat - originLat) * progress;
+        const currentLng = originLng + (destLng - originLng) * progress;
         
         // Перевіряємо чи Leaflet завантажений
         if (typeof L === 'undefined') {

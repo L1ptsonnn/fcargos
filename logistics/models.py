@@ -211,3 +211,44 @@ class Tracking(models.Model):
 
     def __str__(self):
         return f"Відстеження {self.route} - {self.progress_percent}%"
+
+
+class Message(models.Model):
+    """Повідомлення між компанією та перевізником"""
+    route = models.ForeignKey(
+        Route,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        verbose_name='Маршрут'
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_messages',
+        verbose_name='Відправник'
+    )
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='received_messages',
+        verbose_name='Отримувач'
+    )
+    content = models.TextField(
+        verbose_name='Текст повідомлення'
+    )
+    is_read = models.BooleanField(
+        default=False,
+        verbose_name='Прочитано'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Створено'
+    )
+
+    class Meta:
+        verbose_name = 'Повідомлення'
+        verbose_name_plural = 'Повідомлення'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.sender.username} → {self.recipient.username}: {self.content[:50]}"

@@ -197,12 +197,23 @@
                     {% endif %}
                     <hr>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="alert('Функція в розробці')">
+                        {% if route.carrier and route.status != 'pending' %}
+                        <a href="{% url 'route_messages' route.pk %}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-chat-dots"></i> Написати повідомлення
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="alert('Функція в розробці')">
+                        </a>
+                        {% endif %}
+                        {% if route.company.phone %}
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                onclick="alert('Телефон: {{ route.company.phone }}')">
                             <i class="bi bi-telephone"></i> Зателефонувати
                         </button>
+                        {% endif %}
+                        {% if route.carrier and route.carrier.phone %}
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                onclick="alert('Телефон перевізника: {{ route.carrier.phone }}')">
+                            <i class="bi bi-telephone-fill"></i> Телефон перевізника
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -297,9 +308,14 @@
             {% else %}
                 <!-- Якщо немає ставок, показуємо корисну інформацію -->
                 {% if user.role == 'company' %}
-                <div class="card shadow-lg border-0 fade-in-up" style="animation-delay: 400ms;">
+                <div class="card shadow-lg border-0 fade-in-up tips-card" id="tipsCard" style="animation-delay: 400ms;">
                     <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
-                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Поради</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Поради</h5>
+                            <button type="button" class="btn btn-sm btn-light" onclick="hideTips()" title="Приховати поради">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info mb-3">
@@ -321,7 +337,24 @@
 
 {% block extra_js %}
 <script>
+    // Функція для приховування порад
+    function hideTips() {
+        const tipsCard = document.getElementById('tipsCard');
+        if (tipsCard) {
+            tipsCard.style.display = 'none';
+            localStorage.setItem('route_tips_hidden', 'true');
+        }
+    }
+    
+    // Перевірка чи поради приховані
     document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem('route_tips_hidden') === 'true') {
+            const tipsCard = document.getElementById('tipsCard');
+            if (tipsCard) {
+                tipsCard.style.display = 'none';
+            }
+        }
+        
         const mapElement = document.getElementById('routeMap');
         const fallbackElement = document.getElementById('mapFallback');
         
