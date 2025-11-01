@@ -14,8 +14,7 @@ urlpatterns = [
     path('chats/', views.chats_list, name='chats_list'),
     path('profile/<int:user_id>/', views.user_profile, name='user_profile'),
     path('api/notifications/', views.notifications_api, name='notifications_api'),
-    path('chats/unread-count/', views.chats_unread_count, name='chats_unread_count'),
-    path('routes/cities/', views.routes_list, name='routes_cities'),
+    path('api/chats/', views.chats_api, name='chats_api'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

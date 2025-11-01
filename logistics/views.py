@@ -24,8 +24,8 @@ def routes_list(request):
     # Отримуємо список унікальних міст для фільтра
     origin_cities = Route.objects.values_list('origin_city', flat=True).distinct().order_by('origin_city')
     
-    # Якщо це AJAX запит, повертаємо тільки список міст
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'cities' in request.GET:
+    # Якщо це AJAX запит для отримання міст
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'get_cities' in request.GET:
         return JsonResponse({'cities': list(origin_cities)})
     
     return render(request, 'logistics/routes_list.html', {
@@ -591,21 +591,40 @@ def chats_list(request):
 
 
 @login_required
-def chats_unread_count(request):
-    """API для отримання кількості непрочитаних повідомлень в чатах"""
+def chats_api(request):
+    """API для отримання чатів (AJAX)"""
     if request.user.role == 'company':
-        routes = Route.objects.filter(company=request.user, carrier__isnull=False)
+        routes = Route.objects.filter(company=request.user, carrier__isnull=False).order_by('-created_at')
     elif request.user.role == 'carrier':
-        routes = Route.objects.filter(carrier=request.user)
+        routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
     else:
         routes = Route.objects.none()
     
+    chats_data = []
     total_unread = 0
     for route in routes:
+        other_user = route.carrier if request.user == route.company else route.company
+        last_message = Message.objects.filter(route=route).order_by('-created_at').first()
         unread_count = Message.objects.filter(route=route, recipient=request.user, is_read=False).count()
         total_unread += unread_count
+        
+        chats_data.append({
+            'route_id': route.id,
+            'other_user': other_user.username,
+            'other_user_id': other_user.id,
+            'other_user_role': other_user.get_role_display(),
+            'route_origin': route.origin_city,
+            'route_destination': route.destination_city,
+            'route_status': route.get_status_display(),
+            'last_message': last_message.content[:50] if last_message else None,
+            'last_message_time': last_message.created_at.strftime('%d.%m.%Y %H:%M') if last_message else None,
+            'unread_count': unread_count,
+        })
     
-    return JsonResponse({'unread_count': total_unread})
+    return JsonResponse({
+        'chats': chats_data,
+        'total_unread': total_unread,
+    })
 
 
 @login_required

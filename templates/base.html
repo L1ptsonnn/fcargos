@@ -30,64 +30,64 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}" title="Головна">
-                            <i class="bi bi-house"></i>
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="bi bi-house"></i> Головна
                         </a>
                     </li>
                     {% if user.is_authenticated %}
                         {% if user.role == 'company' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'routes_list' %}" title="Мої маршрути">
-                                    <i class="bi bi-map"></i>
+                                <a class="nav-link" href="{% url 'routes_list' %}">
+                                    <i class="bi bi-map"></i> Мої маршрути
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'create_route' %}" title="Створити маршрут">
-                                    <i class="bi bi-plus-circle"></i>
+                                <a class="nav-link" href="{% url 'create_route' %}">
+                                    <i class="bi bi-plus-circle"></i> Створити маршрут
                                 </a>
                             </li>
                         {% elif user.role == 'carrier' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'routes_list' %}" title="Доступні маршрути">
-                                    <i class="bi bi-search"></i>
+                                <a class="nav-link" href="{% url 'routes_list' %}">
+                                    <i class="bi bi-search"></i> Доступні маршрути
                                 </a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'statistics' %}" title="Статистика">
-                                <i class="bi bi-graph-up"></i>
+                            <a class="nav-link" href="{% url 'statistics' %}">
+                                <i class="bi bi-graph-up"></i> Статистика
+                            </a>
+                        </li>
+                        <li class="nav-item ms-2">
+                            <a class="nav-link position-relative" href="#" id="notificationsTrigger" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" title="Сповіщення">
+                                <i class="bi bi-bell fs-5"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notificationBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link position-relative" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
-                                <i class="bi bi-chat-dots"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="chatsBadge" style="display: none;">0</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link position-relative" href="#" id="notificationsTrigger" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" title="Сповіщення">
-                                <i class="bi bi-bell"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notificationBadge" style="display: none;">0</span>
+                                <i class="bi bi-chat-dots fs-5"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="chatsBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#" id="routesFilterTrigger" data-bs-toggle="offcanvas" data-bs-target="#routesFilterOffcanvas" title="Фільтри маршрутів">
-                                <i class="bi bi-funnel"></i>
+                                <i class="bi bi-funnel fs-5"></i>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#" id="historyTrigger" data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" title="Історія">
-                                <i class="bi bi-clock-history"></i>
+                                <i class="bi bi-clock-history fs-5"></i>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile' %}" title="Профіль">
-                                <i class="bi bi-person"></i>
+                            <a class="nav-link" href="{% url 'profile' %}">
+                                <i class="bi bi-person"></i> Профіль
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}" title="Вийти">
-                                <i class="bi bi-box-arrow-right"></i>
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right"></i> Вийти
                             </a>
                         </li>
                     {% else %}
@@ -408,36 +408,74 @@
             
             // Завантаження чатів
             function loadChats() {
-                fetch('{% url "chats_list" %}')
-                    .then(response => response.text())
-                    .then(html => {
-                        // Парсимо HTML і витягуємо дані
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const chatsContainer = doc.querySelector('.container.mt-4');
+                fetch('{% url "chats_api" %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const chatsList = document.getElementById('chatsList');
+                        const chatsBadge = document.getElementById('chatsBadge');
                         
-                        if (chatsContainer) {
-                            document.getElementById('chatsList').innerHTML = chatsContainer.innerHTML;
-                            
-                            // Підраховуємо непрочитані повідомлення
-                            let totalUnread = 0;
-                            document.querySelectorAll('#chatsList .unread-indicator').forEach(badge => {
-                                totalUnread += parseInt(badge.textContent) || 0;
-                            });
-                            
-                            if (totalUnread > 0) {
-                                document.getElementById('chatsBadge').textContent = totalUnread;
-                                document.getElementById('chatsBadge').style.display = 'block';
-                            } else {
-                                document.getElementById('chatsBadge').style.display = 'none';
-                            }
+                        // Оновлюємо бейдж
+                        if (data.total_unread > 0) {
+                            chatsBadge.textContent = data.total_unread;
+                            chatsBadge.style.display = 'block';
                         } else {
-                            document.getElementById('chatsList').innerHTML = `
+                            chatsBadge.style.display = 'none';
+                        }
+                        
+                        // Оновлюємо список чатів
+                        if (data.chats.length === 0) {
+                            chatsList.innerHTML = `
                                 <div class="text-center text-muted py-5">
                                     <i class="bi bi-chat" style="font-size: 48px;"></i>
                                     <p class="mt-3">Немає чатів</p>
+                                    <p class="small text-muted">Ваші чати з компаніями та перевізниками з'являться тут</p>
                                 </div>
                             `;
+                        } else {
+                            chatsList.innerHTML = data.chats.map((chat, index) => {
+                                const unreadBadge = chat.unread_count > 0 ? 
+                                    `<span class="badge bg-danger ms-2">${chat.unread_count}</span>` : '';
+                                const lastMessage = chat.last_message ? 
+                                    `<p class="mb-1 text-muted small"><i class="bi bi-chat"></i> ${chat.last_message}</p>
+                                     <small class="text-muted">${chat.last_message_time}</small>` : 
+                                    '<p class="mb-0 text-muted small">Повідомлень поки немає</p>';
+                                return `
+                                    <div class="card mb-2 chat-item" onclick="window.location.href='/logistics/routes/${chat.route_id}/messages/'" style="cursor: pointer; transition: all 0.3s; border-left: 4px solid var(--primary-gradient-start);">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
+                                                    <i class="bi bi-${chat.other_user_role === 'Компанія' ? 'building' : 'truck'}"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">
+                                                        <a href="/logistics/profile/${chat.other_user_id}/" class="text-decoration-none" onclick="event.stopPropagation();">${chat.other_user}</a>
+                                                        ${unreadBadge}
+                                                    </h6>
+                                                    <p class="mb-1 text-muted small">
+                                                        <strong>Маршрут:</strong> ${chat.route_origin} → ${chat.route_destination}
+                                                    </p>
+                                                    ${lastMessage}
+                                                </div>
+                                                <div class="text-end">
+                                                    <span class="badge bg-${chat.route_status === 'Очікує' ? 'warning' : chat.route_status === 'В дорозі' ? 'info' : 'success'}">${chat.route_status}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                            
+                            // Додаємо hover ефекти
+                            document.querySelectorAll('#chatsList .chat-item').forEach(item => {
+                                item.addEventListener('mouseenter', function() {
+                                    this.style.transform = 'translateX(5px)';
+                                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                                });
+                                item.addEventListener('mouseleave', function() {
+                                    this.style.transform = 'translateX(0)';
+                                    this.style.boxShadow = 'none';
+                                });
+                            });
                         }
                     })
                     .catch(error => {
@@ -481,7 +519,11 @@
             }
             
             // Завантажуємо список міст для фільтра
-            fetch('/logistics/routes/cities/')
+            fetch('{% url "routes_list" %}?get_cities=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     const select = document.getElementById('origin_city_filter');
@@ -495,21 +537,11 @@
                     }
                 })
                 .catch(() => {
-                    // Якщо ендпоінт не існує, це нормально
+                    // Якщо не вдалось завантажити, це нормально
                 });
             
-            // Завантажуємо кількість непрочитаних чатів при завантаженні сторінки
-            fetch('/logistics/chats/unread-count/')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.unread_count > 0) {
-                        document.getElementById('chatsBadge').textContent = data.unread_count;
-                        document.getElementById('chatsBadge').style.display = 'block';
-                    }
-                })
-                .catch(() => {
-                    // Якщо ендпоінт не існує, це нормально
-                });
+            // Завантажуємо чати при завантаженні сторінки для оновлення бейджа
+            loadChats();
         });
     </script>
 </body>
