@@ -160,7 +160,7 @@
                 <i class="bi bi-chat-dots"></i> <span id="chatsTitle">Мої чати</span>
             </h5>
             <div>
-                <button type="button" class="btn btn-sm btn-light me-2" id="backToChatsBtn" style="display: none;" onclick="backToChatsList()">
+                <button type="button" class="btn btn-sm btn-light me-2" id="backToChatsBtn" style="display: none;">
                     <i class="bi bi-arrow-left"></i> Назад
                 </button>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
@@ -532,10 +532,17 @@
             
             // Назад до списку чатів
             function backToChatsList() {
-                document.getElementById('chatsList').style.display = 'block';
-                document.getElementById('chatMessages').style.display = 'none';
-                document.getElementById('backToChatsBtn').style.display = 'none';
-                document.getElementById('chatsTitle').textContent = 'Мої чати';
+                console.log('Going back to chats list');
+                const chatsList = document.getElementById('chatsList');
+                const chatMessages = document.getElementById('chatMessages');
+                const backToChatsBtn = document.getElementById('backToChatsBtn');
+                const chatsTitle = document.getElementById('chatsTitle');
+                
+                if (chatsList) chatsList.style.display = 'block';
+                if (chatMessages) chatMessages.style.display = 'none';
+                if (backToChatsBtn) backToChatsBtn.style.display = 'none';
+                if (chatsTitle) chatsTitle.textContent = 'Мої чати';
+                
                 currentRouteId = null;
                 if (window.chatInterval) {
                     clearInterval(window.chatInterval);
@@ -543,6 +550,9 @@
                 }
                 loadChats();
             }
+            
+            // Робимо функцію глобальною для onclick
+            window.backToChatsList = backToChatsList;
             
             // Завантаження повідомлень
             function loadChatMessages(routeId) {
@@ -592,15 +602,36 @@
                         
                         // Форма відправки повідомлення
                         messageFormContainer.innerHTML = `
-                            <form id="sendMessageForm" onsubmit="sendMessage(event, ${routeId})">
+                            <form id="sendMessageForm">
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="messageInput" placeholder="Введіть повідомлення..." required autocomplete="off">
-                                    <button class="btn btn-primary" type="submit">
+                                    <button class="btn btn-primary" type="submit" id="sendMessageBtn">
                                         <i class="bi bi-send"></i>
                                     </button>
                                 </div>
                             </form>
                         `;
+                        
+                        // Додаємо обробники подій для форми
+                        const sendMessageForm = document.getElementById('sendMessageForm');
+                        const messageInput = document.getElementById('messageInput');
+                        
+                        if (sendMessageForm) {
+                            sendMessageForm.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                sendMessage(e, ${routeId});
+                            });
+                        }
+                        
+                        // Обробка Enter для відправки
+                        if (messageInput) {
+                            messageInput.addEventListener('keypress', function(e) {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage(e, ${routeId});
+                                }
+                            });
+                        }
                     })
                     .catch(error => {
                         console.error('Помилка завантаження повідомлень:', error);
@@ -615,11 +646,32 @@
             
             // Відправка повідомлення
             function sendMessage(event, routeId) {
-                event.preventDefault();
+                if (event) {
+                    event.preventDefault();
+                }
+                
                 const messageInput = document.getElementById('messageInput');
-                const message = messageInput.value;
+                const sendBtn = document.getElementById('sendMessageBtn');
+                
+                if (!messageInput || !routeId) {
+                    console.error('Message input or routeId not found');
+                    return;
+                }
+                
+                const message = messageInput.value.trim();
+                if (!message) {
+                    return;
+                }
+                
+                // Блокуємо кнопку та поле вводу
+                if (sendBtn) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                }
+                messageInput.disabled = true;
                 
                 const csrftoken = getCookie('csrftoken');
+                
                 fetch(`/logistics/routes/${routeId}/messages/send/`, {
                     method: 'POST',
                     headers: {
@@ -630,17 +682,41 @@
                     body: JSON.stringify({ content: message }),
                     credentials: 'same-origin'
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         messageInput.value = '';
                         loadChatMessages(routeId);
+                        // Оновлюємо список чатів
+                        loadChats();
+                    } else {
+                        alert('Помилка відправки повідомлення: ' + (data.error || 'Невідома помилка'));
                     }
                 })
                 .catch(error => {
                     console.error('Помилка відправки повідомлення:', error);
+                    alert('Помилка відправки повідомлення. Спробуйте ще раз.');
+                })
+                .finally(() => {
+                    // Розблоковуємо кнопку та поле вводу
+                    if (sendBtn) {
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = '<i class="bi bi-send"></i>';
+                    }
+                    if (messageInput) {
+                        messageInput.disabled = false;
+                        messageInput.focus();
+                    }
                 });
             }
+            
+            // Робимо функцію глобальною
+            window.sendMessage = sendMessage;
             
             // Фільтрація маршрутів
             function filterRoutes() {
