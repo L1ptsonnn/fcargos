@@ -37,19 +37,8 @@
                     {% if user.is_authenticated %}
                         {% if user.role == 'company' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'routes_list' %}">
-                                    <i class="bi bi-map"></i> Мої маршрути
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link" href="{% url 'create_route' %}">
                                     <i class="bi bi-plus-circle"></i> Створити маршрут
-                                </a>
-                            </li>
-                        {% elif user.role == 'carrier' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'routes_list' %}">
-                                    <i class="bi bi-search"></i> Доступні маршрути
                                 </a>
                             </li>
                         {% endif %}
@@ -58,13 +47,13 @@
                                 <i class="bi bi-graph-up"></i> Статистика
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="routesWindowTrigger" data-bs-toggle="offcanvas" data-bs-target="#routesWindowOffcanvas" title="Маршрути">
-                                <i class="bi bi-map"></i> Маршрути
-                            </a>
-                        </li>
                     </ul>
                     <ul class="navbar-nav ms-auto d-flex flex-row gap-2">
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="nav-link position-relative p-2" href="#" id="routesWindowTrigger" data-bs-toggle="offcanvas" data-bs-target="#routesWindowOffcanvas" title="Маршрути">
+                                <i class="bi bi-map fs-5"></i>
+                            </a>
+                        </li>
                         <li class="nav-item d-flex align-items-center">
                             <a class="nav-link position-relative p-2" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
                                 <i class="bi bi-chat-dots fs-5"></i>
@@ -184,58 +173,61 @@
     </div>
     
     <!-- Offcanvas для маршрутів з пошуком та сортуванням -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="routesWindowOffcanvas" aria-labelledby="routesWindowOffcanvasLabel" style="width: 600px;">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="routesWindowOffcanvas" aria-labelledby="routesWindowOffcanvasLabel" style="width: 650px;">
         <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
             <h5 class="offcanvas-title" id="routesWindowOffcanvasLabel">
-                <i class="bi bi-map"></i> Маршрути
+                <i class="bi bi-map"></i> {% if user.role == 'company' %}Мої маршрути{% else %}Доступні маршрути{% endif %}
             </h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
         </div>
-        <div class="offcanvas-body">
+        <div class="offcanvas-body p-0">
             <!-- Пошук та фільтри -->
-            <form method="get" action="{% url 'routes_list' %}" id="routesWindowForm" onsubmit="event.preventDefault(); filterRoutes();">
-                <div class="mb-3">
-                    <label for="searchCity" class="form-label">
-                        <i class="bi bi-search"></i> Пошук по місту
-                    </label>
-                    <input type="text" class="form-control" id="searchCity" name="search_city" placeholder="Введіть назву міста...">
-                </div>
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <label for="origin_city_window" class="form-label">
-                            <i class="bi bi-geo-alt"></i> Місто відправлення
+            <div class="routes-filters p-3 border-bottom">
+                <form method="get" action="{% url 'routes_list' %}" id="routesWindowForm" onsubmit="event.preventDefault(); filterRoutes();">
+                    <div class="mb-3">
+                        <label for="searchCity" class="form-label fw-bold">
+                            <i class="bi bi-search"></i> Пошук по місту
                         </label>
-                        <select class="form-select" id="origin_city_window" name="origin_city">
-                            <option value="">Всі міста</option>
-                        </select>
+                        <input type="text" class="form-control" id="searchCity" name="search_city" placeholder="Введіть назву міста...">
                     </div>
-                    <div class="col-6">
-                        <label for="statusFilter" class="form-label">
-                            <i class="bi bi-funnel"></i> Статус
-                        </label>
-                        <select class="form-select" id="statusFilter" name="status" multiple>
-                            <option value="pending">Очікує</option>
-                            <option value="in_transit">В дорозі</option>
-                            <option value="delivered">Доставлено</option>
-                        </select>
+                    <div class="row mb-3 g-2">
+                        <div class="col-6">
+                            <label for="origin_city_window" class="form-label fw-bold">
+                                <i class="bi bi-geo-alt"></i> Місто відправлення
+                            </label>
+                            <select class="form-select" id="origin_city_window" name="origin_city">
+                                <option value="">Всі міста</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="statusFilter" class="form-label fw-bold">
+                                <i class="bi bi-funnel"></i> Статус
+                            </label>
+                            <select class="form-select" id="statusFilter" name="status" multiple size="3">
+                                <option value="pending">Очікує</option>
+                                <option value="in_transit">В дорозі</option>
+                                <option value="delivered">Доставлено</option>
+                            </select>
+                            <small class="text-muted">Ctrl+Click для множинного вибору</small>
+                        </div>
                     </div>
-                </div>
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Застосувати фільтри
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="resetRouteFilters()">
-                        <i class="bi bi-x-circle"></i> Скинути
-                    </button>
-                </div>
-            </form>
-            
-            <hr>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Застосувати фільтри
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetRouteFilters()">
+                            <i class="bi bi-x-circle"></i> Скинути
+                        </button>
+                    </div>
+                </form>
+            </div>
             
             <!-- Список маршрутів -->
-            <div id="routesWindowList">
+            <div id="routesWindowList" class="routes-list p-3">
                 <div class="text-center text-muted py-5">
-                    <i class="bi bi-hourglass-split" style="font-size: 48px;"></i>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Завантаження...</span>
+                    </div>
                     <p class="mt-3">Завантаження маршрутів...</p>
                 </div>
             </div>
@@ -831,35 +823,29 @@
                 selectedStatuses.forEach(status => params.append('status', status));
                 
                 fetch(`{% url "routes_list" %}?${params.toString()}`)
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const routesList = doc.querySelector('.container .row');
-                        if (routesList) {
-                            document.getElementById('routesWindowList').innerHTML = routesList.innerHTML;
-                            // Додаємо обробники кліків для карток
-                            document.querySelectorAll('#routesWindowList .route-card').forEach(card => {
-                                card.style.cursor = 'pointer';
-                                card.addEventListener('click', function() {
-                                    const link = this.querySelector('a.btn-primary');
-                                    if (link) {
-                                        window.location.href = link.href;
-                                    }
-                                });
-                            });
-                        } else {
-                            document.getElementById('routesWindowList').innerHTML = `
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox" style="font-size: 48px;"></i>
-                                    <p class="mt-3">Маршрути не знайдені</p>
-                                    <p class="small">Спробуйте змінити фільтри</p>
-                                </div>
-                            `;
-                        }
+                    .then(response => response.json())
+                    .then(data => {
+                        renderRoutes(data.routes || []);
                     })
-                    .catch(error => {
-                        console.error('Помилка фільтрації:', error);
+                    .catch(() => {
+                        // Якщо JSON не працює, пробуємо HTML
+                        fetch(`{% url "routes_list" %}?${params.toString()}`)
+                            .then(response => response.text())
+                            .then(html => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const routesList = doc.querySelector('.container .row');
+                                if (routesList && routesList.children.length > 0) {
+                                    document.getElementById('routesWindowList').innerHTML = routesList.innerHTML;
+                                    setupRouteCards();
+                                } else {
+                                    showNoRoutes();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Помилка фільтрації:', error);
+                                showNoRoutes();
+                            });
                     });
             }
             
@@ -891,6 +877,96 @@
                 });
             }
             
+            // Рендеринг маршрутів
+            function renderRoutes(routes) {
+                const routesList = document.getElementById('routesWindowList');
+                if (!routesList) return;
+                
+                if (routes.length === 0) {
+                    showNoRoutes();
+                    return;
+                }
+                
+                routesList.innerHTML = routes.map((route, index) => {
+                    const statusBadge = route.status === 'pending' ? 'warning' : 
+                                       route.status === 'in_transit' ? 'info' : 'success';
+                    const statusText = route.status === 'pending' ? 'Очікує' : 
+                                     route.status === 'in_transit' ? 'В дорозі' : 'Доставлено';
+                    return `
+                        <div class="route-item" data-route-id="${route.id}">
+                            <div class="route-item-body">
+                                <div class="route-header">
+                                    <div class="route-cities">
+                                        <div class="route-city origin">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                            <span>${escapeHtml(route.origin_city)}</span>
+                                        </div>
+                                        <div class="route-arrow">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </div>
+                                        <div class="route-city destination">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                            <span>${escapeHtml(route.destination_city)}</span>
+                                        </div>
+                                    </div>
+                                    <span class="route-status badge bg-${statusBadge}">${statusText}</span>
+                                </div>
+                                <div class="route-details">
+                                    <div class="route-detail">
+                                        <i class="bi bi-box"></i>
+                                        <span>${escapeHtml(route.cargo_type)}</span>
+                                    </div>
+                                    <div class="route-detail">
+                                        <i class="bi bi-weight"></i>
+                                        <span>${route.weight} кг</span>
+                                    </div>
+                                    <div class="route-detail">
+                                        <i class="bi bi-cash-coin"></i>
+                                        <span class="route-price">${route.price} грн</span>
+                                    </div>
+                                    <div class="route-detail">
+                                        <i class="bi bi-calendar"></i>
+                                        <span>${route.pickup_date}</span>
+                                    </div>
+                                </div>
+                                <a href="/logistics/routes/${route.id}/" class="btn btn-primary btn-sm route-details-btn">
+                                    <i class="bi bi-eye"></i> Деталі
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                setupRouteCards();
+            }
+            
+            function showNoRoutes() {
+                const routesList = document.getElementById('routesWindowList');
+                if (routesList) {
+                    routesList.innerHTML = `
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                            <p class="mt-3">Маршрути не знайдені</p>
+                            <p class="small">Спробуйте змінити фільтри</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            function setupRouteCards() {
+                document.querySelectorAll('#routesWindowList .route-item').forEach(item => {
+                    item.style.cursor = 'pointer';
+                    item.addEventListener('click', function(e) {
+                        if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+                            const link = this.querySelector('a.route-details-btn');
+                            if (link) {
+                                window.location.href = link.href;
+                            }
+                        }
+                    });
+                });
+            }
+            
             // Завантаження маршрутів у вікно
             function loadRoutesWindow() {
                 fetch('{% url "routes_list" %}')
@@ -899,9 +975,16 @@
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
                         const routesList = doc.querySelector('.container .row');
-                        if (routesList) {
+                        if (routesList && routesList.children.length > 0) {
                             document.getElementById('routesWindowList').innerHTML = routesList.innerHTML;
+                            setupRouteCards();
+                        } else {
+                            showNoRoutes();
                         }
+                    })
+                    .catch(error => {
+                        console.error('Помилка завантаження маршрутів:', error);
+                        showNoRoutes();
                     });
             }
             
@@ -929,10 +1012,17 @@
             
             // Обробник для відкриття вікна маршрутів
             const routesWindowTrigger = document.getElementById('routesWindowTrigger');
+            const routesOffcanvasEl = document.getElementById('routesWindowOffcanvas');
+            if (routesOffcanvasEl) {
+                routesOffcanvasEl.addEventListener('show.bs.offcanvas', function() {
+                    loadRoutesWindow();
+                });
+            }
             if (routesWindowTrigger) {
                 routesWindowTrigger.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    loadRoutesWindow();
+                    setTimeout(() => {
+                        loadRoutesWindow();
+                    }, 100);
                 });
             }
             
