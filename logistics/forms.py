@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit
-from .models import Route, Bid
+from .models import Route, Bid, Tracking
 
 
 class RouteForm(forms.ModelForm):
@@ -86,5 +86,52 @@ class BidForm(forms.ModelForm):
             'estimated_delivery',
             'message',
             Submit('submit', 'Зробити ставку', css_class='btn btn-success w-100 mt-3')
+        )
+
+
+class TrackingUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Tracking
+        fields = ['progress_percent', 'current_location', 'current_lat', 'current_lng']
+        widgets = {
+            'progress_percent': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'type': 'range',
+                'min': '0',
+                'max': '100',
+                'step': '1',
+                'id': 'progress-slider'
+            }),
+            'current_location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введіть поточну локацію'
+            }),
+            'current_lat': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.000001',
+                'placeholder': 'Широта'
+            }),
+            'current_lng': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.000001',
+                'placeholder': 'Довгота'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('progress_percent', css_class='col-12'),
+            ),
+            Row(
+                Column('current_location', css_class='col-12'),
+            ),
+            Row(
+                Column('current_lat', css_class='col-md-6'),
+                Column('current_lng', css_class='col-md-6'),
+            ),
+            Submit('submit', 'Оновити прогрес', css_class='btn btn-primary w-100 mt-3')
         )
 

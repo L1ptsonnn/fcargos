@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from accounts.models import User
 
 
@@ -177,7 +177,8 @@ class Tracking(models.Model):
     )
     current_location = models.CharField(
         max_length=255,
-        verbose_name='Поточна локація'
+        verbose_name='Поточна локація',
+        default=''
     )
     current_lat = models.DecimalField(
         max_digits=9,
@@ -195,7 +196,7 @@ class Tracking(models.Model):
     )
     progress_percent = models.IntegerField(
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
         verbose_name='Прогрес (%)'
     )
     last_update = models.DateTimeField(

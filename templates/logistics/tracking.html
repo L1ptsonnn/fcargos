@@ -34,16 +34,8 @@
     }
     .tracking-map {
         height: 600px;
-        min-height: 500px;
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         position: relative;
-        overflow: hidden;
-    }
-    @media (max-width: 768px) {
-        .tracking-map {
-            height: 400px;
-            min-height: 400px;
-        }
     }
     .progress-container {
         margin: 1rem 0;
@@ -144,6 +136,69 @@
         </div>
         
         <div class="col-md-4">
+            <!-- Форма оновлення прогресу -->
+            {% if can_update and form %}
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 100ms;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--success-gradient-start), var(--success-gradient-end)); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> Оновити прогрес</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'tracking' route.pk %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_progress_percent" class="form-label">
+                                <i class="bi bi-speedometer2"></i> Прогрес доставки: 
+                                <span id="progress-value" class="badge bg-primary">{{ tracking.progress_percent }}%</span>
+                            </label>
+                            <input type="range" 
+                                   class="form-range" 
+                                   id="id_progress_percent" 
+                                   name="progress_percent" 
+                                   min="0" 
+                                   max="100" 
+                                   value="{{ tracking.progress_percent }}"
+                                   oninput="document.getElementById('progress-value').textContent = this.value + '%'; document.getElementById('progress-display').textContent = this.value + '%';">
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">0%</small>
+                                <small class="text-muted" id="progress-display">{{ tracking.progress_percent }}%</small>
+                                <small class="text-muted">100%</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_current_location" class="form-label">
+                                <i class="bi bi-pin-map"></i> Поточна локація
+                            </label>
+                            {{ form.current_location }}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="id_current_lat" class="form-label">
+                                    <i class="bi bi-geo-alt"></i> Широта
+                                </label>
+                                {{ form.current_lat }}
+                            </div>
+                            <div class="col-6">
+                                <label for="id_current_lng" class="form-label">
+                                    <i class="bi bi-geo-alt"></i> Довгота
+                                </label>
+                                {{ form.current_lng }}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mb-3">
+                            <small><i class="bi bi-info-circle"></i> Координати будуть автоматично розраховані на основі прогресу, якщо не вказані</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-check-circle"></i> Оновити прогрес
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
             <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 200ms;">
                 <div class="info-header">
                     <h5 class="mb-0"><i class="bi bi-info-circle"></i> Інформація</h5>
@@ -179,6 +234,11 @@
                         <div class="progress-bar-modern">
                             <div class="progress-fill" style="width: {{ tracking.progress_percent }}%;"></div>
                         </div>
+                        {% if can_update %}
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> Ви можете оновити прогрес вище
+                        </small>
+                        {% endif %}
                     </div>
                     
                     <div class="info-item">
@@ -446,3 +506,5 @@
 </script>
 {% endif %}
 {% endblock %}
+
+

@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Route, Bid, Tracking
-from .forms import RouteForm, BidForm
+from .forms import RouteForm, BidForm, TrackingUpdateForm
 
 
 @login_required
@@ -31,7 +31,14 @@ def create_route(request):
             route = form.save(commit=False)
             route.company = request.user
             route.save()
-            Tracking.objects.create(route=route)
+            # Створюємо Tracking з початковими значеннями
+            Tracking.objects.create(
+                route=route,
+                current_location=route.origin_city,
+                current_lat=route.origin_lat,
+                current_lng=route.origin_lng,
+                progress_percent=0
+            )
             messages.success(request, 'Маршрут успішно створено!')
             return redirect('route_detail', pk=route.pk)
     else:
@@ -217,8 +224,23 @@ def tracking_view(request, pk):
     
     try:
         tracking = route.tracking
+        # Якщо current_location порожнє, ініціалізуємо його
+        if not tracking.current_location:
+            tracking.current_location = route.origin_city
+            if not tracking.current_lat:
+                tracking.current_lat = route.origin_lat
+            if not tracking.current_lng:
+                tracking.current_lng = route.origin_lng
+            tracking.save()
     except Tracking.DoesNotExist:
-        tracking = Tracking.objects.create(route=route)
+        # Створюємо Tracking з початковими значеннями
+        tracking = Tracking.objects.create(
+            route=route,
+            current_location=route.origin_city,
+            current_lat=route.origin_lat,
+            current_lng=route.origin_lng,
+            progress_percent=0
+        )
     
     # Перевірка та валідація координат
     try:
@@ -233,9 +255,53 @@ def tracking_view(request, pk):
         dest_lat, dest_lng = 49.84, 24.03
         current_lat, current_lng = origin_lat, origin_lng
     
+    # Форма для оновлення прогресу (тільки для перевізника або компанії)
+    can_update = (request.user.role == 'carrier' and route.carrier == request.user) or \
+                 (request.user.role == 'company' and route.company == request.user) and \
+                 route.status == 'in_transit'
+    
+    form = None
+    if can_update and request.method == 'GET':
+        form = TrackingUpdateForm(instance=tracking)
+    elif can_update and request.method == 'POST':
+        form = TrackingUpdateForm(request.POST, instance=tracking)
+        if form.is_valid():
+            tracking = form.save(commit=False)
+            
+            # Автоматичне розрахунок координат на основі прогресу, якщо не вказано
+            if not tracking.current_lat or not tracking.current_lng:
+                try:
+                    origin_lat = float(route.origin_lat)
+                    origin_lng = float(route.origin_lng)
+                    dest_lat = float(route.destination_lat)
+                    dest_lng = float(route.destination_lng)
+                    
+                    progress = tracking.progress_percent / 100.0
+                    tracking.current_lat = origin_lat + (dest_lat - origin_lat) * progress
+                    tracking.current_lng = origin_lng + (dest_lng - origin_lng) * progress
+                except (ValueError, TypeError):
+                    pass
+            
+            # Якщо прогрес 100%, автоматично оновлюємо локацію на призначення
+            if tracking.progress_percent >= 100:
+                tracking.current_location = route.destination_city
+                tracking.current_lat = route.destination_lat
+                tracking.current_lng = route.destination_lng
+            
+            tracking.save()
+            messages.success(request, f'Прогрес оновлено до {tracking.progress_percent}%')
+            # Оновлюємо координати для контексту
+            try:
+                current_lat = float(tracking.current_lat) if tracking.current_lat else origin_lat
+                current_lng = float(tracking.current_lng) if tracking.current_lng else origin_lng
+            except (ValueError, TypeError, NameError):
+                current_lat, current_lng = origin_lat, origin_lng
+    
     context = {
         'route': route,
         'tracking': tracking,
+        'form': form,
+        'can_update': can_update,
         'route_data': {
             'origin': {
                 'lat': origin_lat,
@@ -252,3 +318,51 @@ def tracking_view(request, pk):
         }
     }
     return render(request, 'logistics/tracking.html', context)
+
+
+@login_required
+def update_tracking(request, pk):
+    """Оновлення прогресу доставки"""
+    route = get_object_or_404(Route, pk=pk)
+    tracking = get_object_or_404(Tracking, route=route)
+    
+    # Перевірка доступу - тільки перевізник або компанія можуть оновлювати
+    if not ((request.user.role == 'carrier' and route.carrier == request.user) or 
+            (request.user.role == 'company' and route.company == request.user)):
+        messages.error(request, 'У вас немає доступу до оновлення цього маршруту')
+        return redirect('tracking', pk=route.pk)
+    
+    # Перевірка статусу - можна оновлювати тільки якщо в дорозі
+    if route.status != 'in_transit':
+        messages.error(request, 'Можна оновлювати прогрес тільки для маршрутів у статусі "В дорозі"')
+        return redirect('tracking', pk=route.pk)
+    
+    if request.method == 'POST':
+        form = TrackingUpdateForm(request.POST, instance=tracking)
+        if form.is_valid():
+            tracking = form.save(commit=False)
+            
+            # Автоматичне розрахунок координат на основі прогресу, якщо не вказано
+            if not tracking.current_lat or not tracking.current_lng:
+                origin_lat = float(route.origin_lat)
+                origin_lng = float(route.origin_lng)
+                dest_lat = float(route.destination_lat)
+                dest_lng = float(route.destination_lng)
+                
+                progress = tracking.progress_percent / 100.0
+                tracking.current_lat = origin_lat + (dest_lat - origin_lat) * progress
+                tracking.current_lng = origin_lng + (dest_lng - origin_lng) * progress
+            
+            # Якщо прогрес 100%, автоматично оновлюємо локацію на призначення
+            if tracking.progress_percent >= 100:
+                tracking.current_location = route.destination_city
+                tracking.current_lat = route.destination_lat
+                tracking.current_lng = route.destination_lng
+            
+            tracking.save()
+            messages.success(request, f'Прогрес оновлено до {tracking.progress_percent}%')
+            return redirect('tracking', pk=route.pk)
+    else:
+        form = TrackingUpdateForm(instance=tracking)
+    
+    return redirect('tracking', pk=route.pk)
