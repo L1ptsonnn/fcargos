@@ -53,9 +53,10 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-{% if route_data %}
 {% block extra_js %}
+{% if route_data %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const mapElement = document.getElementById('trackingMap');
@@ -126,6 +127,6 @@
         }
     });
 </script>
-{% endblock %}
 {% endif %}
+{% endblock %}
 
