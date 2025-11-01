@@ -21,6 +21,11 @@ def routes_list(request):
     if origin_city_filter:
         routes = routes.filter(origin_city__icontains=origin_city_filter)
     
+    # Фільтрація по статусу
+    status_filter = request.GET.getlist('status')
+    if status_filter:
+        routes = routes.filter(status__in=status_filter)
+    
     # Отримуємо список унікальних міст для фільтра
     origin_cities = Route.objects.values_list('origin_city', flat=True).distinct().order_by('origin_city')
     
