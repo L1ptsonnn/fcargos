@@ -58,26 +58,26 @@
                                 <i class="bi bi-graph-up"></i> Статистика
                             </a>
                         </li>
-                        <li class="nav-item ms-2">
-                            <a class="nav-link position-relative" href="#" id="notificationsTrigger" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" title="Сповіщення">
-                                <i class="bi bi-bell fs-5"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notificationBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
+                        <li class="nav-item ms-auto d-flex align-items-center">
+                            <a class="nav-link position-relative p-2" href="#" id="routesFilterTrigger" data-bs-toggle="offcanvas" data-bs-target="#routesFilterOffcanvas" title="Фільтри маршрутів">
+                                <i class="bi bi-funnel fs-5"></i>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link position-relative" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="nav-link position-relative p-2" href="#" id="historyTrigger" data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" title="Історія маршрутів">
+                                <i class="bi bi-clock-history fs-5"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="nav-link position-relative p-2" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
                                 <i class="bi bi-chat-dots fs-5"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="chatsBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="routesFilterTrigger" data-bs-toggle="offcanvas" data-bs-target="#routesFilterOffcanvas" title="Фільтри маршрутів">
-                                <i class="bi bi-funnel fs-5"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="historyTrigger" data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" title="Історія">
-                                <i class="bi bi-clock-history fs-5"></i>
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="nav-link position-relative p-2" href="#" id="notificationsTrigger" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" title="Сповіщення">
+                                <i class="bi bi-bell fs-5"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notificationBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -166,7 +166,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Offcanvas для фільтрів маршрутів -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="routesFilterOffcanvas" aria-labelledby="routesFilterOffcanvasLabel" style="width: 350px;">
         <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white;">
@@ -211,7 +211,7 @@
             </form>
         </div>
     </div>
-
+    
     <!-- Offcanvas для історії -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="historyOffcanvas" aria-labelledby="historyOffcanvasLabel" style="width: 500px;">
         <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--secondary-gradient-start), var(--secondary-gradient-end)); color: white;">
@@ -227,7 +227,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Offcanvas для сповіщень -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsOffcanvas" aria-labelledby="notificationsOffcanvasLabel">
         <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
@@ -485,16 +485,10 @@
             
             // Завантаження історії
             function loadHistory() {
-                fetch('{% url "history" %}')
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const historyContainer = doc.querySelector('.container');
-                        
-                        if (historyContainer) {
-                            document.getElementById('historyContent').innerHTML = historyContainer.innerHTML;
-                        }
+                fetch('{% url "history_api" %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('historyContent').innerHTML = data.html;
                     })
                     .catch(error => {
                         console.error('Помилка завантаження історії:', error);

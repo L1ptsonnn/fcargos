@@ -628,6 +628,26 @@ def chats_api(request):
 
 
 @login_required
+def history_api(request):
+    """API для отримання історії маршрутів (AJAX)"""
+    from django.template.loader import render_to_string
+    
+    if request.user.role == 'company':
+        routes = Route.objects.filter(company=request.user).order_by('-created_at')
+    elif request.user.role == 'carrier':
+        routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
+    else:
+        routes = Route.objects.none()
+    
+    html = render_to_string('dashboard/history_partial.html', {
+        'routes': routes,
+        'user': request.user
+    }, request=request)
+    
+    return JsonResponse({'html': html})
+
+
+@login_required
 def user_profile(request, user_id):
     """Профіль користувача"""
     from accounts.models import User

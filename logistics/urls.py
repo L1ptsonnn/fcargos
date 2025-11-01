@@ -15,6 +15,7 @@ urlpatterns = [
     path('profile/<int:user_id>/', views.user_profile, name='user_profile'),
     path('api/notifications/', views.notifications_api, name='notifications_api'),
     path('api/chats/', views.chats_api, name='chats_api'),
+    path('api/history/', views.history_api, name='history_api'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]
