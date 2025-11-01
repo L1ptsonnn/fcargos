@@ -429,12 +429,6 @@
         
         // Безпечне отримання координат
         function getFloat(value, defaultVal) {
-            const num = parseFloat(String(value).replace(',', '.'));
-            return isNaN(num) ? defaultVal : num;
-        }
-        
-        // Безпечне отримання координат
-        function getFloat(value, defaultVal) {
             if (value === null || value === undefined || value === '' || value === 'null') {
                 return defaultVal;
             }
