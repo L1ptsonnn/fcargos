@@ -3,69 +3,107 @@
 
 {% block title %}Деталі маршруту - FCargos{% endblock %}
 
+{% block extra_css %}
+<style>
+    .route-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px 15px 0 0;
+    }
+    .info-card {
+        transition: transform 0.2s;
+    }
+    .info-card:hover {
+        transform: translateY(-2px);
+    }
+    .status-badge {
+        font-size: 1rem;
+        padding: 10px 20px;
+        border-radius: 25px;
+    }
+    .coordinate-box {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8">
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="bi bi-map"></i> 
-                        {{ route.origin_city }} → {{ route.destination_city }}
-                    </h4>
+            <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
+                <div class="route-header text-white">
+                    <h3 class="mb-2">
+                        <i class="bi bi-route"></i> 
+                        <strong>{{ route.origin_city }}</strong> → <strong>{{ route.destination_city }}</strong>
+                    </h3>
+                    <span class="status-badge badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                        Статус: {{ route.get_status_display }}
+                    </span>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-geo-alt"></i> Відправлення</h6>
-                            <p class="mb-1"><strong>Місто:</strong> {{ route.origin_city }}</p>
-                            <p class="mb-1"><strong>Країна:</strong> {{ route.origin_country }}</p>
-                            <p class="mb-0"><strong>Координати:</strong> {{ route.origin_lat }}, {{ route.origin_lng }}</p>
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-6 info-card mb-3">
+                            <div class="border rounded p-3 h-100" style="border-color: #198754 !important; border-width: 2px !important;">
+                                <h5 class="text-success mb-3"><i class="bi bi-geo-alt-fill"></i> Відправлення</h5>
+                                <p class="mb-2"><strong><i class="bi bi-building"></i> Місто:</strong> {{ route.origin_city }}</p>
+                                <p class="mb-2"><strong><i class="bi bi-globe"></i> Країна:</strong> {{ route.origin_country }}</p>
+                                <p class="mb-0"><strong><i class="bi bi-geo"></i> Координати:</strong></p>
+                                <div class="coordinate-box mt-1">{{ route.origin_lat }}, {{ route.origin_lng }}</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-geo-alt-fill"></i> Призначення</h6>
-                            <p class="mb-1"><strong>Місто:</strong> {{ route.destination_city }}</p>
-                            <p class="mb-1"><strong>Країна:</strong> {{ route.destination_country }}</p>
-                            <p class="mb-0"><strong>Координати:</strong> {{ route.destination_lat }}, {{ route.destination_lng }}</p>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Тип вантажу:</strong> {{ route.cargo_type }}</p>
-                            <p><strong>Вага:</strong> {{ route.weight }} кг</p>
-                            <p><strong>Об'єм:</strong> {{ route.volume }} м³</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Ціна:</strong> {{ route.price }} грн</p>
-                            <p><strong>Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}</p>
-                            <p><strong>Доставка:</strong> {{ route.delivery_date|date:"d.m.Y H:i" }}</p>
+                        <div class="col-md-6 info-card mb-3">
+                            <div class="border rounded p-3 h-100" style="border-color: #dc3545 !important; border-width: 2px !important;">
+                                <h5 class="text-danger mb-3"><i class="bi bi-geo-alt"></i> Призначення</h5>
+                                <p class="mb-2"><strong><i class="bi bi-building"></i> Місто:</strong> {{ route.destination_city }}</p>
+                                <p class="mb-2"><strong><i class="bi bi-globe"></i> Країна:</strong> {{ route.destination_country }}</p>
+                                <p class="mb-0"><strong><i class="bi bi-geo"></i> Координати:</strong></p>
+                                <div class="coordinate-box mt-1">{{ route.destination_lat }}, {{ route.destination_lng }}</div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="bg-light rounded p-3">
+                                <h6 class="text-primary mb-3"><i class="bi bi-box"></i> Інформація про вантаж</h6>
+                                <p class="mb-2"><strong>Тип:</strong> <span class="badge bg-secondary">{{ route.cargo_type }}</span></p>
+                                <p class="mb-2"><strong>Вага:</strong> <span class="badge bg-info">{{ route.weight }} кг</span></p>
+                                <p class="mb-0"><strong>Об'єм:</strong> <span class="badge bg-info">{{ route.volume }} м³</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-light rounded p-3">
+                                <h6 class="text-success mb-3"><i class="bi bi-currency-exchange"></i> Фінанси та терміни</h6>
+                                <p class="mb-2"><strong>Ціна:</strong> <span class="badge bg-success" style="font-size: 1rem;">{{ route.price }} грн</span></p>
+                                <p class="mb-2"><strong><i class="bi bi-calendar-event"></i> Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}</p>
+                                <p class="mb-0"><strong><i class="bi bi-calendar-check"></i> Доставка:</strong> {{ route.delivery_date|date:"d.m.Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     {% if route.description %}
-                        <hr>
-                        <p><strong>Опис:</strong></p>
-                        <p>{{ route.description }}</p>
+                        <div class="alert alert-info mb-0">
+                            <h6 class="mb-2"><i class="bi bi-info-circle"></i> Опис вантажу:</h6>
+                            <p class="mb-0">{{ route.description }}</p>
+                        </div>
                     {% endif %}
-                    <div class="mt-3">
-                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %} fs-6">
-                            Статус: {{ route.get_status_display }}
-                        </span>
-                    </div>
                 </div>
             </div>
             
             <!-- Карта маршруту -->
-            {% if route_data %}
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-primary text-white">
+            <div class="card shadow-lg border-0 mb-4" style="overflow: hidden; border-radius: 15px;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px;">
                     <h5 class="mb-0"><i class="bi bi-map"></i> Карта маршруту</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div id="routeMap" style="height: 400px;"></div>
+                    <div id="routeMap" style="height: 500px; width: 100%; min-height: 500px;"></div>
                 </div>
             </div>
-            {% endif %}
         </div>
         
         <div class="col-md-4">
@@ -171,64 +209,95 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if route_data %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // Функція для ініціалізації карти
+    function initRouteMap() {
         const mapElement = document.getElementById('routeMap');
-        if (!mapElement || typeof L === 'undefined') {
-            if (mapElement) {
-                mapElement.innerHTML = '<div class="alert alert-warning m-3">Карта тимчасово недоступна.</div>';
-            }
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено');
+            return;
+        }
+        
+        // Перевірка Leaflet
+        if (typeof L === 'undefined') {
+            mapElement.innerHTML = '<div class="alert alert-warning m-3">Бібліотека карт завантажується...</div>';
+            setTimeout(initRouteMap, 500);
             return;
         }
         
         try {
-            const originLat = {{ route_data.origin.lat|default:"50.45" }};
-            const originLng = {{ route_data.origin.lng|default:"30.52" }};
-            const destLat = {{ route_data.destination.lat|default:"49.84" }};
-            const destLng = {{ route_data.destination.lng|default:"24.03" }};
+            const originLat = {{ route.origin_lat|default:"50.45" }};
+            const originLng = {{ route.origin_lng|default:"30.52" }};
+            const destLat = {{ route.destination_lat|default:"49.84" }};
+            const destLng = {{ route.destination_lng|default:"24.03" }};
             
-            if (!originLat || !originLng || !destLat || !destLng) {
-                if (mapElement) {
-                    mapElement.innerHTML = '<div class="alert alert-warning m-3">Координати не вказані.</div>';
-                }
-                return;
-            }
+            // Ініціалізація карти
+            const map = L.map('routeMap', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([originLat, originLng], 5);
             
-            const map = L.map('routeMap').setView([originLat, originLng], 5);
+            // Додавання тайлів
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
             }).addTo(map);
             
             const origin = [originLat, originLng];
             const destination = [destLat, destLng];
             
-            L.marker(origin, {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<div style="background: #198754; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
-                    iconSize: [25, 25]
-                })
-            }).addTo(map).bindPopup('📍 {{ route.origin_city|escapejs }}').openPopup();
+            // Створення маркерів з красивими іконками
+            const originIcon = L.divIcon({
+                className: 'custom-marker-origin',
+                html: '<div style="background: #198754; width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(25, 135, 84, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px;">📍</div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
             
-            L.marker(destination, {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<div style="background: #dc3545; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white;"></div>',
-                    iconSize: [25, 25]
-                })
-            }).addTo(map).bindPopup('📍 {{ route.destination_city|escapejs }}');
+            const destIcon = L.divIcon({
+                className: 'custom-marker-dest',
+                html: '<div style="background: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px;">📍</div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
             
-            L.polyline([origin, destination], {color: '#667eea', weight: 4}).addTo(map);
-            map.fitBounds([origin, destination], {padding: [50, 50]});
+            // Додавання маркерів
+            L.marker(origin, {icon: originIcon}).addTo(map)
+                .bindPopup(`<b style="color: #198754;">📍 Відправлення</b><br><strong>{{ route.origin_city|escapejs }}</strong><br>{{ route.origin_country|escapejs }}`)
+                .openPopup();
+            
+            L.marker(destination, {icon: destIcon}).addTo(map)
+                .bindPopup(`<b style="color: #dc3545;">📍 Призначення</b><br><strong>{{ route.destination_city|escapejs }}</strong><br>{{ route.destination_country|escapejs }}`);
+            
+            // Лінія маршруту
+            L.polyline([origin, destination], {
+                color: '#667eea',
+                weight: 5,
+                opacity: 0.8,
+                smoothFactor: 1
+            }).addTo(map);
+            
+            // Автоматичне масштабування
+            map.fitBounds([origin, destination], {
+                padding: [80, 80],
+                maxZoom: 8
+            });
+            
         } catch (error) {
-            console.error('Помилка карти:', error);
+            console.error('Помилка ініціалізації карти:', error);
             if (mapElement) {
-                mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти.</div>';
+                mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
             }
         }
-    });
+    }
+    
+    // Запускаємо ініціалізацію після завантаження DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRouteMap);
+    } else {
+        initRouteMap();
+    }
 </script>
-{% endif %}
 {% endblock %}
+
 
