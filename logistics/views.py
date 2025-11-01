@@ -587,6 +587,24 @@ def chats_list(request):
 
 
 @login_required
+def chats_unread_count(request):
+    """API для отримання кількості непрочитаних повідомлень в чатах"""
+    if request.user.role == 'company':
+        routes = Route.objects.filter(company=request.user, carrier__isnull=False)
+    elif request.user.role == 'carrier':
+        routes = Route.objects.filter(carrier=request.user)
+    else:
+        routes = Route.objects.none()
+    
+    total_unread = 0
+    for route in routes:
+        unread_count = Message.objects.filter(route=route, recipient=request.user, is_read=False).count()
+        total_unread += unread_count
+    
+    return JsonResponse({'unread_count': total_unread})
+
+
+@login_required
 def user_profile(request, user_id):
     """Профіль користувача"""
     from accounts.models import User
