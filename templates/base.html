@@ -143,101 +143,89 @@
     <script src="{% static 'js/main.js' %}"></script>
     
     <!-- Offcanvas для чатів та месенджера -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="chatsOffcanvas" aria-labelledby="chatsOffcanvasLabel" style="width: 500px; box-shadow: -5px 0 30px rgba(0,0,0,0.3);">
-        <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%); background-size: 200% 200%; animation: gradientShift 5s ease infinite; color: white; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: shimmer 4s infinite;"></div>
-            <h5 class="offcanvas-title position-relative" id="chatsOffcanvasLabel">
-                <i class="bi bi-chat-dots"></i> <span id="chatsTitle">Мої чати</span>
-            </h5>
-            <div class="position-relative">
-                <button type="button" class="btn btn-sm btn-light me-2" id="backToChatsBtn" style="display: none; border-radius: 20px;" onclick="backToChatsList()">
-                    <i class="bi bi-arrow-left"></i> Назад
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="chatsOffcanvas" aria-labelledby="chatsOffcanvasLabel" style="width: 550px;">
+        <div class="offcanvas-header shadow-sm" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white; padding: 1.25rem;">
+            <div class="d-flex align-items-center w-100">
+                <h5 class="offcanvas-title mb-0 flex-grow-1" id="chatsOffcanvasLabel">
+                    <i class="bi bi-chat-dots"></i> <span id="chatsTitle">Мої чати</span>
+                </h5>
+                <button type="button" class="btn btn-sm btn-light me-2" id="backToChatsBtn" style="display: none;" onclick="backToChatsList()">
+                    <i class="bi bi-arrow-left"></i>
                 </button>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
             </div>
         </div>
-        <div class="offcanvas-body p-0" style="background: linear-gradient(135deg, rgba(248,250,252,0.5) 0%, rgba(255,255,255,0.8) 100%);">
+        <div class="offcanvas-body p-0" style="background: #f8f9fa;">
             <!-- Список чатів -->
-            <div id="chatsList" style="max-height: calc(100vh - 200px); overflow-y: auto; padding: 1rem; transition: all 0.3s ease;">
+            <div id="chatsList" style="height: calc(100vh - 80px); overflow-y: auto; padding: 1rem;">
                 <div class="text-center text-muted py-5">
-                    <i class="bi bi-hourglass-split" style="font-size: 48px; animation: pulse 2s infinite;"></i>
+                    <i class="bi bi-hourglass-split" style="font-size: 48px;"></i>
                     <p class="mt-3">Завантаження...</p>
                 </div>
             </div>
             
             <!-- Месенджер для конкретного чату -->
-            <div id="chatMessages" style="display: none; flex-direction: column; height: calc(100vh - 120px); transition: all 0.3s ease;">
-                <div id="messagesContainer" style="flex: 1; overflow-y: auto; padding: 1.5rem; background: linear-gradient(135deg, rgba(248,250,252,0.3) 0%, rgba(255,255,255,0.5) 100%);"></div>
-                <div class="border-top p-3 bg-white" id="messageFormContainer" style="box-shadow: 0 -4px 20px rgba(0,0,0,0.1); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);"></div>
+            <div id="chatMessages" style="display: none; flex-direction: column; height: calc(100vh - 80px);">
+                <div id="messagesContainer" style="flex: 1; overflow-y: auto; padding: 1.5rem; background: #ffffff;"></div>
+                <div class="border-top p-3 bg-light" id="messageFormContainer" style="box-shadow: 0 -2px 8px rgba(0,0,0,0.05);"></div>
             </div>
         </div>
     </div>
     
     <!-- Offcanvas для маршрутів з пошуком та сортуванням -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="routesWindowOffcanvas" aria-labelledby="routesWindowOffcanvasLabel" style="width: 650px; box-shadow: -5px 0 30px rgba(0,0,0,0.3);">
-        <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%); background-size: 200% 200%; animation: gradientShift 5s ease infinite; color: white; position: relative; overflow: hidden; padding: 1.5rem;">
-            <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: shimmer 4s infinite;"></div>
-            <h5 class="offcanvas-title position-relative" id="routesWindowOffcanvasLabel" style="font-size: 1.25rem; font-weight: 600;">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="routesWindowOffcanvas" aria-labelledby="routesWindowOffcanvasLabel" style="width: 700px;">
+        <div class="offcanvas-header shadow-sm" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white; padding: 1.25rem;">
+            <h5 class="offcanvas-title mb-0" id="routesWindowOffcanvasLabel">
                 <i class="bi bi-map"></i> Маршрути
             </h5>
-            <button type="button" class="btn-close btn-close-white position-relative" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
         </div>
-        <div class="offcanvas-body" style="background: linear-gradient(135deg, rgba(248,250,252,0.5) 0%, rgba(255,255,255,0.8) 100%); padding: 1.5rem;">
+        <div class="offcanvas-body p-0" style="background: #f8f9fa;">
             <!-- Пошук та фільтри -->
-            <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
-                <div class="card-header" style="background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(139,92,246,0.1)); border: none; padding: 1rem;">
-                    <h6 class="mb-0"><i class="bi bi-funnel-fill"></i> Фільтри та пошук</h6>
-                </div>
-                <div class="card-body p-3">
-                    <form method="get" action="{% url 'routes_list' %}" id="routesWindowForm" onsubmit="event.preventDefault(); filterRoutes();">
-                        <div class="mb-3">
-                            <label for="searchCity" class="form-label fw-bold">
-                                <i class="bi bi-search"></i> Пошук по місту
+            <div class="bg-white p-3 border-bottom shadow-sm">
+                <form method="get" action="{% url 'routes_list' %}" id="routesWindowForm" onsubmit="event.preventDefault(); filterRoutes();">
+                    <div class="mb-3">
+                        <label for="searchCity" class="form-label fw-bold">
+                            <i class="bi bi-search"></i> Пошук
+                        </label>
+                        <input type="text" class="form-control" id="searchCity" name="search_city" placeholder="Назва міста відправлення...">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="origin_city_window" class="form-label fw-bold">
+                                <i class="bi bi-geo-alt"></i> Місто відправлення
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white; border: none;">
-                                    <i class="bi bi-search"></i>
-                                </span>
-                                <input type="text" class="form-control" id="searchCity" name="search_city" placeholder="Введіть назву міста..." style="border-left: none;">
-                            </div>
+                            <select class="form-select" id="origin_city_window" name="origin_city">
+                                <option value="">Всі міста</option>
+                            </select>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <label for="origin_city_window" class="form-label fw-bold">
-                                    <i class="bi bi-geo-alt-fill"></i> Місто відправлення
-                                </label>
-                                <select class="form-select" id="origin_city_window" name="origin_city" style="border-radius: 10px;">
-                                    <option value="">Всі міста</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="statusFilter" class="form-label fw-bold">
-                                    <i class="bi bi-tag-fill"></i> Статус
-                                </label>
-                                <select class="form-select" id="statusFilter" name="status" multiple style="border-radius: 10px; min-height: 38px;">
-                                    <option value="pending">Очікує</option>
-                                    <option value="in_transit">В дорозі</option>
-                                    <option value="delivered">Доставлено</option>
-                                </select>
-                                <small class="text-muted">Утримуйте Ctrl для вибору кількох</small>
-                            </div>
+                        <div class="col-md-6">
+                            <label for="statusFilter" class="form-label fw-bold">
+                                <i class="bi bi-funnel"></i> Статус
+                            </label>
+                            <select class="form-select" id="statusFilter" name="status" multiple size="3">
+                                <option value="pending">Очікує</option>
+                                <option value="in_transit">В дорозі</option>
+                                <option value="delivered">Доставлено</option>
+                            </select>
+                            <small class="text-muted">Ctrl+Click для множинного вибору</small>
                         </div>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius: 10px; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border: none;">
-                                <i class="bi bi-search"></i> Застосувати
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="resetRouteFilters()" style="border-radius: 10px;">
-                                <i class="bi bi-arrow-clockwise"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-search"></i> Застосувати
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetRouteFilters()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
             
             <!-- Список маршрутів -->
-            <div id="routesWindowList" style="max-height: calc(100vh - 400px); overflow-y: auto;">
+            <div id="routesWindowList" style="height: calc(100vh - 280px); overflow-y: auto; padding: 1rem;">
                 <div class="text-center text-muted py-5">
-                    <i class="bi bi-hourglass-split" style="font-size: 48px; animation: pulse 2s infinite;"></i>
+                    <i class="bi bi-hourglass-split" style="font-size: 48px;"></i>
                     <p class="mt-3">Завантаження маршрутів...</p>
                 </div>
             </div>
@@ -245,41 +233,41 @@
     </div>
     
     <!-- Offcanvas для історії -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="historyOffcanvas" aria-labelledby="historyOffcanvasLabel" style="width: 550px; box-shadow: -5px 0 30px rgba(0,0,0,0.3);">
-        <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--secondary-gradient-start) 0%, var(--secondary-gradient-end) 100%); background-size: 200% 200%; animation: gradientShift 5s ease infinite; color: white; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: shimmer 4s infinite;"></div>
-            <h5 class="offcanvas-title position-relative" id="historyOffcanvasLabel" style="font-size: 1.25rem; font-weight: 600;">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="historyOffcanvas" aria-labelledby="historyOffcanvasLabel" style="width: 550px;">
+        <div class="offcanvas-header shadow-sm" style="background: linear-gradient(135deg, var(--secondary-gradient-start), var(--secondary-gradient-end)); color: white; padding: 1.25rem;">
+            <h5 class="offcanvas-title mb-0" id="historyOffcanvasLabel">
                 <i class="bi bi-clock-history"></i> Історія
             </h5>
-            <button type="button" class="btn-close btn-close-white position-relative" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
         </div>
-        <div class="offcanvas-body position-relative" id="historyContent" style="background: linear-gradient(135deg, rgba(248,250,252,0.5) 0%, rgba(255,255,255,0.8) 100%); padding: 1.5rem; max-height: calc(100vh - 120px); overflow-y: auto;">
+        <div class="offcanvas-body p-0" id="historyContent" style="background: #f8f9fa; height: calc(100vh - 80px); overflow-y: auto;">
             <div class="text-center text-muted py-5">
-                <i class="bi bi-hourglass-split" style="font-size: 48px; animation: pulse 2s infinite;"></i>
+                <i class="bi bi-hourglass-split" style="font-size: 48px;"></i>
                 <p class="mt-3">Завантаження...</p>
             </div>
         </div>
     </div>
     
     <!-- Offcanvas для сповіщень -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsOffcanvas" aria-labelledby="notificationsOffcanvasLabel" style="width: 450px; box-shadow: -5px 0 30px rgba(0,0,0,0.3);">
-        <div class="offcanvas-header" style="background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%); background-size: 200% 200%; animation: gradientShift 5s ease infinite; color: white; position: relative; overflow: hidden; padding: 1.5rem;">
-            <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: shimmer 4s infinite;"></div>
-            <h5 class="offcanvas-title position-relative" id="notificationsOffcanvasLabel" style="font-size: 1.25rem; font-weight: 600;">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsOffcanvas" aria-labelledby="notificationsOffcanvasLabel" style="width: 450px;">
+        <div class="offcanvas-header shadow-sm" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white; padding: 1.25rem;">
+            <h5 class="offcanvas-title mb-0" id="notificationsOffcanvasLabel">
                 <i class="bi bi-bell"></i> Сповіщення
             </h5>
-            <button type="button" class="btn-close btn-close-white position-relative" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Закрити"></button>
         </div>
-        <div class="offcanvas-body position-relative" style="background: linear-gradient(135deg, rgba(248,250,252,0.5) 0%, rgba(255,255,255,0.8) 100%); padding: 1.5rem;">
-            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                <span class="text-muted small fw-bold"><i class="bi bi-info-circle"></i> Непрочитані</span>
-                <button class="btn btn-sm btn-outline-primary" id="markAllReadBtn" style="border-radius: 20px;">
-                    <i class="bi bi-check-all"></i> Всі прочитані
-                </button>
+        <div class="offcanvas-body p-0" style="background: #f8f9fa;">
+            <div class="bg-white p-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small fw-bold">Непрочитані</span>
+                    <button class="btn btn-sm btn-outline-primary" id="markAllReadBtn">
+                        <i class="bi bi-check-all"></i> Всі прочитані
+                    </button>
+                </div>
             </div>
-            <div id="notificationsList" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+            <div id="notificationsList" style="height: calc(100vh - 140px); overflow-y: auto; padding: 1rem;">
                 <div class="text-center text-muted py-5">
-                    <i class="bi bi-hourglass-split" style="font-size: 48px; animation: pulse 2s infinite;"></i>
+                    <i class="bi bi-hourglass-split" style="font-size: 48px;"></i>
                     <p class="mt-3">Завантаження...</p>
                 </div>
             </div>
@@ -450,29 +438,30 @@
                                     `<p class="mb-1 text-muted small"><i class="bi bi-chat"></i> ${chat.last_message}</p>
                                      <small class="text-muted">${chat.last_message_time}</small>` : 
                                     '<p class="mb-0 text-muted small">Повідомлень поки немає</p>';
-                                const safeOtherUser = escapeHtml(chat.other_user);
-                                const safeLastMessage = chat.last_message ? escapeHtml(chat.last_message) : '';
+                                const safeUser = chat.other_user.replace(/'/g, "\\'");
+                                const safeOrigin = chat.route_origin.replace(/'/g, "\\'");
+                                const safeDest = chat.route_destination.replace(/'/g, "\\'");
                                 return `
-                                    <div class="card mb-3 chat-item shadow-sm" onclick="openChat(${chat.route_id}, '${safeOtherUser}', ${chat.other_user_id}, '${escapeHtml(chat.route_origin)}', '${escapeHtml(chat.route_destination)}')" style="cursor: pointer; transition: all 0.3s; border-left: 4px solid var(--primary-gradient-start); border-radius: 15px; overflow: hidden;">
+                                    <div class="card mb-2 chat-item shadow-sm border-0" onclick="openChat(${chat.route_id}, '${safeUser}', ${chat.other_user_id}, '${safeOrigin}', '${safeDest}')" style="cursor: pointer; transition: all 0.3s; border-left: 4px solid var(--primary-gradient-start);">
                                         <div class="card-body p-3">
                                             <div class="d-flex align-items-center">
                                                 <div class="me-3 position-relative">
-                                                    <div style="width: 55px; height: 55px; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                                                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
                                                         <i class="bi bi-${chat.other_user_role === 'Компанія' ? 'building' : 'truck'}"></i>
                                                     </div>
-                                                    ${unreadBadge ? `<span class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="font-size: 0.65rem; padding: 3px 6px;">${chat.unread_count}</span>` : ''}
+                                                    ${unreadBadge ? `<span class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="font-size: 0.65rem; padding: 2px 5px;">${chat.unread_count}</span>` : ''}
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <h6 class="mb-1 fw-bold">
-                                                        <a href="/logistics/profile/${chat.other_user_id}/" class="text-decoration-none text-dark" onclick="event.stopPropagation();">${safeOtherUser}</a>
+                                                    <h6 class="mb-1">
+                                                        <a href="/logistics/profile/${chat.other_user_id}/" class="text-decoration-none text-dark" onclick="event.stopPropagation();">${chat.other_user}</a>
                                                     </h6>
                                                     <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-route"></i> ${escapeHtml(chat.route_origin)} → ${escapeHtml(chat.route_destination)}
+                                                        <i class="bi bi-route"></i> ${chat.route_origin} → ${chat.route_destination}
                                                     </p>
-                                                    ${lastMessage ? `<p class="mb-0 text-muted small"><i class="bi bi-chat-left"></i> ${safeLastMessage}</p><small class="text-muted">${chat.last_message_time}</small>` : '<p class="mb-0 text-muted small">Повідомлень поки немає</p>'}
+                                                    ${lastMessage}
                                                 </div>
                                                 <div class="text-end ms-2">
-                                                    <span class="badge bg-${chat.route_status === 'Очікує' ? 'warning' : chat.route_status === 'В дорозі' ? 'info' : 'success'}" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; border-radius: 10px;">${chat.route_status}</span>
+                                                    <span class="badge bg-${chat.route_status === 'Очікує' ? 'warning' : chat.route_status === 'В дорозі' ? 'info' : 'success'}" style="font-size: 0.75rem;">${chat.route_status}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -480,17 +469,15 @@
                                 `;
                             }).join('');
                             
-                            // Додаємо hover ефекти
+                            // Додаємо hover ефекти та клік обробники
                             document.querySelectorAll('#chatsList .chat-item').forEach(item => {
                                 item.addEventListener('mouseenter', function() {
-                                    this.style.transform = 'translateX(8px) scale(1.02)';
-                                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                                    this.style.borderLeftWidth = '6px';
+                                    this.style.transform = 'translateX(5px)';
+                                    this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                                 });
                                 item.addEventListener('mouseleave', function() {
-                                    this.style.transform = 'translateX(0) scale(1)';
-                                    this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                                    this.style.borderLeftWidth = '4px';
+                                    this.style.transform = 'translateX(0)';
+                                    this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                                 });
                             });
                         }
@@ -502,31 +489,11 @@
             
             // Відкриття чату в тому ж вікні
             function openChat(routeId, otherUser, otherUserId, routeOrigin, routeDestination) {
-                console.log('Opening chat for route:', routeId);
                 currentRouteId = routeId;
-                
-                // Плавна анімація переходу
-                const chatsList = document.getElementById('chatsList');
-                const chatMessages = document.getElementById('chatMessages');
-                const backBtn = document.getElementById('backToChatsBtn');
-                const title = document.getElementById('chatsTitle');
-                
-                chatsList.style.opacity = '0';
-                chatsList.style.transform = 'translateX(-20px)';
-                setTimeout(() => {
-                    chatsList.style.display = 'none';
-                    chatMessages.style.display = 'flex';
-                    chatMessages.style.opacity = '0';
-                    chatMessages.style.transform = 'translateX(20px)';
-                    setTimeout(() => {
-                        chatMessages.style.transition = 'all 0.3s ease';
-                        chatMessages.style.opacity = '1';
-                        chatMessages.style.transform = 'translateX(0)';
-                    }, 10);
-                }, 200);
-                
-                backBtn.style.display = 'inline-block';
-                title.textContent = otherUser;
+                document.getElementById('chatsList').style.display = 'none';
+                document.getElementById('chatMessages').style.display = 'flex';
+                document.getElementById('backToChatsBtn').style.display = 'inline-block';
+                document.getElementById('chatsTitle').textContent = otherUser;
                 
                 // Завантажуємо повідомлення
                 loadChatMessages(routeId);
@@ -544,27 +511,10 @@
             
             // Назад до списку чатів
             function backToChatsList() {
-                const chatsList = document.getElementById('chatsList');
-                const chatMessages = document.getElementById('chatMessages');
-                const backBtn = document.getElementById('backToChatsBtn');
-                const title = document.getElementById('chatsTitle');
-                
-                chatMessages.style.opacity = '0';
-                chatMessages.style.transform = 'translateX(20px)';
-                setTimeout(() => {
-                    chatMessages.style.display = 'none';
-                    chatsList.style.display = 'block';
-                    chatsList.style.opacity = '0';
-                    chatsList.style.transform = 'translateX(-20px)';
-                    setTimeout(() => {
-                        chatsList.style.transition = 'all 0.3s ease';
-                        chatsList.style.opacity = '1';
-                        chatsList.style.transform = 'translateX(0)';
-                    }, 10);
-                }, 200);
-                
-                backBtn.style.display = 'none';
-                title.textContent = 'Мої чати';
+                document.getElementById('chatsList').style.display = 'block';
+                document.getElementById('chatMessages').style.display = 'none';
+                document.getElementById('backToChatsBtn').style.display = 'none';
+                document.getElementById('chatsTitle').textContent = 'Мої чати';
                 currentRouteId = null;
                 if (window.chatInterval) {
                     clearInterval(window.chatInterval);
@@ -576,42 +526,58 @@
             // Завантаження повідомлень
             function loadChatMessages(routeId) {
                 fetch(`/logistics/routes/${routeId}/messages/api/`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        if (data.error) {
+                            console.error('API error:', data.error);
+                            return;
+                        }
+                        
                         const messagesContainer = document.getElementById('messagesContainer');
                         const messageFormContainer = document.getElementById('messageFormContainer');
                         
                         // Відображаємо повідомлення
-                        if (data.messages.length === 0) {
+                        if (!data.messages || data.messages.length === 0) {
                             messagesContainer.innerHTML = `
                                 <div class="text-center text-muted py-5">
                                     <i class="bi bi-chat" style="font-size: 48px;"></i>
                                     <p class="mt-3">Повідомлень поки немає</p>
+                                    <p class="small">Почніть розмову!</p>
                                 </div>
                             `;
                         } else {
                             messagesContainer.innerHTML = data.messages.map(msg => {
                                 const isSent = msg.sender_id === currentUserId;
+                                const safeContent = escapeHtml(msg.content).replace(/\n/g, '<br>');
                                 return `
-                                    <div class="d-flex ${isSent ? 'justify-content-end' : 'justify-content-start'} mb-3 px-3">
-                                        <div class="message-bubble ${isSent ? 'sent' : 'received'}" style="max-width: 70%; padding: 0.75rem 1rem; border-radius: 18px; ${isSent ? 'background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;' : 'background: rgba(255,255,255,0.95); color: var(--text-primary); border: 1px solid rgba(226,232,240,0.8);'}">
-                                            ${!isSent ? `<div class="fw-bold mb-1" style="font-size: 0.85rem;">${msg.sender}</div>` : ''}
-                                            <div>${escapeHtml(msg.content)}</div>
-                                            <small style="font-size: 0.75rem; opacity: 0.7; display: block; margin-top: 0.25rem;">${msg.created_at}</small>
+                                    <div class="d-flex ${isSent ? 'justify-content-end' : 'justify-content-start'} mb-3">
+                                        <div class="message-bubble ${isSent ? 'sent' : 'received'}" style="max-width: 75%; padding: 0.75rem 1rem; border-radius: ${isSent ? '18px 18px 4px 18px' : '18px 18px 18px 4px'}; ${isSent ? 'background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;' : 'background: #ffffff; color: #333; border: 1px solid #e0e0e0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);'}">
+                                            ${!isSent ? `<div class="fw-bold mb-1" style="font-size: 0.8rem; opacity: 0.9;">${escapeHtml(msg.sender)}</div>` : ''}
+                                            <div style="word-wrap: break-word;">${safeContent}</div>
+                                            <small style="font-size: 0.7rem; opacity: 0.7; display: block; margin-top: 0.5rem;">${msg.created_at}</small>
                                         </div>
                                     </div>
                                 `;
                             }).join('');
-                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            
+                            // Прокручуємо до останнього повідомлення
+                            setTimeout(() => {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            }, 100);
                         }
                         
                         // Форма відправки повідомлення
                         messageFormContainer.innerHTML = `
                             <form id="sendMessageForm" onsubmit="sendMessage(event, ${routeId})">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="messageInput" placeholder="Введіть повідомлення..." required>
-                                    <button class="btn btn-primary" type="submit">
-                                        <i class="bi bi-send"></i>
+                                    <input type="text" class="form-control rounded-start" id="messageInput" placeholder="Введіть повідомлення..." required autocomplete="off">
+                                    <button class="btn btn-primary rounded-end" type="submit" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); border: none;">
+                                        <i class="bi bi-send-fill"></i>
                                     </button>
                                 </div>
                             </form>
@@ -619,6 +585,12 @@
                     })
                     .catch(error => {
                         console.error('Помилка завантаження повідомлень:', error);
+                        const messagesContainer = document.getElementById('messagesContainer');
+                        messagesContainer.innerHTML = `
+                            <div class="alert alert-danger m-3">
+                                <i class="bi bi-exclamation-triangle"></i> Помилка завантаження повідомлень. Спробуйте пізніше.
+                            </div>
+                        `;
                     });
             }
             
@@ -626,9 +598,16 @@
             function sendMessage(event, routeId) {
                 event.preventDefault();
                 const messageInput = document.getElementById('messageInput');
-                const message = messageInput.value;
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
                 
                 const csrftoken = getCookie('csrftoken');
+                const submitBtn = event.target.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                
                 fetch(`/logistics/routes/${routeId}/messages/send/`, {
                     method: 'POST',
                     headers: {
@@ -641,31 +620,36 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                    
                     if (data.success) {
                         messageInput.value = '';
                         loadChatMessages(routeId);
+                    } else {
+                        alert('Помилка відправки повідомлення');
                     }
                 })
                 .catch(error => {
                     console.error('Помилка відправки повідомлення:', error);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                    alert('Помилка відправки повідомлення. Спробуйте пізніше.');
                 });
             }
             
             // Фільтрація маршрутів
             function filterRoutes() {
-                const form = document.getElementById('routesWindowForm');
-                const formData = new FormData(form);
                 const params = new URLSearchParams();
                 
-                // Додаємо пошук по місту
-                const searchCity = document.getElementById('searchCity').value;
+                // Додаємо пошук по місту (приоритет над вибором зі списку)
+                const searchCity = document.getElementById('searchCity').value.trim();
+                const originCity = document.getElementById('origin_city_window').value;
+                
+                // Якщо є пошук, використовуємо його, інакше використовуємо вибране місто
                 if (searchCity) {
                     params.append('origin_city', searchCity);
-                }
-                
-                // Додаємо місто відправлення
-                const originCity = document.getElementById('origin_city_window').value;
-                if (originCity) {
+                } else if (originCity) {
                     params.append('origin_city', originCity);
                 }
                 
@@ -674,36 +658,63 @@
                 const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value);
                 selectedStatuses.forEach(status => params.append('status', status));
                 
+                // Показуємо індикатор завантаження
+                const routesList = document.getElementById('routesWindowList');
+                routesList.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Завантаження...</span>
+                        </div>
+                        <p class="mt-3">Завантаження...</p>
+                    </div>
+                `;
+                
                 fetch(`{% url "routes_list" %}?${params.toString()}`)
                     .then(response => response.text())
                     .then(html => {
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
-                        const routesList = doc.querySelector('.container .row');
-                        if (routesList) {
-                            document.getElementById('routesWindowList').innerHTML = routesList.innerHTML;
+                        const routesListEl = doc.querySelector('.container .row');
+                        if (routesListEl && routesListEl.children.length > 0) {
+                            routesList.innerHTML = routesListEl.innerHTML;
                             // Додаємо обробники кліків для карток
                             document.querySelectorAll('#routesWindowList .route-card').forEach(card => {
                                 card.style.cursor = 'pointer';
-                                card.addEventListener('click', function() {
-                                    const link = this.querySelector('a.btn-primary');
-                                    if (link) {
-                                        window.location.href = link.href;
+                                card.style.transition = 'transform 0.2s, box-shadow 0.2s';
+                                card.addEventListener('click', function(e) {
+                                    if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+                                        const link = this.querySelector('a.btn-primary, a[href*="/routes/"]');
+                                        if (link) {
+                                            window.location.href = link.href;
+                                        }
                                     }
+                                });
+                                card.addEventListener('mouseenter', function() {
+                                    this.style.transform = 'translateY(-3px)';
+                                    this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+                                });
+                                card.addEventListener('mouseleave', function() {
+                                    this.style.transform = 'translateY(0)';
+                                    this.style.boxShadow = '';
                                 });
                             });
                         } else {
-                            document.getElementById('routesWindowList').innerHTML = `
+                            routesList.innerHTML = `
                                 <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox" style="font-size: 48px;"></i>
-                                    <p class="mt-3">Маршрути не знайдені</p>
-                                    <p class="small">Спробуйте змінити фільтри</p>
+                                    <i class="bi bi-inbox" style="font-size: 48px; color: #dee2e6;"></i>
+                                    <p class="mt-3 fw-bold">Маршрути не знайдені</p>
+                                    <p class="small text-muted">Спробуйте змінити фільтри або створити новий маршрут</p>
                                 </div>
                             `;
                         }
                     })
                     .catch(error => {
                         console.error('Помилка фільтрації:', error);
+                        routesList.innerHTML = `
+                            <div class="alert alert-danger m-3">
+                                <i class="bi bi-exclamation-triangle"></i> Помилка завантаження маршрутів
+                            </div>
+                        `;
                     });
             }
             
