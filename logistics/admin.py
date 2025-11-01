@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Route, Bid, Tracking
+from .models import Route, Bid, Tracking, Message
 
 
 @admin.register(Route)
@@ -25,3 +25,12 @@ class TrackingAdmin(admin.ModelAdmin):
     search_fields = ('route__origin_city', 'current_location')
     list_filter = ('last_update', 'progress_percent')
     readonly_fields = ('last_update',)
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('route', 'sender', 'recipient', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('route__origin_city', 'sender__username', 'recipient__username', 'content')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)

@@ -435,6 +435,11 @@ def route_messages(request, pk):
     else:
         other_user = None
     
+    # Якщо перевізник ще не призначений, не показуємо месенджер
+    if not route.carrier:
+        messages.info(request, 'Месенджер стане доступним після призначення перевізника')
+        return redirect('route_detail', pk=route.pk)
+    
     if not other_user:
         messages.error(request, 'Неможливо визначити співрозмовника')
         return redirect('route_detail', pk=route.pk)
