@@ -415,8 +415,23 @@
             
             // Завантаження чатів
             function loadChats() {
+                const chatsList = document.getElementById('chatsList');
+                if (chatsList) {
+                    chatsList.innerHTML = `
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-hourglass-split" style="font-size: 48px;"></i>
+                            <p class="mt-3">Завантаження...</p>
+                        </div>
+                    `;
+                }
+                
                 fetch('{% url "chats_api" %}')
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         const chatsList = document.getElementById('chatsList');
                         const chatsBadge = document.getElementById('chatsBadge');
@@ -499,6 +514,14 @@
                     })
                     .catch(error => {
                         console.error('Помилка завантаження чатів:', error);
+                        const chatsList = document.getElementById('chatsList');
+                        if (chatsList) {
+                            chatsList.innerHTML = `
+                                <div class="alert alert-danger m-3">
+                                    <i class="bi bi-exclamation-triangle"></i> Помилка завантаження чатів. Перевірте консоль.
+                                </div>
+                            `;
+                        }
                     });
             }
             
@@ -650,11 +673,12 @@
                         // Додаємо обробники подій для форми
                         const sendMessageForm = document.getElementById('sendMessageForm');
                         const messageInput = document.getElementById('messageInput');
+                        const currentRouteId = ${routeId};
                         
                         if (sendMessageForm) {
                             sendMessageForm.addEventListener('submit', function(e) {
                                 e.preventDefault();
-                                sendMessage(e, ${routeId});
+                                sendMessage(e, currentRouteId);
                             });
                         }
                         
@@ -663,7 +687,7 @@
                             messageInput.addEventListener('keypress', function(e) {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
-                                    sendMessage(e, ${routeId});
+                                    sendMessage(e, currentRouteId);
                                 }
                             });
                         }
