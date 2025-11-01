@@ -197,7 +197,7 @@ def complete_route(request, pk):
     route.status = 'delivered'
     route.save()
     
-    # Оновлюємо відстеження
+    # Оновлюємо відстеження до 100%
     try:
         tracking = route.tracking
         tracking.current_location = route.destination_city
@@ -206,7 +206,13 @@ def complete_route(request, pk):
         tracking.progress_percent = 100
         tracking.save()
     except Tracking.DoesNotExist:
-        pass
+        Tracking.objects.create(
+            route=route,
+            current_location=route.destination_city,
+            current_lat=route.destination_lat,
+            current_lng=route.destination_lng,
+            progress_percent=100
+        )
     
     messages.success(request, 'Маршрут успішно завершено!')
     return redirect('route_detail', pk=route.pk)
