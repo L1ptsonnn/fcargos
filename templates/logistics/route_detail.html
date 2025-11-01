@@ -95,13 +95,42 @@
                 </div>
             </div>
             
-            <!-- Карта маршруту -->
-            <div class="card shadow-lg border-0 mb-4" style="overflow: hidden; border-radius: 15px;">
-                <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px;">
+            <!-- Візуалізація маршруту -->
+            <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
+                <div class="text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px;">
                     <h5 class="mb-0"><i class="bi bi-map"></i> Карта маршруту</h5>
                 </div>
-                <div class="card-body p-0">
-                    <div id="routeMap" style="height: 500px; width: 100%; min-height: 500px;"></div>
+                <div class="card-body p-0" style="position: relative;">
+                    <div id="routeMap" style="height: 450px; width: 100%; background: #f8f9fa;"></div>
+                    <div id="mapFallback" style="display: none; padding: 40px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                        <div class="mb-4">
+                            <i class="bi bi-route" style="font-size: 80px; color: #667eea; opacity: 0.5;"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">Маршрут на карті</h4>
+                        <div class="row justify-content-center">
+                            <div class="col-md-5">
+                                <div class="card border-success mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-success"><i class="bi bi-geo-alt-fill"></i> Відправлення</h5>
+                                        <h6 class="mb-1">{{ route.origin_city }}</h6>
+                                        <small class="text-muted">{{ route.origin_country }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <i class="bi bi-arrow-right" style="font-size: 40px; color: #667eea;"></i>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="card border-danger mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-danger"><i class="bi bi-geo-alt"></i> Призначення</h5>
+                                        <h6 class="mb-1">{{ route.destination_city }}</h6>
+                                        <small class="text-muted">{{ route.destination_country }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -210,93 +239,86 @@
 
 {% block extra_js %}
 <script>
-    // Функція для ініціалізації карти
-    function initRouteMap() {
+    document.addEventListener('DOMContentLoaded', function() {
         const mapElement = document.getElementById('routeMap');
-        if (!mapElement) {
-            console.error('Елемент карти не знайдено');
-            return;
+        const fallbackElement = document.getElementById('mapFallback');
+        
+        if (!mapElement) return;
+        
+        // Безпечне отримання координат
+        function getFloat(value, defaultVal) {
+            const num = parseFloat(String(value).replace(',', '.'));
+            return isNaN(num) ? defaultVal : num;
         }
         
-        // Перевірка Leaflet
-        if (typeof L === 'undefined') {
-            mapElement.innerHTML = '<div class="alert alert-warning m-3">Бібліотека карт завантажується...</div>';
-            setTimeout(initRouteMap, 500);
-            return;
-        }
-        
-        try {
-            const originLat = {{ route.origin_lat|default:"50.45" }};
-            const originLng = {{ route.origin_lng|default:"30.52" }};
-            const destLat = {{ route.destination_lat|default:"49.84" }};
-            const destLng = {{ route.destination_lng|default:"24.03" }};
-            
-            // Ініціалізація карти
-            const map = L.map('routeMap', {
-                zoomControl: true,
-                scrollWheelZoom: true
-            }).setView([originLat, originLng], 5);
-            
-            // Додавання тайлів
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19
-            }).addTo(map);
-            
-            const origin = [originLat, originLng];
-            const destination = [destLat, destLng];
-            
-            // Створення маркерів з красивими іконками
-            const originIcon = L.divIcon({
-                className: 'custom-marker-origin',
-                html: '<div style="background: #198754; width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(25, 135, 84, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px;">📍</div>',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-            
-            const destIcon = L.divIcon({
-                className: 'custom-marker-dest',
-                html: '<div style="background: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px;">📍</div>',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-            
-            // Додавання маркерів
-            L.marker(origin, {icon: originIcon}).addTo(map)
-                .bindPopup(`<b style="color: #198754;">📍 Відправлення</b><br><strong>{{ route.origin_city|escapejs }}</strong><br>{{ route.origin_country|escapejs }}`)
-                .openPopup();
-            
-            L.marker(destination, {icon: destIcon}).addTo(map)
-                .bindPopup(`<b style="color: #dc3545;">📍 Призначення</b><br><strong>{{ route.destination_city|escapejs }}</strong><br>{{ route.destination_country|escapejs }}`);
-            
-            // Лінія маршруту
-            L.polyline([origin, destination], {
-                color: '#667eea',
-                weight: 5,
-                opacity: 0.8,
-                smoothFactor: 1
-            }).addTo(map);
-            
-            // Автоматичне масштабування
-            map.fitBounds([origin, destination], {
-                padding: [80, 80],
-                maxZoom: 8
-            });
-            
-        } catch (error) {
-            console.error('Помилка ініціалізації карти:', error);
-            if (mapElement) {
-                mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
+        const routeData = {
+            origin: {
+                lat: getFloat('{{ route.origin_lat }}', 50.45),
+                lng: getFloat('{{ route.origin_lng }}', 30.52),
+                city: '{{ route.origin_city|escapejs }}',
+                country: '{{ route.origin_country|escapejs }}'
+            },
+            destination: {
+                lat: getFloat('{{ route.destination_lat }}', 49.84),
+                lng: getFloat('{{ route.destination_lng }}', 24.03),
+                city: '{{ route.destination_city|escapejs }}',
+                country: '{{ route.destination_country|escapejs }}'
             }
+        };
+        
+        // Спробуємо завантажити карту
+        if (typeof L !== 'undefined') {
+            try {
+                const map = L.map('routeMap').setView([routeData.origin.lat, routeData.origin.lng], 5);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                const origin = [routeData.origin.lat, routeData.origin.lng];
+                const destination = [routeData.destination.lat, routeData.destination.lng];
+                
+                L.marker(origin, {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #198754; width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(25, 135, 84, 0.8);"></div>',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map).bindPopup('<b>📍 ' + routeData.origin.city + '</b><br>' + routeData.origin.country).openPopup();
+                
+                L.marker(destination, {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8);"></div>',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map).bindPopup('<b>📍 ' + routeData.destination.city + '</b><br>' + routeData.destination.country);
+                
+                L.polyline([origin, destination], {
+                    color: '#667eea',
+                    weight: 5,
+                    opacity: 0.8
+                }).addTo(map);
+                
+                map.fitBounds([origin, destination], {padding: [80, 80]});
+            } catch (error) {
+                console.error('Помилка карти:', error);
+                showFallback();
+            }
+        } else {
+            // Якщо Leaflet не завантажений, показуємо fallback
+            setTimeout(function() {
+                if (typeof L === 'undefined') {
+                    showFallback();
+                }
+            }, 1000);
         }
-    }
-    
-    // Запускаємо ініціалізацію після завантаження DOM
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initRouteMap);
-    } else {
-        initRouteMap();
-    }
+        
+        function showFallback() {
+            if (mapElement) mapElement.style.display = 'none';
+            if (fallbackElement) fallbackElement.style.display = 'block';
+        }
+    });
 </script>
 {% endblock %}
 
