@@ -136,55 +136,196 @@
         </div>
         
         <div class="col-md-4">
-            {% if user.role == 'carrier' and can_bid %}
-                <div class="card shadow-lg border-0 mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Зробити ставку</h5>
-                    </div>
-                    <div class="card-body">
-                        <a href="{% url 'create_bid' route.pk %}" class="btn btn-success w-100">
-                            <i class="bi bi-plus-circle"></i> Пропозиція
+            <!-- Швидкі дії -->
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="border-radius: 20px;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Швидкі дії</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if user.role == 'carrier' and can_bid %}
+                            <a href="{% url 'create_bid' route.pk %}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Зробити ставку
+                            </a>
+                        {% endif %}
+                        
+                        {% if can_complete %}
+                            <a href="{% url 'complete_route' route.pk %}" class="btn btn-success" 
+                               onclick="return confirm('Підтвердити завершення доставки?')">
+                                <i class="bi bi-check-circle"></i> Завершити маршрут
+                            </a>
+                        {% endif %}
+                        
+                        {% if route.status == 'in_transit' or route.status == 'delivered' %}
+                            <a href="{% url 'tracking' route.pk %}" class="btn btn-info">
+                                <i class="bi bi-radar"></i> Відстежити вантаж
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'routes_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад до списку
                         </a>
+                        
+                        {% if user.role == 'company' and route.company == user and route.status == 'pending' %}
+                            <a href="{% url 'routes_list' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-list-ul"></i> Переглянути ставки
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
-            {% endif %}
+            </div>
             
-            {% if can_complete %}
-                <div class="card shadow-lg border-0 mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-check-circle"></i> Завершити маршрут</h5>
+            <!-- Учасники -->
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 100ms; border-radius: 20px;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Учасники</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 p-3 rounded" style="background: rgba(102, 126, 234, 0.05); border-left: 4px solid var(--primary-gradient-start);">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-building text-primary me-2" style="font-size: 1.5rem;"></i>
+                            <strong>Компанія</strong>
+                        </div>
+                        <p class="mb-1"><strong>{{ route.company.username }}</strong></p>
+                        {% if route.company.company_name %}
+                            <p class="mb-1 text-muted"><small>{{ route.company.company_name }}</small></p>
+                        {% endif %}
+                        {% if route.company.phone %}
+                            <p class="mb-0"><small><i class="bi bi-telephone"></i> {{ route.company.phone }}</small></p>
+                        {% endif %}
                     </div>
-                    <div class="card-body">
-                        <a href="{% url 'complete_route' route.pk %}" class="btn btn-success w-100" 
-                           onclick="return confirm('Підтвердити завершення доставки?')">
-                            <i class="bi bi-check-lg"></i> Підтвердити доставку
-                        </a>
+                    
+                    {% if route.carrier %}
+                        <div class="p-3 rounded" style="background: rgba(17, 153, 142, 0.05); border-left: 4px solid var(--success-gradient-start);">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-truck text-success me-2" style="font-size: 1.5rem;"></i>
+                                <strong>Перевізник</strong>
+                            </div>
+                            <p class="mb-1"><strong>{{ route.carrier.username }}</strong></p>
+                            {% if route.carrier.carrier_profile %}
+                                <div class="mb-2">
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-star-fill"></i> Рейтинг: {{ route.carrier.carrier_profile.rating }}/5
+                                    </span>
+                                    {% if route.carrier.carrier_profile.experience_years %}
+                                        <span class="badge bg-info ms-1">
+                                            Досвід: {{ route.carrier.carrier_profile.experience_years }} років
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                {% if route.carrier.carrier_profile.vehicle_type %}
+                                    <p class="mb-1 text-muted"><small><i class="bi bi-car-front"></i> {{ route.carrier.carrier_profile.vehicle_type }}</small></p>
+                                {% endif %}
+                            {% endif %}
+                            {% if route.carrier.phone %}
+                                <p class="mb-0"><small><i class="bi bi-telephone"></i> {{ route.carrier.phone }}</small></p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-0">
+                            <small><i class="bi bi-info-circle"></i> Перевізник ще не призначений</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Терміни -->
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 200ms; border-radius: 20px;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--success-gradient-start), var(--success-gradient-end)); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Терміни</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 p-3 rounded" style="background: rgba(17, 153, 142, 0.05); border-left: 4px solid var(--success-gradient-start);">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-calendar-event text-success me-2"></i>
+                            <strong>Забір вантажу</strong>
+                        </div>
+                        <p class="mb-0">
+                            <strong>{{ route.pickup_date|date:"d.m.Y" }}</strong><br>
+                            <small class="text-muted"><i class="bi bi-clock"></i> {{ route.pickup_date|date:"H:i" }}</small>
+                        </p>
+                    </div>
+                    
+                    <div class="p-3 rounded" style="background: rgba(220, 53, 69, 0.05); border-left: 4px solid #dc3545;">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-calendar-check text-danger me-2"></i>
+                            <strong>Очікувана доставка</strong>
+                        </div>
+                        <p class="mb-0">
+                            <strong>{{ route.delivery_date|date:"d.m.Y" }}</strong><br>
+                            <small class="text-muted"><i class="bi bi-clock"></i> {{ route.delivery_date|date:"H:i" }}</small>
+                        </p>
+                    </div>
+                    
+                    {% if route.status == 'in_transit' %}
+                        {% if route.tracking %}
+                            <div class="mt-3 p-2 rounded bg-info text-white text-center">
+                                <small>
+                                    <i class="bi bi-hourglass-split"></i> 
+                                    Прогрес: {{ route.tracking.progress_percent }}%
+                                </small>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Статистика маршруту -->
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="animation-delay: 300ms; border-radius: 20px;">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--secondary-gradient-start), var(--secondary-gradient-end)); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Статистика</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="p-2 rounded" style="background: rgba(102, 126, 234, 0.1);">
+                                <i class="bi bi-calendar3 text-primary" style="font-size: 1.5rem;"></i>
+                                <p class="mb-0 mt-2"><strong>Створено</strong></p>
+                                <small class="text-muted">{{ route.created_at|date:"d.m.Y" }}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="p-2 rounded" style="background: rgba(17, 153, 142, 0.1);">
+                                <i class="bi bi-currency-exchange text-success" style="font-size: 1.5rem;"></i>
+                                <p class="mb-0 mt-2"><strong>Ціна</strong></p>
+                                <small class="text-success"><strong>{{ route.price }} грн</strong></small>
+                            </div>
+                        </div>
+                        {% if route.weight %}
+                        <div class="col-6">
+                            <div class="p-2 rounded" style="background: rgba(13, 202, 240, 0.1);">
+                                <i class="bi bi-weight text-info" style="font-size: 1.5rem;"></i>
+                                <p class="mb-0 mt-2"><strong>Вага</strong></p>
+                                <small class="text-muted">{{ route.weight }} кг</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if route.volume %}
+                        <div class="col-6">
+                            <div class="p-2 rounded" style="background: rgba(240, 147, 251, 0.1);">
+                                <i class="bi bi-box text-secondary" style="font-size: 1.5rem;"></i>
+                                <p class="mb-0 mt-2"><strong>Об'єм</strong></p>
+                                <small class="text-muted">{{ route.volume }} м³</small>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-            {% endif %}
+            </div>
             
-            {% if route.status == 'in_transit' or route.status == 'delivered' %}
-                <div class="card shadow-lg border-0 mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Відстеження</h5>
-                    </div>
-                    <div class="card-body">
-                        <a href="{% url 'tracking' route.pk %}" class="btn btn-info w-100">
-                            <i class="bi bi-radar"></i> Відстежити вантаж
-                        </a>
-                    </div>
-                </div>
-            {% endif %}
-            
+            <!-- Ставки -->
             {% if bids_with_diff %}
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})</h5>
+                <div class="card shadow-lg border-0 fade-in-up" style="animation-delay: 400ms; border-radius: 20px;">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--accent-gradient-start), var(--accent-gradient-end)); color: white; border-radius: 20px 20px 0 0;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Ставки</h5>
+                            <span class="badge bg-light text-dark">{{ bids_with_diff|length }}</span>
+                        </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                         {% for item in bids_with_diff %}
                             {% with bid=item.bid %}
-                            <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}">
+                            <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}" style="{% if not forloop.last %}border-color: rgba(0,0,0,0.1);{% endif %}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
                                         <p class="mb-1"><strong>
@@ -193,7 +334,7 @@
                                         {% if bid.carrier.carrier_profile %}
                                             <small class="text-muted">
                                                 <i class="bi bi-star-fill text-warning"></i> 
-                                                Рейтинг: {{ bid.carrier.carrier_profile.rating }} / 5
+                                                Рейтинг: {{ bid.carrier.carrier_profile.rating }}/5
                                             </small>
                                         {% endif %}
                                     </div>
@@ -201,27 +342,31 @@
                                         <span class="badge bg-success">
                                             <i class="bi bi-check-circle"></i> Прийнято
                                         </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-hourglass-split"></i> Очікує
+                                        </span>
                                     {% endif %}
                                 </div>
                                 <p class="mb-1">
                                     <i class="bi bi-cash-coin"></i> Ціна: 
                                     <strong class="text-success">{{ bid.proposed_price }} грн</strong>
                                     {% if item.price_diff > 0 %}
-                                        <small class="text-muted">
-                                            ({% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн)
+                                        <small class="text-muted d-block mt-1">
+                                            {% if item.diff_type == 'discount' %}<i class="bi bi-arrow-down text-success"></i> знижка{% else %}<i class="bi bi-arrow-up text-danger"></i> доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн
                                         </small>
                                     {% endif %}
                                 </p>
                                 <p class="mb-1">
                                     <i class="bi bi-calendar-check"></i> Доставка: 
-                                    {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
+                                    <small>{{ bid.estimated_delivery|date:"d.m.Y H:i" }}</small>
                                 </p>
                                 {% if bid.message %}
-                                    <p class="mb-2 text-muted"><small>{{ bid.message }}</small></p>
+                                    <p class="mb-2 text-muted"><small><i class="bi bi-chat-left-text"></i> {{ bid.message }}</small></p>
                                 {% endif %}
                                 {% if can_accept_bids and not bid.is_accepted %}
                                     <a href="{% url 'accept_bid' bid.pk %}" 
-                                       class="btn btn-sm btn-success"
+                                       class="btn btn-sm btn-success w-100"
                                        onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
                                         <i class="bi bi-check"></i> Прийняти ставку
                                     </a>
