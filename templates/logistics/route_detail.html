@@ -6,27 +6,64 @@
 {% block extra_css %}
 <style>
     .route-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 25px;
-        border-radius: 15px 15px 0 0;
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 50%, var(--secondary-gradient-start) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 2.5rem;
+        border-radius: 20px 20px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .route-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: shimmer 4s infinite;
     }
     .info-card {
-        transition: transform 0.2s;
+        transition: var(--transition-base);
+        height: 100%;
     }
     .info-card:hover {
-        transform: translateY(-2px);
+        transform: translateY(-8px);
+    }
+    .info-card .border {
+        transition: var(--transition-base);
+    }
+    .info-card:hover .border {
+        box-shadow: var(--shadow-lg);
     }
     .status-badge {
         font-size: 1rem;
-        padding: 10px 20px;
+        padding: 0.75rem 1.5rem;
         border-radius: 25px;
+        font-weight: 600;
+        box-shadow: var(--shadow-sm);
+        animation: fadeInUp 0.6s ease-out;
     }
     .coordinate-box {
-        background: #f8f9fa;
-        padding: 10px;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        padding: 0.875rem;
+        border-radius: 12px;
         font-family: 'Courier New', monospace;
         font-size: 0.9rem;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        transition: var(--transition-base);
+    }
+    .coordinate-box:hover {
+        border-color: rgba(102, 126, 234, 0.5);
+        transform: scale(1.02);
+    }
+    .map-header {
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 50%, var(--secondary-gradient-start) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 1.5rem 2rem;
+        color: white;
     }
 </style>
 {% endblock %}
@@ -35,13 +72,13 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8">
-            <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="border-radius: 20px; overflow: hidden;">
                 <div class="route-header text-white">
-                    <h3 class="mb-2">
+                    <h3 class="mb-2" style="position: relative; z-index: 1;">
                         <i class="bi bi-route"></i> 
                         <strong>{{ route.origin_city }}</strong> → <strong>{{ route.destination_city }}</strong>
                     </h3>
-                    <span class="status-badge badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                    <span class="status-badge badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}" style="position: relative; z-index: 1;">
                         Статус: {{ route.get_status_display }}
                     </span>
                 </div>
@@ -96,12 +133,12 @@
             </div>
             
             <!-- Візуалізація маршруту -->
-            <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
-                <div class="text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px;">
+            <div class="card shadow-lg border-0 mb-4 fade-in-up" style="border-radius: 20px; overflow: hidden;">
+                <div class="map-header">
                     <h5 class="mb-0"><i class="bi bi-map"></i> Карта маршруту</h5>
                 </div>
                 <div class="card-body p-0" style="position: relative;">
-                    <div id="routeMap" style="height: 450px; width: 100%; background: #f8f9fa;"></div>
+                    <div id="routeMap" style="height: 500px; width: 100%; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);"></div>
                     <div id="mapFallback" style="display: none; padding: 40px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
                         <div class="mb-4">
                             <i class="bi bi-route" style="font-size: 80px; color: #667eea; opacity: 0.5;"></i>
