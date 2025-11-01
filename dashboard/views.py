@@ -7,7 +7,13 @@ from logistics.models import Route
 
 def home(request):
     """Головна сторінка з динамічною картою світу"""
+    from logistics.models import Notification
     routes = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')[:10]
+    
+    # Кількість непрочитаних сповіщень
+    unread_notifications_count = 0
+    if request.user.is_authenticated:
+        unread_notifications_count = Notification.objects.filter(user=request.user, is_read=False).count()
     
     # Формуємо дані для карти з валідацією
     routes_data = []
@@ -46,6 +52,7 @@ def home(request):
     context = {
         'routes': routes,
         'routes_data': json.dumps(routes_data),
+        'unread_notifications_count': unread_notifications_count,
     }
     return render(request, 'dashboard/home.html', context)
 

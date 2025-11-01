@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Route, Bid, Tracking, Message
+from accounts.models import User
+from .models import Route, Bid, Tracking, Message, Notification
 from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm
 
 
@@ -15,7 +16,19 @@ def routes_list(request):
     else:
         routes = Route.objects.none()
     
-    return render(request, 'logistics/routes_list.html', {'routes': routes})
+    # Фільтрація по місту старту
+    origin_city_filter = request.GET.get('origin_city', '')
+    if origin_city_filter:
+        routes = routes.filter(origin_city__icontains=origin_city_filter)
+    
+    # Отримуємо список унікальних міст для фільтра
+    origin_cities = Route.objects.values_list('origin_city', flat=True).distinct().order_by('origin_city')
+    
+    return render(request, 'logistics/routes_list.html', {
+        'routes': routes,
+        'origin_city_filter': origin_city_filter,
+        'origin_cities': origin_cities,
+    })
 
 
 @login_required
@@ -149,6 +162,16 @@ def create_bid(request, pk):
             bid.route = route
             bid.carrier = request.user
             bid.save()
+            
+            # Створюємо сповіщення для компанії
+            Notification.objects.create(
+                user=route.company,
+                notification_type='new_bid',
+                title='Нова ставка',
+                message=f'Перевізник {request.user.username} зробив ставку на маршрут {route.origin_city} → {route.destination_city}',
+                route=route
+            )
+            
             messages.success(request, 'Ставку успішно створено!')
             return redirect('route_detail', pk=pk)
     else:
@@ -186,6 +209,24 @@ def accept_bid(request, bid_id):
         'current_lat': bid.route.origin_lat,
         'current_lng': bid.route.origin_lng,
     })
+    
+    # Створюємо сповіщення для перевізника
+    Notification.objects.create(
+        user=bid.carrier,
+        notification_type='bid_accepted',
+        title='Вашу ставку прийнято!',
+        message=f'Компанія {request.user.username} прийняла вашу ставку на маршрут {bid.route.origin_city} → {bid.route.destination_city}',
+        route=bid.route
+    )
+    
+    # Створюємо сповіщення про призначення маршруту
+    Notification.objects.create(
+        user=bid.carrier,
+        notification_type='route_assigned',
+        title='Вам призначено маршрут',
+        message=f'Вам призначено маршрут {bid.route.origin_city} → {bid.route.destination_city}',
+        route=bid.route
+    )
     
     messages.success(request, f'Ставку від {bid.carrier.username} прийнято!')
     return redirect('route_detail', pk=bid.route.pk)
@@ -460,6 +501,16 @@ def route_messages(request, pk):
             message.sender = request.user
             message.recipient = other_user
             message.save()
+            
+            # Створюємо сповіщення для отримувача
+            Notification.objects.create(
+                user=other_user,
+                notification_type='new_message',
+                title='Нове повідомлення',
+                message=f'Від {request.user.username}: {message.content[:50]}...',
+                route=route
+            )
+            
             messages.success(request, 'Повідомлення відправлено!')
             return redirect('route_messages', pk=route.pk)
     else:
@@ -476,3 +527,85 @@ def route_messages(request, pk):
         'unread_count': unread_count,
     }
     return render(request, 'logistics/messages.html', context)
+
+
+@login_required
+def chats_list(request):
+    """Список всіх чатів користувача"""
+    # Отримуємо всі маршрути де користувач є учасником
+    if request.user.role == 'company':
+        routes = Route.objects.filter(company=request.user, carrier__isnull=False).order_by('-created_at')
+    elif request.user.role == 'carrier':
+        routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
+    else:
+        routes = Route.objects.none()
+    
+    # Для кожного маршруту отримуємо останнє повідомлення та кількість непрочитаних
+    chats_data = []
+    for route in routes:
+        other_user = route.carrier if request.user == route.company else route.company
+        
+        last_message = Message.objects.filter(route=route).order_by('-created_at').first()
+        unread_count = Message.objects.filter(route=route, recipient=request.user, is_read=False).count()
+        
+        chats_data.append({
+            'route': route,
+            'other_user': other_user,
+            'last_message': last_message,
+            'unread_count': unread_count,
+        })
+    
+    return render(request, 'logistics/chats_list.html', {'chats_data': chats_data})
+
+
+@login_required
+def user_profile(request, user_id):
+    """Профіль користувача"""
+    profile_user = get_object_or_404(User, pk=user_id)
+    
+    # Статистика маршрутів
+    if profile_user.role == 'company':
+        routes_created = Route.objects.filter(company=profile_user).count()
+        routes_in_transit = Route.objects.filter(company=profile_user, status='in_transit').count()
+        routes_completed = Route.objects.filter(company=profile_user, status='delivered').count()
+    else:
+        routes_created = 0
+        routes_in_transit = Route.objects.filter(carrier=profile_user, status='in_transit').count()
+        routes_completed = Route.objects.filter(carrier=profile_user, status='delivered').count()
+    
+    context = {
+        'profile_user': profile_user,
+        'routes_created': routes_created,
+        'routes_in_transit': routes_in_transit,
+        'routes_completed': routes_completed,
+    }
+    return render(request, 'logistics/user_profile.html', context)
+
+
+@login_required
+def notifications_view(request):
+    """Список сповіщень"""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    return render(request, 'logistics/notifications.html', {
+        'notifications': notifications,
+        'unread_count': unread_count,
+    })
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Позначити сповіщення як прочитане"""
+    notification = get_object_or_404(Notification, pk=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect('notifications')
+
+
+@login_required
+def mark_all_notifications_read(request):
+    """Позначити всі сповіщення як прочитані"""
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    messages.success(request, 'Всі сповіщення позначено як прочитані')
+    return redirect('notifications')

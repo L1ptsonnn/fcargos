@@ -2,55 +2,128 @@
 
 {% block title %}Маршрути - FCargos{% endblock %}
 
+{% block extra_css %}
+<style>
+    .routes-header {
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 5s ease infinite;
+        padding: 3rem 0;
+        margin: -2rem -15px 3rem -15px;
+        border-radius: 0 0 30px 30px;
+        color: white;
+        box-shadow: var(--shadow-lg);
+    }
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+    .empty-state i {
+        font-size: 80px;
+        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>
-            <i class="bi bi-map"></i> 
-            {% if user.role == 'company' %}Мої маршрути{% else %}Доступні маршрути{% endif %}
-        </h2>
-        {% if user.role == 'company' %}
-            <a href="{% url 'create_route' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Створити маршрут
-            </a>
-        {% endif %}
+<div class="routes-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-2">
+                    <i class="bi bi-map"></i> 
+                    {% if user.role == 'company' %}Мої маршрути{% else %}Доступні маршрути{% endif %}
+                </h2>
+                <p class="mb-0 opacity-75">Керуйте своїми логістичними маршрутами</p>
+            </div>
+            {% if user.role == 'company' %}
+                <a href="{% url 'create_route' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Створити маршрут
+                </a>
+            {% endif %}
+        </div>
     </div>
-    
+</div>
+
+<div class="container">
+    <!-- Фільтр по місту старту -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="origin_city" class="form-label">
+                        <i class="bi bi-funnel"></i> Фільтр по місту старту
+                    </label>
+                    <select class="form-select" id="origin_city" name="origin_city">
+                        <option value="">Всі міста</option>
+                        {% for city in origin_cities %}
+                        <option value="{{ city }}" {% if origin_city_filter == city %}selected{% endif %}>
+                            {{ city }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Застосувати
+                    </button>
+                </div>
+                {% if origin_city_filter %}
+                <div class="col-md-3">
+                    <a href="{% url 'routes_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Скинути
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
     {% if routes %}
         <div class="row">
             {% for route in routes %}
-            <div class="col-md-6 col-lg-4 mb-4">
+            <div class="col-md-6 col-lg-4 mb-4 fade-in-up" style="animation-delay: {{ forloop.counter0|floatformat:0 }}00ms">
                 <div class="card route-card h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5 class="card-title">
-                                <i class="bi bi-geo-alt-fill text-primary"></i>
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-geo-alt-fill" style="color: var(--primary-gradient-start);"></i>
                                 {{ route.origin_city }}
                             </h5>
                             <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
                                 {{ route.get_status_display }}
                             </span>
                         </div>
-                        <p class="text-center mb-3">
-                            <i class="bi bi-arrow-down text-primary"></i>
-                        </p>
+                        <div class="text-center mb-3">
+                            <i class="bi bi-arrow-down" style="font-size: 1.5rem; color: var(--primary-gradient-start);"></i>
+                        </div>
                         <h5 class="card-title text-center mb-3">
-                            <i class="bi bi-geo-alt-fill text-success"></i>
+                            <i class="bi bi-geo-alt-fill" style="color: var(--success-gradient-start);"></i>
                             {{ route.destination_city }}
                         </h5>
-                        <hr>
-                        <p class="mb-2">
-                            <strong><i class="bi bi-box"></i> Тип вантажу:</strong> {{ route.cargo_type }}
-                        </p>
-                        <p class="mb-2">
-                            <strong><i class="bi bi-weight"></i> Вага:</strong> {{ route.weight }} кг
-                        </p>
-                        <p class="mb-2">
-                            <strong><i class="bi bi-cash-coin"></i> Ціна:</strong> {{ route.price }} грн
-                        </p>
-                        <p class="mb-3">
-                            <strong><i class="bi bi-calendar"></i> Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}
-                        </p>
+                        <hr class="my-3">
+                        <div class="mb-3">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-box"></i> Тип вантажу:</strong> 
+                                <span class="badge bg-secondary">{{ route.cargo_type }}</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-weight"></i> Вага:</strong> 
+                                <span class="badge bg-info">{{ route.weight }} кг</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-cash-coin"></i> Ціна:</strong> 
+                                <span class="badge bg-success" style="font-size: 0.95rem;">{{ route.price }} грн</span>
+                            </p>
+                            <p class="mb-0">
+                                <strong><i class="bi bi-calendar"></i> Забір:</strong> 
+                                <small class="text-muted">{{ route.pickup_date|date:"d.m.Y H:i" }}</small>
+                            </p>
+                        </div>
                         <a href="{% url 'route_detail' route.pk %}" class="btn btn-primary w-100">
                             <i class="bi bi-eye"></i> Деталі
                         </a>
@@ -60,11 +133,12 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-inbox" style="font-size: 64px; color: #ccc;"></i>
-            <p class="text-muted mt-3">Маршрутів не знайдено</p>
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h4 class="mb-3">Маршрутів не знайдено</h4>
+            <p class="text-muted mb-4">Почніть створювати маршрути для своїх вантажів</p>
             {% if user.role == 'company' %}
-                <a href="{% url 'create_route' %}" class="btn btn-primary">
+                <a href="{% url 'create_route' %}" class="btn btn-primary btn-lg">
                     <i class="bi bi-plus-circle"></i> Створити перший маршрут
                 </a>
             {% endif %}

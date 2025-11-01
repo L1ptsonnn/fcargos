@@ -11,5 +11,10 @@ urlpatterns = [
     path('tracking/<int:pk>/', views.tracking_view, name='tracking'),
     path('tracking/<int:pk>/update/', views.update_tracking, name='update_tracking'),
     path('routes/<int:pk>/messages/', views.route_messages, name='route_messages'),
+    path('chats/', views.chats_list, name='chats_list'),
+    path('profile/<int:user_id>/', views.user_profile, name='user_profile'),
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]
 
