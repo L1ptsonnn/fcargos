@@ -248,6 +248,23 @@ def complete_route(request, pk):
     route.status = 'delivered'
     route.save()
     
+    # Створюємо сповіщення про завершення маршруту
+    if route.carrier:
+        Notification.objects.create(
+            user=route.carrier,
+            notification_type='route_completed',
+            title='Маршрут завершено',
+            message=f'Маршрут {route.origin_city} → {route.destination_city} успішно завершено',
+            route=route
+        )
+    Notification.objects.create(
+        user=route.company,
+        notification_type='route_completed',
+        title='Маршрут завершено',
+        message=f'Маршрут {route.origin_city} → {route.destination_city} успішно завершено',
+        route=route
+    )
+    
     # Оновлюємо відстеження до 100%
     try:
         tracking = route.tracking
@@ -451,6 +468,17 @@ def update_tracking(request, pk):
                 messages.info(request, 'Прогрес доставки 100%! Рекомендується завершити маршрут на сторінці деталей.')
             
             tracking.save()
+            
+            # Створюємо сповіщення для компанії про оновлення відстеження
+            if route.company:
+                Notification.objects.create(
+                    user=route.company,
+                    notification_type='tracking_updated',
+                    title='Оновлено відстеження',
+                    message=f'Прогрес доставки оновлено до {tracking.progress_percent}% для маршруту {route.origin_city} → {route.destination_city}',
+                    route=route
+                )
+            
             messages.success(request, f'Прогрес оновлено до {tracking.progress_percent}%')
             return redirect('tracking', pk=route.pk)
     else:
