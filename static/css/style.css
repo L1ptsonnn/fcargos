@@ -297,15 +297,14 @@ body {
 
 /* Buttons with Gradient Effects */
 .btn {
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
+    padding: 0.625rem 1.25rem;
     transition: var(--transition-base);
     border: none;
     position: relative;
     overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     font-size: 0.875rem;
 }
 
@@ -375,12 +374,13 @@ body {
 
 /* Forms with Modern Style */
 .form-control {
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     border: 2px solid #e2e8f0;
-    padding: 0.875rem 1.25rem;
+    padding: 0.75rem 1rem;
     transition: var(--transition-base);
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
+    font-size: 0.9375rem;
 }
 
 .form-control:focus {
@@ -523,9 +523,9 @@ body {
 .stats-card {
     background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
     color: white;
-    border-radius: 20px;
-    padding: 2.5rem;
-    margin-bottom: 2rem;
+    border-radius: var(--radius-xl);
+    padding: 2rem 1.5rem;
+    margin-bottom: 1.5rem;
     transition: var(--transition-base);
     position: relative;
     overflow: hidden;
@@ -548,14 +548,14 @@ body {
 }
 
 .stats-number {
-    font-size: 3.5rem;
+    font-size: 2.75rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.8));
+    background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.9));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1;
-    margin: 1rem 0;
+    line-height: 1.2;
+    margin: 0.75rem 0;
 }
 
 /* Hero Section */
