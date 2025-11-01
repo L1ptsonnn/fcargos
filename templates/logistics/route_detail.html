@@ -172,24 +172,48 @@
 <script>
     // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
+        const mapElement = document.getElementById('routeMap');
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено!');
+            return;
+        }
+        
         // Перевірка чи Leaflet завантажений
         if (typeof L === 'undefined') {
             console.error('Leaflet не завантажений!');
-            document.getElementById('routeMap').innerHTML = '<div class="alert alert-danger">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
             return;
         }
         
         try {
+            // Перевірка наявності даних маршруту
+            const routeData = {
+                origin: {
+                    lat: {{ route_data.origin.lat|default:"50.45" }},
+                    lng: {{ route_data.origin.lng|default:"30.52" }}
+                },
+                destination: {
+                    lat: {{ route_data.destination.lat|default:"49.84" }},
+                    lng: {{ route_data.destination.lng|default:"24.03" }}
+                }
+            };
+            
+            // Валідація координат
+            if (!routeData.origin.lat || !routeData.origin.lng || !routeData.destination.lat || !routeData.destination.lng) {
+                mapElement.innerHTML = '<div class="alert alert-warning m-3">Невірні координати маршруту.</div>';
+                return;
+            }
+            
             // Карта маршруту
-            const routeMap = L.map('routeMap').setView([{{ route_data.origin.lat }}, {{ route_data.origin.lng }}], 5);
+            const routeMap = L.map('routeMap').setView([routeData.origin.lat, routeData.origin.lng], 5);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(routeMap);
             
-            const origin = [{{ route_data.origin.lat }}, {{ route_data.origin.lng }}];
-            const destination = [{{ route_data.destination.lat }}, {{ route_data.destination.lng }}];
+            const origin = [routeData.origin.lat, routeData.origin.lng];
+            const destination = [routeData.destination.lat, routeData.destination.lng];
             
             // Маркери
             const originIcon = L.divIcon({
@@ -205,10 +229,10 @@
             });
             
             L.marker(origin, {icon: originIcon}).addTo(routeMap)
-                .bindPopup(`<b>📍 Відправлення</b><br>{{ route.origin_city }}, {{ route.origin_country }}`).openPopup();
+                .bindPopup(`<b>📍 Відправлення</b><br>{{ route.origin_city|escapejs }}, {{ route.origin_country|escapejs }}`).openPopup();
             
             L.marker(destination, {icon: destIcon}).addTo(routeMap)
-                .bindPopup(`<b>📍 Призначення</b><br>{{ route.destination_city }}, {{ route.destination_country }}`);
+                .bindPopup(`<b>📍 Призначення</b><br>{{ route.destination_city|escapejs }}, {{ route.destination_country|escapejs }}`);
             
             L.polyline([origin, destination], {
                 color: '#667eea',
@@ -219,7 +243,7 @@
             routeMap.fitBounds([origin, destination], {padding: [50, 50]});
         } catch (error) {
             console.error('Помилка ініціалізації карти:', error);
-            document.getElementById('routeMap').innerHTML = '<div class="alert alert-danger">Помилка відображення карти. Перезавантажте сторінку.</div>';
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
         }
     });
 </script>

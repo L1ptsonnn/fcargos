@@ -197,10 +197,16 @@
 <script>
     // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
+        const mapElement = document.getElementById('worldMap');
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено!');
+            return;
+        }
+        
         // Перевірка чи Leaflet завантажений
         if (typeof L === 'undefined') {
             console.error('Leaflet не завантажений!');
-            document.getElementById('worldMap').innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
             return;
         }
         
@@ -214,14 +220,32 @@
                 maxZoom: 19
             }).addTo(map);
 
-            // Дані маршрутів
-            const routesData = JSON.parse('{{ routes_data|escapejs }}');
+            // Дані маршрутів з перевіркою
+            let routesData = [];
+            try {
+                const routesDataStr = '{{ routes_data|escapejs }}';
+                if (routesDataStr && routesDataStr !== 'null' && routesDataStr.trim() !== '') {
+                    routesData = JSON.parse(routesDataStr);
+                }
+            } catch (e) {
+                console.error('Помилка парсингу даних маршрутів:', e);
+                routesData = [];
+            }
+            
             const animatedMarkers = {};
 
             // Додавання маршрутів на карту з покращеним функціоналом
             routesData.forEach((route, index) => {
-                const origin = [route.origin.lat, route.origin.lng];
-                const destination = [route.destination.lat, route.destination.lng];
+                // Валідація координат маршруту
+                if (!route.origin || !route.destination || 
+                    !route.origin.lat || !route.origin.lng ||
+                    !route.destination.lat || !route.destination.lng) {
+                    console.warn(`Пропускаємо маршрут ${index}: невалідні координати`);
+                    return;
+                }
+                
+                const origin = [parseFloat(route.origin.lat), parseFloat(route.origin.lng)];
+                const destination = [parseFloat(route.destination.lat), parseFloat(route.destination.lng)];
                 
                 // Кольорові маркери залежно від статусу
                 const originIcon = L.divIcon({

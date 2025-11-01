@@ -155,10 +155,16 @@
 <script>
     // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
+        const mapElement = document.getElementById('routeMap');
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено!');
+            return;
+        }
+        
         // Перевірка чи Leaflet завантажений
         if (typeof L === 'undefined') {
             console.error('Leaflet не завантажений!');
-            alert('Помилка: Бібліотека карт не завантажилась. Перезавантажте сторінку.');
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка: Бібліотека карт не завантажилась. Перезавантажте сторінку.</div>';
             return;
         }
         
@@ -169,7 +175,14 @@
         let destSelected = false;
         
         // Ініціалізація карти
-        const routeMap = L.map('routeMap').setView([50.45, 30.52], 6);
+        let routeMap;
+        try {
+            routeMap = L.map('routeMap').setView([50.45, 30.52], 6);
+        } catch (error) {
+            console.error('Помилка ініціалізації карти:', error);
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка створення карти. Перезавантажте сторінку.</div>';
+            return;
+        }
     
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -177,8 +190,19 @@
         
         // Обробка кліку на карті
         routeMap.on('click', function(e) {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
+            if (!e || !e.latlng) {
+                console.error('Помилка: невалідні дані кліку');
+                return;
+            }
+            
+            const lat = parseFloat(e.latlng.lat);
+            const lng = parseFloat(e.latlng.lng);
+            
+            // Валідація координат
+            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                console.error('Помилка: невалідні координати');
+                return;
+            }
         
         // Отримуємо адресу через геокодування
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
@@ -297,20 +321,31 @@
         }
         
         function updateRouteLine() {
-            if (routeLine) routeMap.removeLayer(routeLine);
-            if (originMarker && destMarker) {
-                routeLine = L.polyline([
-                    [originMarker.getLatLng().lat, originMarker.getLatLng().lng],
-                    [destMarker.getLatLng().lat, destMarker.getLatLng().lng]
-                ], {
-                    color: '#667eea',
-                    weight: 4,
-                    dashArray: '10, 5'
-                }).addTo(routeMap);
-                
-                routeMap.fitBounds([originMarker.getLatLng(), destMarker.getLatLng()], {
-                    padding: [50, 50]
-                });
+            if (!routeMap) return;
+            
+            try {
+                if (routeLine) routeMap.removeLayer(routeLine);
+                if (originMarker && destMarker) {
+                    const originPos = originMarker.getLatLng();
+                    const destPos = destMarker.getLatLng();
+                    
+                    if (originPos && destPos) {
+                        routeLine = L.polyline([
+                            [originPos.lat, originPos.lng],
+                            [destPos.lat, destPos.lng]
+                        ], {
+                            color: '#667eea',
+                            weight: 4,
+                            dashArray: '10, 5'
+                        }).addTo(routeMap);
+                        
+                        routeMap.fitBounds([originPos, destPos], {
+                            padding: [50, 50]
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Помилка оновлення лінії маршруту:', error);
             }
         }
         
@@ -324,5 +359,4 @@
         });
     });
 </script>
-{% endblock %}
 {% endblock %}

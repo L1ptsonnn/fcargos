@@ -50,25 +50,55 @@
 <script>
     // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
+        const mapElement = document.getElementById('trackingMap');
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено!');
+            return;
+        }
+        
         // Перевірка чи Leaflet завантажений
         if (typeof L === 'undefined') {
             console.error('Leaflet не завантажений!');
-            document.getElementById('trackingMap').innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
             return;
         }
         
         try {
+            // Перевірка наявності даних маршруту з дефолтними значеннями
+            const routeData = {
+                origin: {
+                    lat: {{ route_data.origin.lat|default:"50.45" }},
+                    lng: {{ route_data.origin.lng|default:"30.52" }}
+                },
+                destination: {
+                    lat: {{ route_data.destination.lat|default:"49.84" }},
+                    lng: {{ route_data.destination.lng|default:"24.03" }}
+                },
+                current: {
+                    lat: {{ route_data.current.lat|default:"50.45" }},
+                    lng: {{ route_data.current.lng|default:"30.52" }}
+                }
+            };
+            
+            // Валідація координат
+            if (!routeData.origin.lat || !routeData.origin.lng || 
+                !routeData.destination.lat || !routeData.destination.lng ||
+                !routeData.current.lat || !routeData.current.lng) {
+                mapElement.innerHTML = '<div class="alert alert-warning m-3">Невірні координати маршруту.</div>';
+                return;
+            }
+            
             // Карта відстеження
-            const trackingMap = L.map('trackingMap').setView([{{ route_data.current.lat }}, {{ route_data.current.lng }}], 6);
+            const trackingMap = L.map('trackingMap').setView([routeData.current.lat, routeData.current.lng], 6);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(trackingMap);
             
-            const origin = [{{ route_data.origin.lat }}, {{ route_data.origin.lng }}];
-            const destination = [{{ route_data.destination.lat }}, {{ route_data.destination.lng }}];
-            const current = [{{ route_data.current.lat }}, {{ route_data.current.lng }}];
+            const origin = [routeData.origin.lat, routeData.origin.lng];
+            const destination = [routeData.destination.lat, routeData.destination.lng];
+            const current = [routeData.current.lat, routeData.current.lng];
             
             // Маркери з іконками
             const originIcon = L.divIcon({
@@ -90,13 +120,13 @@
             });
             
             L.marker(origin, {icon: originIcon}).addTo(trackingMap)
-                .bindPopup(`<b>📍 Відправлення</b><br>{{ route.origin_city }}, {{ route.origin_country }}`);
+                .bindPopup(`<b>📍 Відправлення</b><br>{{ route.origin_city|escapejs }}, {{ route.origin_country|escapejs }}`);
             
             L.marker(destination, {icon: destIcon}).addTo(trackingMap)
-                .bindPopup(`<b>📍 Призначення</b><br>{{ route.destination_city }}, {{ route.destination_country }}`);
+                .bindPopup(`<b>📍 Призначення</b><br>{{ route.destination_city|escapejs }}, {{ route.destination_country|escapejs }}`);
             
             L.marker(current, {icon: currentIcon}).addTo(trackingMap)
-                .bindPopup(`<b>🚚 Поточна позиція</b><br>{{ tracking.current_location }}`)
+                .bindPopup(`<b>🚚 Поточна позиція</b><br>{{ tracking.current_location|escapejs }}`)
                 .openPopup();
             
             // Лінії маршруту
@@ -117,7 +147,7 @@
             trackingMap.fitBounds([origin, destination, current], {padding: [50, 50]});
         } catch (error) {
             console.error('Помилка ініціалізації карти:', error);
-            document.getElementById('trackingMap').innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
         }
     });
 </script>
