@@ -513,7 +513,18 @@
                 
                 if (chatsList) chatsList.style.display = 'none';
                 if (chatMessages) chatMessages.style.display = 'flex';
-                if (backToChatsBtn) backToChatsBtn.style.display = 'inline-block';
+                if (backToChatsBtn) {
+                    backToChatsBtn.style.display = 'inline-block';
+                    // Перевіряємо чи є обробник
+                    if (!backToChatsBtn.onclick && !backToChatsBtn.hasAttribute('data-handler-attached')) {
+                        backToChatsBtn.setAttribute('data-handler-attached', 'true');
+                        backToChatsBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            backToChatsList();
+                        });
+                    }
+                }
                 if (chatsTitle) chatsTitle.textContent = otherUser;
                 
                 // Завантажуємо повідомлення
@@ -553,6 +564,30 @@
             
             // Робимо функцію глобальною для onclick
             window.backToChatsList = backToChatsList;
+            
+            // Додаємо обробник для кнопки "Назад" (як для існуючого, так і для динамічно створеного)
+            function setupBackButton() {
+                const backBtn = document.getElementById('backToChatsBtn');
+                if (backBtn) {
+                    // Видаляємо старі обробники
+                    const newBtn = backBtn.cloneNode(true);
+                    backBtn.parentNode.replaceChild(newBtn, backBtn);
+                    
+                    // Додаємо новий обробник
+                    newBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        backToChatsList();
+                    });
+                }
+            }
+            
+            // Ініціалізуємо обробник при завантаженні сторінки
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setupBackButton);
+            } else {
+                setupBackButton();
+            }
             
             // Завантаження повідомлень
             function loadChatMessages(routeId) {
