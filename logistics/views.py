@@ -567,6 +567,96 @@ def route_messages(request, pk):
 
 
 @login_required
+def route_messages_api(request, pk):
+    """API для отримання повідомлень маршруту (AJAX)"""
+    route = get_object_or_404(Route, pk=pk)
+    
+    # Перевірка доступу
+    if route.company != request.user and (not route.carrier or route.carrier != request.user):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    # Визначаємо співрозмовника
+    if request.user == route.company:
+        other_user = route.carrier
+    elif request.user == route.carrier:
+        other_user = route.company
+    else:
+        return JsonResponse({'error': 'Invalid user'}, status=403)
+    
+    if not route.carrier or not other_user:
+        return JsonResponse({'error': 'Invalid route'}, status=404)
+    
+    # Отримуємо повідомлення
+    messages_list = Message.objects.filter(route=route).order_by('created_at')
+    
+    # Позначаємо як прочитані
+    Message.objects.filter(route=route, recipient=request.user, is_read=False).update(is_read=True)
+    
+    messages_data = [{
+        'id': msg.id,
+        'sender': msg.sender.username,
+        'sender_id': msg.sender.id,
+        'content': msg.content,
+        'created_at': msg.created_at.strftime('%d.%m.%Y %H:%M'),
+        'is_read': msg.is_read,
+    } for msg in messages_list]
+    
+    return JsonResponse({
+        'messages': messages_data,
+        'other_user': other_user.username,
+        'route_origin': route.origin_city,
+        'route_destination': route.destination_city,
+    })
+
+
+@login_required
+def route_messages_send(request, pk):
+    """API для відправки повідомлення (AJAX)"""
+    route = get_object_or_404(Route, pk=pk)
+    
+    # Перевірка доступу
+    if route.company != request.user and (not route.carrier or route.carrier != request.user):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    # Визначаємо співрозмовника
+    if request.user == route.company:
+        other_user = route.carrier
+    elif request.user == route.carrier:
+        other_user = route.company
+    else:
+        return JsonResponse({'error': 'Invalid user'}, status=403)
+    
+    if not route.carrier or not other_user:
+        return JsonResponse({'error': 'Invalid route'}, status=404)
+    
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        content = data.get('content', '').strip()
+        
+        if content:
+            message = Message.objects.create(
+                route=route,
+                sender=request.user,
+                recipient=other_user,
+                content=content
+            )
+            
+            # Створюємо сповіщення
+            Notification.objects.create(
+                user=other_user,
+                notification_type='new_message',
+                title='Нове повідомлення',
+                message=f'Від {request.user.username}: {content[:50]}...',
+                route=route
+            )
+            
+            return JsonResponse({'success': True, 'message_id': message.id})
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
 def chats_list(request):
     """Список всіх чатів користувача"""
     # Отримуємо всі маршрути де користувач є учасником
