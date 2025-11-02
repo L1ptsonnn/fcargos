@@ -194,9 +194,10 @@
                                 <tr>
                                     <th><i class="bi bi-route"></i> Маршрут</th>
                                     <th><i class="bi bi-box"></i> Тип вантажу</th>
+                                    <th><i class="bi bi-speedometer2"></i> Вага / Об'єм</th>
                                     <th><i class="bi bi-truck"></i> Перевізник</th>
                                     <th><i class="bi bi-cash-coin"></i> Ціна</th>
-                                    <th><i class="bi bi-calendar"></i> Дати</th>
+                                    <th><i class="bi bi-calendar3"></i> Дата забору</th>
                                     <th><i class="bi bi-info-circle"></i> Статус</th>
                                     <th><i class="bi bi-gear"></i> Дії</th>
                                 </tr>
@@ -205,19 +206,26 @@
                                 {% for route in routes %}
                                 <tr class="route-row" data-status="{{ route.status }}">
                                     <td>
-                                        <div class="d-flex align-items-center flex-wrap">
-                                            <span class="badge bg-success me-2 mb-1">
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-success me-2">
                                                 <i class="bi bi-geo-alt-fill"></i> {{ route.origin_city }}
                                             </span>
-                                            <i class="bi bi-arrow-right mx-2 text-primary mb-1"></i>
-                                            <span class="badge bg-danger mb-1">
+                                            <i class="bi bi-arrow-right mx-2 text-primary"></i>
+                                            <span class="badge bg-danger">
                                                 <i class="bi bi-geo-alt"></i> {{ route.destination_city }}
                                             </span>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ route.cargo_type }}</span><br>
-                                        <small class="text-muted"><i class="bi bi-speedometer2"></i> {{ route.weight }} кг</small>
+                                        <span class="badge bg-secondary">{{ route.cargo_type }}</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <small><i class="bi bi-speedometer2"></i> {{ route.weight }} кг</small>
+                                            {% if route.volume %}
+                                            <br><small><i class="bi bi-box"></i> {{ route.volume }} м³</small>
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td>
                                         {% if route.carrier %}
@@ -241,22 +249,15 @@
                                         <strong style="color: var(--success-gradient-start); font-size: 1.1rem;">{{ route.price }} грн</strong>
                                     </td>
                                     <td>
-                                        <small class="d-block mb-1">
-                                            <i class="bi bi-calendar-plus"></i> <strong>Створено:</strong><br>
-                                            {{ route.created_at|date:"d.m.Y H:i" }}
-                                        </small>
                                         {% if route.pickup_date %}
                                         <small class="d-block mb-1">
                                             <i class="bi bi-calendar3"></i> <strong>Відправка:</strong><br>
                                             {{ route.pickup_date|date:"d.m.Y H:i" }}
                                         </small>
                                         {% endif %}
-                                        {% if route.delivery_date %}
-                                        <small class="d-block">
-                                            <i class="bi bi-calendar-check"></i> <strong>Доставка:</strong><br>
-                                            {{ route.delivery_date|date:"d.m.Y H:i" }}
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar-plus"></i> Створено: {{ route.created_at|date:"d.m.Y" }}
                                         </small>
-                                        {% endif %}
                                     </td>
                                     <td>
                                         <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% elif route.status == 'delivered' %}success{% elif route.status == 'expired' %}danger{% elif route.status == 'cancelled' %}secondary{% endif %} px-3 py-2" style="font-weight: 600;">
