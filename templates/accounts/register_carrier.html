@@ -710,7 +710,7 @@
         
         // Функція для оновлення placeholder
         function setPlaceholder() {
-            const countryCode = phoneCountry.value;
+            const countryCode = phoneCountry.value || '+380'; // Якщо немає вибору, показуємо за замовчуванням
             const placeholders = {
                 '+380': '(XX) XXX XX XX',
                 '+48': 'XXX XXX XXX',
