@@ -712,10 +712,16 @@
         // Додаємо обробник зміни країни
         phoneCountry.addEventListener('change', function() {
             updatePhonePlaceholder(this.value, phoneInput);
+            // Очищаємо поле при зміні країни, якщо воно порожнє або містить старі дані
+            if (!phoneInput.value || phoneInput.value === phoneInput.getAttribute('data-old-value')) {
+                phoneInput.value = '';
+            }
+            phoneInput.setAttribute('data-old-value', phoneInput.value);
         });
         
-        // Обмежуємо введення тільки цифрами
+        // Обмежуємо введення тільки цифрами та пробілами для форматування
         phoneInput.addEventListener('input', function(e) {
+            // Дозволяємо тільки цифри
             this.value = this.value.replace(/[^0-9]/g, '');
         });
         
@@ -818,28 +824,29 @@
     
     function updatePhonePlaceholder(countryCode, phoneInput) {
         const placeholders = {
-            '+380': 'XXXXXXXXX',
-            '+48': 'XXXXXXXX',
-            '+49': 'XXXXXXXXX',
+            '+380': '(XX) XXX XX XX',
+            '+48': 'XXX XXX XXX',
+            '+49': 'XXXX XXXXXX',
             '+33': 'X XX XX XX XX',
-            '+39': 'XXXXXXXXX',
-            '+34': 'XXXXXXXXX',
+            '+39': 'XXX XXX XXXX',
+            '+34': 'XXX XXX XXX',
             '+31': 'X XXXXXXXX',
-            '+32': 'X XX XX XX',
-            '+43': 'XXXXXXXXX',
+            '+32': 'XXX XX XX XX',
+            '+43': 'XXXX XXXXXX',
             '+420': 'XXX XXX XXX',
             '+421': 'XXX XXX XXX',
             '+36': 'XX XXX XXXX',
-            '+40': 'XXXXXXXXX',
+            '+40': 'XXX XXX XXX',
             '+359': 'XXX XXX XXX',
-            '+90': 'XXX XXX XXXX',
+            '+90': '(XXX) XXX XX XX',
             '+44': 'XXXX XXXXXX',
-            '+1': 'XXX XXX XXXX',
-            '+7': 'XXX XXX XX XX',
+            '+1': '(XXX) XXX-XXXX',
+            '+7': '(XXX) XXX-XX-XX',
             '+86': 'XXX XXXX XXXX',
             '+81': 'XX XXXX XXXX',
         };
-        phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
+        const placeholder = placeholders[countryCode] || 'XXXXXXXXX';
+        phoneInput.placeholder = placeholder;
     }
 
     function openMapModal() {
