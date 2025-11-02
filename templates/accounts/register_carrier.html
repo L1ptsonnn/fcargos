@@ -848,8 +848,10 @@
             }
         }
         
-        // Встановлюємо початковий placeholder
-        setPlaceholder();
+        // Встановлюємо початковий placeholder (тільки якщо країна вибрана)
+        if (phoneCountry.value) {
+            setPlaceholder();
+        }
     });
     
     // Перевірка сили пароля
