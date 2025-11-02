@@ -38,7 +38,9 @@ def register_company(request):
             user = form.save()
             CompanyProfile.objects.create(
                 user=user,
-                address=form.cleaned_data['address'],
+                address=form.cleaned_data.get('address', ''),
+                address_lat=form.cleaned_data.get('address_lat'),
+                address_lng=form.cleaned_data.get('address_lng'),
                 tax_id=form.cleaned_data['tax_id'],
                 description=form.cleaned_data.get('description', ''),
                 logo=form.cleaned_data.get('logo')

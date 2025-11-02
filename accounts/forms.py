@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Submit
+from crispy_forms.layout import Layout, Row, Column, Submit, Field
 from .models import User, CompanyProfile, CarrierProfile
 
 
@@ -39,7 +39,22 @@ class CompanyRegistrationForm(UserCreationForm):
     )
     address = forms.CharField(
         label='Адреса',
-        widget=forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 3})
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control form-control-enhanced',
+            'rows': 2,
+            'id': 'address_field_company',
+            'placeholder': 'Вкажіть адресу на карті',
+            'readonly': True
+        })
+    )
+    address_lat = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'address_lat_company'})
+    )
+    address_lng = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'address_lng_company'})
     )
     tax_id = forms.CharField(
         label='Податковий номер',
@@ -59,7 +74,7 @@ class CompanyRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'company_name', 'address', 'tax_id', 'description', 'logo')
+        fields = ('username', 'email', 'password1', 'password2', 'company_name', 'address', 'address_lat', 'address_lng', 'tax_id', 'description', 'logo')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
@@ -79,7 +94,9 @@ class CompanyRegistrationForm(UserCreationForm):
                 Column('password2', css_class='col-md-6'),
             ),
             'company_name',
-            'address',
+            Field('address'),
+            Field('address_lat'),
+            Field('address_lng'),
             'tax_id',
             'description',
             'logo',
@@ -205,7 +222,7 @@ class CarrierRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'vehicle_type', 'vehicle_model', 'vehicle_model_custom', 'address', 'address_lat', 'address_lng', 'experience_years')
+        fields = ('username', 'email', 'password1', 'password2')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
@@ -224,13 +241,13 @@ class CarrierRegistrationForm(UserCreationForm):
                 Column('password1', css_class='col-md-6'),
                 Column('password2', css_class='col-md-6'),
             ),
-            'vehicle_type',
-            'vehicle_model',
-            'vehicle_model_custom',
-            'address',
-            'address_lat',
-            'address_lng',
-            'experience_years',
+            Field('vehicle_type'),
+            Field('vehicle_model'),
+            Field('vehicle_model_custom'),
+            Field('address'),
+            Field('address_lat'),
+            Field('address_lng'),
+            Field('experience_years'),
             Submit('submit', 'Зареєструватися', css_class='btn btn-success w-100 mt-3')
         )
     
