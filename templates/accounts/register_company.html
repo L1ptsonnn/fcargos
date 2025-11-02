@@ -677,9 +677,9 @@
             phoneInput.setAttribute('data-old-value', phoneInput.value);
         });
         
-        // Обмежуємо введення тільки цифрами та перевіряємо, щоб не було +380 на початку
-        phoneInput.addEventListener('input', function(e) {
-            let value = this.value;
+        // Функція для очищення значення від коду країни та нецифрових символів
+        function cleanPhoneInput(input) {
+            let value = input.value;
             // Видаляємо всі нецифрові символи (включаючи +, пробіли, дужки)
             value = value.replace(/[^0-9]/g, '');
             
@@ -688,7 +688,51 @@
                 value = value.substring(3);
             }
             
-            this.value = value;
+            // Видаляємо код вибраної країни, якщо він присутній
+            const currentCountryCode = phoneCountry.value.replace(/[^0-9]/g, '');
+            if (value.startsWith(currentCountryCode) && value.length > currentCountryCode.length) {
+                value = value.substring(currentCountryCode.length);
+            }
+            
+            // Видаляємо будь-які інші коди країн з початку
+            const countryCodes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81'];
+            for (let code of countryCodes) {
+                if (value.startsWith(code) && value.length > code.length) {
+                    value = value.substring(code.length);
+                    break;
+                }
+            }
+            
+            input.value = value;
+            return value;
+        }
+        
+        // Обмежуємо введення тільки цифрами та перевіряємо, щоб не було коду країни на початку
+        phoneInput.addEventListener('input', function(e) {
+            cleanPhoneInput(this);
+        });
+        
+        // Перехоплюємо вставку тексту (paste)
+        phoneInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            let pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            // Видаляємо всі нецифрові символи
+            pastedText = pastedText.replace(/[^0-9]/g, '');
+            // Видаляємо код країни, якщо він присутній
+            if (pastedText.startsWith('380') && pastedText.length > 3) {
+                pastedText = pastedText.substring(3);
+            }
+            // Вставляємо очищений текст
+            this.value = pastedText;
+            cleanPhoneInput(this);
+        });
+        
+        // Перехоплюємо події клавіатури для запобігання введенню +
+        phoneInput.addEventListener('keydown', function(e) {
+            // Блокуємо введення символів +, пробілів та інших нецифрових символів
+            if (e.key === '+' || e.key === ' ' || (e.key.length === 1 && !/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key))) {
+                e.preventDefault();
+            }
         });
         
         // Оновлюємо placeholder при фокусі на поле, щоб він завжди відповідав вибраній країні

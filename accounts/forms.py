@@ -131,16 +131,22 @@ class CompanyRegistrationForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
         # Обробка телефону
-        phone_country = cleaned_data.get('phone_country', '+380')
+        phone_country = cleaned_data.get('phone_country')
+        if not phone_country:
+            phone_country = '+380'
         phone = cleaned_data.get('phone', '')
         if phone:
             # Видаляємо всі нецифрові символи
             phone = ''.join(filter(str.isdigit, phone))
-            # Додаємо код країни
-            if not phone.startswith('+'):
-                cleaned_data['phone'] = phone_country + phone
-            else:
-                cleaned_data['phone'] = phone
+            # Видаляємо код країни, якщо він присутній на початку
+            country_code_digits = phone_country.replace('+', '')
+            if phone.startswith(country_code_digits) and len(phone) > len(country_code_digits):
+                phone = phone[len(country_code_digits):]
+            # Видаляємо код 380, якщо він присутній
+            if phone.startswith('380') and len(phone) > 3:
+                phone = phone[3:]
+            # Додаємо код вибраної країни
+            cleaned_data['phone'] = phone_country + phone
         return cleaned_data
     
     def save(self, commit=True):
