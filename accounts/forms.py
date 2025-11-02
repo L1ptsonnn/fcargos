@@ -70,11 +70,13 @@ class CompanyRegistrationForm(UserCreationForm):
     phone = forms.CharField(
         label='Номер телефону',
         max_length=20,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-enhanced',
             'id': 'phone_company',
             'type': 'tel',
-            'autocomplete': 'tel'
+            'autocomplete': 'tel',
+            'placeholder': ''
         })
     )
     address = forms.CharField(
@@ -244,11 +246,13 @@ class CarrierRegistrationForm(UserCreationForm):
     phone = forms.CharField(
         label='Номер телефону',
         max_length=20,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-enhanced',
             'id': 'phone_carrier',
             'type': 'tel',
-            'autocomplete': 'tel'
+            'autocomplete': 'tel',
+            'placeholder': ''
         })
     )
     vehicle_type = forms.ChoiceField(

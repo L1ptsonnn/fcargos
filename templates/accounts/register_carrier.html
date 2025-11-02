@@ -706,53 +706,17 @@
     // ПРОСТА ЛОГІКА ВВОДУ НОМЕРА ТЕЛЕФОНУ
     // ========================================
     document.addEventListener('DOMContentLoaded', function() {
-        const phoneCountry = document.getElementById('phone_country_carrier');
         const phoneInput = document.getElementById('phone_carrier');
         
-        if (!phoneCountry || !phoneInput) return;
+        if (!phoneInput) return;
         
-        // Placeholders для різних країн
-        const placeholders = {
-            '+380': '(XX) XXX XX XX',
-            '+48': 'XXX XXX XXX',
-            '+49': 'XXXX XXXXXX',
-            '+33': 'X XX XX XX XX',
-            '+39': 'XXX XXX XXXX',
-            '+34': 'XXX XXX XXX',
-            '+31': 'X XXXXXXXX',
-            '+32': 'XXX XX XX XX',
-            '+43': 'XXXX XXXXXX',
-            '+420': 'XXX XXX XXX',
-            '+421': 'XXX XXX XXX',
-            '+36': 'XX XXX XXXX',
-            '+40': 'XXX XXX XXX',
-            '+359': 'XXX XXX XXX',
-            '+90': '(XXX) XXX XX XX',
-            '+44': 'XXXX XXXXXX',
-            '+1': '(XXX) XXX-XXXX',
-            '+7': '(XXX) XXX-XX-XX',
-            '+86': 'XXX XXXX XXXX',
-            '+81': 'XX XXXX XXXX',
-        };
-        
-        // Оновлюємо placeholder при зміні країни
-        phoneCountry.addEventListener('change', function() {
-            if (this.value && placeholders[this.value]) {
-                phoneInput.placeholder = placeholders[this.value];
-            } else {
-                phoneInput.placeholder = '';
-            }
-        });
+        // Прибираємо placeholder (якщо був встановлений)
+        phoneInput.placeholder = '';
         
         // Дозволяємо вводити тільки цифри
         phoneInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
-        
-        // Оновлюємо placeholder якщо країна вже обрана
-        if (phoneCountry.value && placeholders[phoneCountry.value]) {
-            phoneInput.placeholder = placeholders[phoneCountry.value];
-        }
     });
     
     // Перевірка сили пароля
