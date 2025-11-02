@@ -37,14 +37,30 @@
         position: relative;
     }
     .route-card {
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         border: none;
-        border-radius: 10px;
+        border-radius: 15px;
         margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        overflow: hidden;
+        background: white;
     }
     .route-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.25);
+        border-left: 4px solid #667eea;
+    }
+    .route-card .card-body {
+        padding: 1.5rem;
+    }
+    .route-card .card-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .route-card .card-title i {
+        color: #667eea;
+        margin: 0 0.5rem;
     }
     .stats-card {
         background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
@@ -178,64 +194,332 @@
 {% if routes %}
 <section class="py-5 bg-light">
     <div class="container">
-        <h2 class="text-center mb-5">Останні маршрути</h2>
-        <div class="row">
-            {% for route in routes %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card route-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-geo-alt"></i> {{ route.origin_city }}
-                            <i class="bi bi-arrow-right"></i>
-                            {{ route.destination_city }}
-                        </h5>
-                        <p class="card-text">
-                            <strong>Тип вантажу:</strong> {{ route.cargo_type }}<br>
-                            <strong>Вага:</strong> {{ route.weight }} кг<br>
-                            <strong>Ціна:</strong> {{ route.price }} грн
-                        </p>
-                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
-                            {{ route.get_status_display }}
-                        </span>
-                        <a href="{% url 'route_detail' route.pk %}" class="btn btn-primary btn-sm mt-2">
-                            Деталі <i class="bi bi-arrow-right"></i>
-                        </a>
+        <h2 class="text-center mb-4">Останні маршрути</h2>
+        <div class="routes-carousel-container" style="position: relative; max-width: 500px; margin: 0 auto;">
+            <button class="carousel-arrow prev-arrow" onclick="window.prevRoute && window.prevRoute()" id="prevRouteBtn">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <div class="routes-carousel" id="routesCarousel">
+                {% for route in routes %}
+                <div class="route-carousel-item">
+                    <div class="card route-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-geo-alt"></i> {{ route.origin_city }}
+                                <i class="bi bi-arrow-right"></i>
+                                {{ route.destination_city }}
+                            </h5>
+                            <p class="card-text">
+                                <strong><i class="bi bi-building"></i> Компанія:</strong> 
+                                <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none">
+                                    {{ route.company.company_name|default:route.company.username }}
+                                </a><br>
+                                <strong>Тип вантажу:</strong> {{ route.cargo_type }}<br>
+                                <strong>Вага:</strong> {{ route.weight }} кг<br>
+                                <strong>Ціна:</strong> {{ route.price }} грн
+                            </p>
+                            <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                                {{ route.get_status_display }}
+                            </span>
+                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-primary btn-sm mt-2">
+                                Деталі <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            <button class="carousel-arrow next-arrow" onclick="window.nextRoute && window.nextRoute()" id="nextRouteBtn">
+                <i class="bi bi-chevron-right"></i>
+            </button>
         </div>
     </div>
 </section>
+
+<style>
+    .routes-carousel-container {
+        padding: 0 50px;
+    }
+    
+    .routes-carousel {
+        display: flex;
+        gap: 1.5rem;
+        overflow: hidden;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+    }
+    
+    .route-carousel-item {
+        flex: 0 0 100%;
+        min-width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .route-carousel-item .card {
+        max-width: 400px;
+        width: 100%;
+    }
+    
+    .carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        border: 2px solid #667eea;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1.3rem;
+        color: #667eea;
+        font-weight: bold;
+    }
+    
+    .carousel-arrow:hover:not(:disabled) {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        transform: translateY(-50%) scale(1.15);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        border-color: transparent;
+    }
+    
+    .carousel-arrow:active:not(:disabled) {
+        transform: translateY(-50%) scale(1.05);
+    }
+    
+    .carousel-arrow:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        background: #f8f9fa;
+        border-color: #dee2e6;
+        color: #adb5bd;
+    }
+    
+    .carousel-arrow:disabled:hover {
+        background: #f8f9fa;
+        color: #adb5bd;
+        transform: translateY(-50%);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .prev-arrow {
+        left: 0;
+    }
+    
+    .next-arrow {
+        right: 0;
+    }
+    
+</style>
+
+<script>
+    // Глобальні функції для каруселі маршрутів
+    // Ініціалізація глобальних змінних
+    if (typeof window.currentRouteIndex === 'undefined') {
+        window.currentRouteIndex = 0;
+    }
+    if (typeof window.routesData === 'undefined') {
+        window.routesData = [];
+    }
+    
+    {% if routes %}
+    // Заповнення даних маршрутів
+    try {
+        window.routesData = [
+            {% for route in routes %}
+            {
+                id: {{ route.id }},
+                origin: '{{ route.origin_city|escapejs }}',
+                destination: '{{ route.destination_city|escapejs }}',
+                cargo: '{{ route.cargo_type|escapejs }}',
+                weight: {{ route.weight }},
+                price: {{ route.price }},
+                status: '{{ route.status|escapejs }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+    } catch (e) {
+        console.error('Помилка ініціалізації даних маршрутів:', e);
+        window.routesData = [];
+    }
+    {% endif %}
+    
+    // Оновлення каруселі з покращеною обробкою помилок
+    window.updateCarousel = function() {
+        try {
+            const carousel = document.getElementById('routesCarousel');
+            if (!carousel) {
+                console.warn('Карусель не знайдена');
+                return;
+            }
+            
+            if (!window.routesData || window.routesData.length === 0) {
+                // Якщо немає маршрутів, ховаємо стрілки
+                const prevBtn = document.getElementById('prevRouteBtn');
+                const nextBtn = document.getElementById('nextRouteBtn');
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+                return;
+            }
+            
+            const maxIndex = window.routesData.length - 1;
+            window.currentRouteIndex = Math.max(0, Math.min(window.currentRouteIndex, maxIndex));
+            
+            const translateX = -(window.currentRouteIndex * 100);
+            carousel.style.transform = 'translateX(' + translateX + '%)';
+            
+            // Оновлюємо стан кнопок
+            const prevBtn = document.getElementById('prevRouteBtn');
+            const nextBtn = document.getElementById('nextRouteBtn');
+            if (prevBtn) {
+                prevBtn.disabled = window.currentRouteIndex === 0;
+                prevBtn.style.display = window.routesData.length <= 1 ? 'none' : 'flex';
+            }
+            if (nextBtn) {
+                nextBtn.disabled = window.currentRouteIndex >= maxIndex || window.routesData.length <= 1;
+                nextBtn.style.display = window.routesData.length <= 1 ? 'none' : 'flex';
+            }
+        } catch (e) {
+            console.error('Помилка оновлення каруселі:', e);
+        }
+    };
+    
+    // Перехід до попереднього маршруту
+    window.prevRoute = function() {
+        try {
+            if (!window.routesData || window.routesData.length === 0) {
+                return;
+            }
+            
+            if (window.currentRouteIndex > 0) {
+                window.currentRouteIndex--;
+                window.updateCarousel();
+            }
+        } catch (e) {
+            console.error('Помилка переходу до попереднього маршруту:', e);
+        }
+    };
+    
+    // Перехід до наступного маршруту
+    window.nextRoute = function() {
+        try {
+            if (!window.routesData || window.routesData.length === 0) {
+                return;
+            }
+            
+            const maxIndex = window.routesData.length - 1;
+            if (window.currentRouteIndex < maxIndex) {
+                window.currentRouteIndex++;
+                window.updateCarousel();
+            }
+        } catch (e) {
+            console.error('Помилка переходу до наступного маршруту:', e);
+        }
+    };
+    
+    // Ініціалізація каруселі при завантаженні сторінки
+    (function() {
+        function initCarousel() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(window.updateCarousel, 100);
+                });
+            } else {
+                setTimeout(window.updateCarousel, 100);
+            }
+        }
+        
+        // Додаємо fallback обробники для кнопок
+        initCarousel();
+        
+        // Додаємо обробники подій безпосередньо на кнопки як резерв
+        setTimeout(function() {
+            const prevBtn = document.getElementById('prevRouteBtn');
+            const nextBtn = document.getElementById('nextRouteBtn');
+            
+            if (prevBtn && !prevBtn.hasAttribute('data-handler-attached')) {
+                prevBtn.setAttribute('data-handler-attached', 'true');
+                prevBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.prevRoute) {
+                        window.prevRoute();
+                    }
+                });
+            }
+            
+            if (nextBtn && !nextBtn.hasAttribute('data-handler-attached')) {
+                nextBtn.setAttribute('data-handler-attached', 'true');
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.nextRoute) {
+                        window.nextRoute();
+                    }
+                });
+            }
+        }, 500);
+    })();
+</script>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Очікуємо завантаження DOM та Leaflet
-    document.addEventListener('DOMContentLoaded', function() {
+    // Покращена ініціалізація карти з обробкою помилок
+    function initWorldMap() {
         const mapElement = document.getElementById('worldMap');
         if (!mapElement) {
-            console.error('Елемент карти не знайдено!');
+            console.warn('Елемент карти не знайдено');
             return;
         }
         
-        // Перевірка чи Leaflet завантажений
+        // Перевірка чи Leaflet завантажений з повторними спробами
         if (typeof L === 'undefined') {
-            console.error('Leaflet не завантажений!');
-            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+            console.warn('Leaflet ще не завантажений, чекаємо...');
+            setTimeout(function() {
+                if (typeof L !== 'undefined') {
+                    initWorldMap();
+                } else {
+                    mapElement.innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle"></i> Помилка завантаження бібліотеки карти. Перезавантажте сторінку.</div>';
+                }
+            }, 500);
             return;
         }
         
         try {
-            // Ініціалізація карти світу
-            const map = L.map('worldMap').setView([50.0, 30.0], 3);
+            // Перевірка чи контейнер видимий
+            if (mapElement.offsetWidth === 0 || mapElement.offsetHeight === 0) {
+                setTimeout(initWorldMap, 200);
+                return;
+            }
             
-            // Додавання тайлів карти
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            // Ініціалізація карти світу
+            const map = L.map('worldMap', {
+                zoomControl: true,
+                scrollWheelZoom: true,
+                doubleClickZoom: true,
+                boxZoom: true
+            }).setView([50.0, 30.0], 3);
+            
+            // Додавання тайлів карти з обробкою помилок
+            const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
+                maxZoom: 19,
+                errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5FcnJvcjwvdGV4dD48L3N2Zz4='
+            });
+            
+            tileLayer.addTo(map);
+            
+            // Обробка помилок завантаження тайлів
+            tileLayer.on('tileerror', function(error, tile) {
+                console.warn('Помилка завантаження тайлу:', error);
+            });
 
             // Дані маршрутів з перевіркою
             let routesData = [];
@@ -252,115 +536,173 @@
             const animatedMarkers = {};
 
             // Додавання маршрутів на карту з покращеним функціоналом
-            routesData.forEach((route, index) => {
-                // Валідація координат маршруту
-                if (!route.origin || !route.destination || 
-                    !route.origin.lat || !route.origin.lng ||
-                    !route.destination.lat || !route.destination.lng) {
-                    console.warn(`Пропускаємо маршрут ${index}: невалідні координати`);
-                    return;
-                }
-                
-                const origin = [parseFloat(route.origin.lat), parseFloat(route.origin.lng)];
-                const destination = [parseFloat(route.destination.lat), parseFloat(route.destination.lng)];
-                
-                // Кольорові маркери залежно від статусу
-                const originIcon = L.divIcon({
-                    className: 'route-marker',
-                    html: `<div style="background: #198754; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>`,
-                    iconSize: [20, 20]
-                });
-                
-                const destIcon = L.divIcon({
-                    className: 'route-marker',
-                    html: `<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>`,
-                    iconSize: [20, 20]
-                });
-                
-                // Маркери з попапами
-                const originMarker = L.marker(origin, {icon: originIcon}).addTo(map)
-                    .bindPopup(`
-                        <b>📍 ${route.origin.city}</b><br>
-                        ${route.origin.country}<br>
-                        <small>Тип: ${route.cargo_type}</small>
-                    `);
-                
-                const destMarker = L.marker(destination, {icon: destIcon}).addTo(map)
-                    .bindPopup(`
-                        <b>📍 ${route.destination.city}</b><br>
-                        ${route.destination.country}<br>
-                        <small>Тип: ${route.cargo_type}</small>
-                    `);
-                
-                // Лінія маршруту з анімацією
-                const routeColor = route.status === 'pending' ? '#ffc107' : '#0dcaf0';
-                const polyline = L.polyline([origin, destination], {
-                    color: routeColor,
-                    weight: 4,
-                    opacity: 0.8,
-                    dashArray: route.status === 'in_transit' ? '10, 5' : null
-                }).addTo(map);
-                
-                // Анімація руху для активних маршрутів
-                if (route.status === 'in_transit') {
-                    let progress = 0;
-                    const animateRoute = () => {
-                        if (progress <= 100) {
-                            const lat = route.origin.lat + (route.destination.lat - route.origin.lat) * (progress / 100);
-                            const lng = route.origin.lng + (route.destination.lng - route.origin.lng) * (progress / 100);
-                            
-                            if (animatedMarkers[index]) {
-                                map.removeLayer(animatedMarkers[index]);
-                            }
-                            
-                            const animatedIcon = L.divIcon({
-                                className: 'animated-route-marker',
-                                html: `<div style="background: ${routeColor}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px ${routeColor}; animation: pulse 2s infinite;"></div>`,
-                                iconSize: [18, 18]
-                            });
-                            
-                            animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map)
-                                .bindPopup(`<b>🚚 Вантаж в дорозі</b><br>Прогрес: ${Math.round(progress)}%`);
-                            
-                            progress += 1;
-                            setTimeout(animateRoute, 150);
-                        } else {
-                            // Перезапускаємо анімацію
-                            setTimeout(() => {
-                                progress = 0;
-                                animateRoute();
-                            }, 1000);
-                        }
-                    };
+            routesData.forEach(function(route, index) {
+                try {
+                    // Валідація координат маршруту
+                    if (!route.origin || !route.destination || 
+                        !route.origin.lat || !route.origin.lng ||
+                        !route.destination.lat || !route.destination.lng) {
+                        console.warn('Пропускаємо маршрут ' + index + ': невалідні координати');
+                        return;
+                    }
                     
-                    animateRoute();
-                }
+                    const originLat = parseFloat(route.origin.lat);
+                    const originLng = parseFloat(route.origin.lng);
+                    const destLat = parseFloat(route.destination.lat);
+                    const destLng = parseFloat(route.destination.lng);
+                    
+                    // Перевірка чи координати валідні
+                    if (isNaN(originLat) || isNaN(originLng) || isNaN(destLat) || isNaN(destLng)) {
+                        console.warn('Пропускаємо маршрут ' + index + ': невалідні числові координати');
+                        return;
+                    }
+                    
+                    const origin = [originLat, originLng];
+                    const destination = [destLat, destLng];
+                    
+                    // Кольорові маркери залежно від статусу
+                    const originIcon = L.divIcon({
+                        className: 'route-marker',
+                        html: '<div style="background: #198754; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(25, 135, 84, 0.8);"></div>',
+                        iconSize: [20, 20]
+                    });
+                    
+                    const destIcon = L.divIcon({
+                        className: 'route-marker',
+                        html: '<div style="background: #dc3545; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);"></div>',
+                        iconSize: [20, 20]
+                    });
                 
-                // Додавання інформації про маршрут до попапу лінії
-                polyline.bindPopup(`
-                    <b>${route.origin.city} → ${route.destination.city}</b><br>
-                    Тип вантажу: ${route.cargo_type}<br>
-                    Статус: ${route.status === 'pending' ? 'Очікує' : 'В дорозі'}
-                `);
+                    // Маркери з попапами
+                    const originCity = route.origin.city || 'Невідомо';
+                    const originCountry = route.origin.country || 'Не вказано';
+                    const destCity = route.destination.city || 'Невідомо';
+                    const destCountry = route.destination.country || 'Не вказано';
+                    const cargoType = route.cargo_type || 'Не вказано';
+                    
+                    const originMarker = L.marker(origin, {icon: originIcon}).addTo(map)
+                        .bindPopup(
+                            '<b>📍 ' + originCity + '</b><br>' +
+                            originCountry + '<br>' +
+                            '<small>Тип: ' + cargoType + '</small>'
+                        );
+                    
+                    const destMarker = L.marker(destination, {icon: destIcon}).addTo(map)
+                        .bindPopup(
+                            '<b>📍 ' + destCity + '</b><br>' +
+                            destCountry + '<br>' +
+                            '<small>Тип: ' + cargoType + '</small>'
+                        );
+                    
+                    // Лінія маршруту з анімацією
+                    const routeColor = route.status === 'pending' ? '#ffc107' : '#0dcaf0';
+                    const polyline = L.polyline([origin, destination], {
+                        color: routeColor,
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: route.status === 'in_transit' ? '10, 5' : null
+                    }).addTo(map);
+                
+                    // Анімація руху для активних маршрутів
+                    if (route.status === 'in_transit') {
+                        let progress = 0;
+                        const animateRoute = function() {
+                            if (progress <= 100) {
+                                const lat = originLat + (destLat - originLat) * (progress / 100);
+                                const lng = originLng + (destLng - originLng) * (progress / 100);
+                                
+                                if (animatedMarkers[index]) {
+                                    map.removeLayer(animatedMarkers[index]);
+                                }
+                                
+                                const animatedIcon = L.divIcon({
+                                    className: 'animated-route-marker',
+                                    html: '<div style="background: ' + routeColor + '; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px ' + routeColor + '; animation: pulse 2s infinite;"></div>',
+                                    iconSize: [18, 18]
+                                });
+                                
+                                animatedMarkers[index] = L.marker([lat, lng], {icon: animatedIcon}).addTo(map)
+                                    .bindPopup('<b>🚚 Вантаж в дорозі</b><br>Прогрес: ' + Math.round(progress) + '%');
+                                
+                                progress += 1;
+                                setTimeout(animateRoute, 150);
+                            } else {
+                                // Перезапускаємо анімацію
+                                setTimeout(function() {
+                                    progress = 0;
+                                    animateRoute();
+                                }, 1000);
+                            }
+                        };
+                        
+                        animateRoute();
+                    }
+                    
+                    // Додавання інформації про маршрут до попапу лінії
+                    polyline.bindPopup(
+                        '<b>' + (route.origin.city || 'Невідомо') + ' → ' + (route.destination.city || 'Невідомо') + '</b><br>' +
+                        'Тип вантажу: ' + (route.cargo_type || 'Не вказано') + '<br>' +
+                        'Статус: ' + (route.status === 'pending' ? 'Очікує' : 'В дорозі')
+                    );
+                } catch (e) {
+                    console.error('Помилка додавання маршруту ' + index + ' на карту:', e);
+                }
             });
     
-            // Фіт бігокс для всіх маршрутів
-            if (routesData.length > 0) {
-                const allPoints = [];
-                routesData.forEach(route => {
-                    allPoints.push([route.origin.lat, route.origin.lng]);
-                    allPoints.push([route.destination.lat, route.destination.lng]);
-                });
-                
-                if (allPoints.length > 0) {
-                    map.fitBounds(allPoints, {padding: [50, 50]});
+            // Фіт бігокс для всіх маршрутів з обробкою помилок
+            try {
+                if (routesData.length > 0) {
+                    const allPoints = [];
+                    routesData.forEach(function(route) {
+                        try {
+                            if (route.origin && route.origin.lat && route.origin.lng &&
+                                route.destination && route.destination.lat && route.destination.lng) {
+                                const originLat = parseFloat(route.origin.lat);
+                                const originLng = parseFloat(route.origin.lng);
+                                const destLat = parseFloat(route.destination.lat);
+                                const destLng = parseFloat(route.destination.lng);
+                                
+                                if (!isNaN(originLat) && !isNaN(originLng) && 
+                                    !isNaN(destLat) && !isNaN(destLng)) {
+                                    allPoints.push([originLat, originLng]);
+                                    allPoints.push([destLat, destLng]);
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Помилка додавання точки до bounds:', e);
+                        }
+                    });
+                    
+                    if (allPoints.length > 0) {
+                        map.fitBounds(allPoints, {padding: [50, 50]});
+                    } else {
+                        // Якщо немає валідних точок, показуємо стандартний вид
+                        map.setView([50.0, 30.0], 3);
+                    }
+                } else {
+                    // Якщо немає маршрутів, показуємо стандартний вид
+                    map.setView([50.0, 30.0], 3);
                 }
+            } catch (e) {
+                console.error('Помилка встановлення bounds карти:', e);
             }
         } catch (error) {
             console.error('Помилка ініціалізації карти:', error);
-            document.getElementById('worldMap').innerHTML = '<div class="alert alert-danger m-3">Помилка відображення карти. Перезавантажте сторінку.</div>';
+            const mapElement = document.getElementById('worldMap');
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle"></i> Помилка відображення карти. <a href="javascript:location.reload()" class="alert-link">Перезавантажити сторінку</a></div>';
+            }
         }
-    });
+    }
+    
+    // Ініціалізуємо карту при завантаженні DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initWorldMap, 300);
+        });
+    } else {
+        setTimeout(initWorldMap, 300);
+    }
 </script>
 {% endblock %}
 

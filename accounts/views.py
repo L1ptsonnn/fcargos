@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User, CompanyProfile, CarrierProfile
-from .forms import LoginForm, CompanyRegistrationForm, CarrierRegistrationForm
+from .forms import LoginForm, CompanyRegistrationForm, CarrierRegistrationForm, CompanyProfileEditForm, CarrierProfileEditForm
 
 
 def login_view(request):
@@ -80,12 +80,29 @@ def profile_view(request):
     from django.forms import ModelForm
     
     context = {}
+    edit_form = None
     
     if request.user.role == 'company':
         try:
-            context['profile'] = request.user.company_profile
+            profile = request.user.company_profile
         except CompanyProfile.DoesNotExist:
-            context['profile'] = None
+            profile = None
+        
+        # Обробка форми редагування
+        if request.method == 'POST' and 'edit_profile' in request.POST:
+            edit_form = CompanyProfileEditForm(request.POST, request.FILES, instance=profile, user=request.user)
+            if edit_form.is_valid():
+                edit_form.save()
+                messages.success(request, 'Профіль успішно оновлено!')
+                return redirect('profile')
+        else:
+            if profile:
+                edit_form = CompanyProfileEditForm(instance=profile, user=request.user)
+            else:
+                edit_form = CompanyProfileEditForm(user=request.user)
+        
+        context['profile'] = profile
+        context['edit_form'] = edit_form
         
         # Статистика для компанії
         routes = Route.objects.filter(company=request.user)
@@ -99,9 +116,25 @@ def profile_view(request):
         
     elif request.user.role == 'carrier':
         try:
-            context['profile'] = request.user.carrier_profile
+            profile = request.user.carrier_profile
         except CarrierProfile.DoesNotExist:
-            context['profile'] = None
+            profile = None
+        
+        # Обробка форми редагування
+        if request.method == 'POST' and 'edit_profile' in request.POST:
+            edit_form = CarrierProfileEditForm(request.POST, instance=profile, user=request.user)
+            if edit_form.is_valid():
+                edit_form.save()
+                messages.success(request, 'Профіль успішно оновлено!')
+                return redirect('profile')
+        else:
+            if profile:
+                edit_form = CarrierProfileEditForm(instance=profile, user=request.user)
+            else:
+                edit_form = CarrierProfileEditForm(user=request.user)
+        
+        context['profile'] = profile
+        context['edit_form'] = edit_form
         
         # Статистика для перевізника
         bids = Bid.objects.filter(carrier=request.user)

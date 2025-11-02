@@ -101,7 +101,7 @@ def routes_list(request):
                 else:
                     delivery_date_local = route.delivery_date
             
-            routes_data.append({
+            route_data = {
                 'id': route.id,
                 'origin_city': route.origin_city,
                 'destination_city': route.destination_city,
@@ -111,7 +111,22 @@ def routes_list(request):
                 'status': route.status,
                 'pickup_date': pickup_date_local.strftime('%d.%m.%Y %H:%M') if pickup_date_local else None,
                 'delivery_date': delivery_date_local.strftime('%d.%m.%Y %H:%M') if delivery_date_local else None,
-            })
+                'company_id': route.company.pk if route.company else None,
+                'company_name': route.company.company_name if route.company and route.company.company_name else route.company.username if route.company else None,
+            }
+            
+            # Додаємо інформацію про перевізника, якщо він призначений
+            if route.carrier:
+                route_data['carrier_id'] = route.carrier.pk
+                route_data['carrier_name'] = route.carrier.username
+                # Додаємо рейтинг перевізника, якщо він є
+                try:
+                    if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0:
+                        route_data['carrier_rating'] = float(route.carrier.carrier_profile.rating)
+                except:
+                    pass
+            
+            routes_data.append(route_data)
         return JsonResponse({'routes': routes_data})
     
     return render(request, 'logistics/routes_list.html', {
@@ -840,32 +855,58 @@ def history_api(request):
     return JsonResponse({'html': html})
 
 
-@login_required
 def user_profile(request, user_id):
-    """Профіль користувача"""
-    from accounts.models import User, CarrierProfile
+    """Профіль користувача (доступний для перегляду всім)"""
+    from accounts.models import User, CarrierProfile, CompanyProfile
+    from django.db.models import Sum, Avg, Count
+    
     profile_user = get_object_or_404(User, pk=user_id)
+    
+    # Отримуємо профіль
+    company_profile = None
+    carrier_profile = None
+    
+    if profile_user.role == 'company':
+        try:
+            company_profile = profile_user.company_profile
+        except CompanyProfile.DoesNotExist:
+            pass
+    else:
+        try:
+            carrier_profile = profile_user.carrier_profile
+        except CarrierProfile.DoesNotExist:
+            pass
     
     # Статистика маршрутів
     if profile_user.role == 'company':
-        routes_created = Route.objects.filter(company=profile_user).count()
-        routes_in_transit = Route.objects.filter(company=profile_user, status='in_transit').count()
-        routes_completed = Route.objects.filter(company=profile_user, status='delivered').count()
-        carrier_profile = None
+        routes = Route.objects.filter(company=profile_user)
+        routes_created = routes.count()
+        routes_in_transit = routes.filter(status='in_transit').count()
+        routes_completed = routes.filter(status='delivered').count()
+        routes_pending = routes.filter(status='pending').count()
+        total_spent = routes.filter(status__in=['in_transit', 'delivered']).aggregate(Sum('price'))['price__sum'] or 0
+        recent_routes = routes.order_by('-created_at')[:5]
         ratings = None
         user_rating = None
     else:
+        routes = Route.objects.filter(carrier=profile_user)
+        bids = Bid.objects.filter(carrier=profile_user)
         routes_created = 0
-        routes_in_transit = Route.objects.filter(carrier=profile_user, status='in_transit').count()
-        routes_completed = Route.objects.filter(carrier=profile_user, status='delivered').count()
-        try:
-            carrier_profile = CarrierProfile.objects.get(user=profile_user)
-        except CarrierProfile.DoesNotExist:
-            carrier_profile = None
+        routes_in_transit = routes.filter(status='in_transit').count()
+        routes_completed = routes.filter(status='delivered').count()
+        routes_pending = 0
+        total_spent = 0
+        recent_routes = routes.order_by('-created_at')[:5]
+        
+        total_bids = bids.count()
+        accepted_bids = bids.filter(is_accepted=True).count()
+        total_earned = routes.filter(status='delivered').aggregate(Sum('price'))['price__sum'] or 0
+        average_price = routes.filter(status='delivered').aggregate(Avg('price'))['price__avg'] or 0
+        
         ratings = Rating.objects.filter(carrier=profile_user).select_related('company', 'route').order_by('-created_at')[:10]
         
         # Перевіряємо чи поточна компанія вже ставила оцінку цьому перевізнику
-        if request.user.role == 'company':
+        if request.user.is_authenticated and request.user.role == 'company':
             user_rating = Rating.objects.filter(
                 carrier=profile_user,
                 company=request.user
@@ -873,9 +914,12 @@ def user_profile(request, user_id):
         else:
             user_rating = None
     
-    # Обробка форми оцінки
+    # Визначаємо чи це власний профіль
+    is_own_profile = request.user.is_authenticated and request.user.pk == profile_user.pk
+    
+    # Обробка форми оцінки (тільки для авторизованих компаній)
     rating_form = None
-    if request.user.role == 'company' and profile_user.role == 'carrier':
+    if request.user.is_authenticated and request.user.role == 'company' and profile_user.role == 'carrier' and not is_own_profile:
         if request.method == 'POST' and 'rating_submit' in request.POST:
             rating_form = RatingForm(request.POST)
             if rating_form.is_valid():
@@ -907,14 +951,30 @@ def user_profile(request, user_id):
     
     context = {
         'profile_user': profile_user,
+        'company_profile': company_profile,
+        'carrier_profile': carrier_profile,
         'routes_created': routes_created,
         'routes_in_transit': routes_in_transit,
         'routes_completed': routes_completed,
-        'carrier_profile': carrier_profile,
+        'routes_pending': routes_pending if profile_user.role == 'company' else 0,
+        'total_spent': total_spent if profile_user.role == 'company' else 0,
+        'recent_routes': recent_routes,
         'ratings': ratings,
         'user_rating': user_rating,
         'rating_form': rating_form,
+        'is_own_profile': is_own_profile,
+        'user': request.user,  # Для перевірки в template
     }
+    
+    # Додаткова статистика для перевізника
+    if profile_user.role == 'carrier':
+        context.update({
+            'total_bids': total_bids,
+            'accepted_bids': accepted_bids,
+            'total_earned': total_earned,
+            'average_price': average_price,
+        })
+    
     return render(request, 'logistics/user_profile.html', context)
 
 

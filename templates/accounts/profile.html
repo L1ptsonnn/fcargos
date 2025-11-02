@@ -1,318 +1,481 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 {% load static %}
 
 {% block title %}Профіль - FCargos{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    .stat-card {
+    body {
+        background: #f5f7fa;
+        background-image: 
+            radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.03) 0%, transparent 50%),
+            linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        position: relative;
+    }
+    
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(102, 126, 234, 0.01) 2px, rgba(102, 126, 234, 0.01) 4px),
+            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(118, 75, 162, 0.01) 2px, rgba(118, 75, 162, 0.01) 4px);
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    body::after {
+        content: '';
+        position: fixed;
+        top: -300px;
+        right: -200px;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: subtleMove 30s ease-in-out infinite;
+    }
+    
+    @keyframes subtleMove {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-50px, 50px); }
+    }
+    
+    .profile-container {
+        padding: 1.5rem 0;
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-header-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
         border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 20px;
-        transition: transform 0.3s, box-shadow 0.3s;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+        color: white;
+    }
+    
+    .profile-header-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .profile-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+    
+    .profile-icon {
+        font-size: 50px;
+        filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+        flex-shrink: 0;
+    }
+    
+    .profile-info h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .profile-badges {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.2s;
         height: 100%;
     }
+    
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        transform: translateY(-3px);
     }
-    .stat-card.success {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    .stat-card.info {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    .stat-card.warning {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-    .profile-header {
+    
+    .stat-card.primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 40px 0;
-        border-radius: 15px;
-        margin-bottom: 30px;
+    }
+    
+    .stat-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+    
+    .stat-card.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .stat-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin: 0.25rem 0;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    
+    .info-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .info-card-header h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .info-card-body {
+        padding: 1rem;
+    }
+    
+    .info-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #667eea;
+        min-width: 130px;
+        flex-shrink: 0;
+    }
+    
+    .info-value {
+        flex: 1;
+        color: #333;
+    }
+    
+    .btn-edit-profile {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-edit-profile:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .rating-stars {
+        color: #ffc107;
+        font-size: 1rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container profile-container">
     <!-- Profile Header -->
-    <div class="profile-header text-center">
-        <div class="mb-3">
+    <div class="profile-header-card">
+        <div class="profile-header-content">
             {% if profile and profile.logo %}
-                <img src="{{ profile.logo.url }}" alt="Logo" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 5px solid white;">
+                <img src="{{ profile.logo.url }}" alt="Logo" class="profile-avatar">
             {% else %}
-                <i class="bi bi-{% if user.role == 'company' %}building{% else %}truck{% endif %}" style="font-size: 80px;"></i>
+                <i class="bi bi-{% if user.role == 'company' %}building{% else %}truck{% endif %} profile-icon"></i>
             {% endif %}
+            
+            <div class="profile-info" style="flex: 1;">
+                <h3>{{ user.company_name|default:user.username }}</h3>
+                <div class="profile-badges">
+                    <span class="badge bg-light text-dark">{{ user.get_role_display }}</span>
+                    {% if is_admin %}
+                        <span class="badge bg-danger">
+                            <i class="bi bi-shield-check"></i> Адміністратор
+                        </span>
+                    {% endif %}
+                    {% if user.role == 'carrier' and profile %}
+                        <span class="badge bg-warning text-dark">
+                            <span class="rating-stars">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= profile.rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                            {{ profile.rating }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-edit-profile" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                <i class="bi bi-pencil-square"></i> Редагувати
+            </button>
         </div>
-        <h2>{{ user.get_full_name|default:user.username }}</h2>
-        <p class="mb-0">
-            <span class="badge bg-light text-dark fs-6">{{ user.get_role_display }}</span>
-            {% if is_admin %}
-                <span class="badge bg-danger fs-6 ms-2">
-                    <i class="bi bi-shield-check"></i> Адміністратор
-                </span>
-            {% endif %}
-        </p>
     </div>
-
-    <!-- Admin Button -->
-    {% if is_admin %}
-    <div class="mb-4">
-        <a href="/admin/" class="btn btn-danger btn-lg w-100" target="_blank">
-            <i class="bi bi-gear-fill"></i> Адмін-панель (Редагування даних)
-        </a>
-    </div>
-    {% endif %}
 
     <!-- Statistics -->
-    <div class="row mb-4">
+    <div class="row g-3 mb-3">
         {% if user.role == 'company' %}
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="stat-card">
-                    <i class="bi bi-map" style="font-size: 32px;"></i>
+            <div class="col-6 col-md-3">
+                <div class="stat-card primary">
+                    <i class="bi bi-map stat-icon"></i>
                     <div class="stat-number">{{ total_routes }}</div>
-                    <p class="mb-0">Всього маршрутів</p>
+                    <div class="stat-label">Маршрутів</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="stat-card warning">
-                    <i class="bi bi-hourglass-split" style="font-size: 32px;"></i>
+                    <i class="bi bi-hourglass-split stat-icon"></i>
                     <div class="stat-number">{{ pending_routes }}</div>
-                    <p class="mb-0">Очікують</p>
+                    <div class="stat-label">Очікують</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="stat-card info">
-                    <i class="bi bi-truck" style="font-size: 32px;"></i>
+                    <i class="bi bi-truck stat-icon"></i>
                     <div class="stat-number">{{ in_transit_routes }}</div>
-                    <p class="mb-0">В дорозі</p>
+                    <div class="stat-label">В дорозі</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="stat-card success">
-                    <i class="bi bi-check-circle" style="font-size: 32px;"></i>
+                    <i class="bi bi-check-circle stat-icon"></i>
                     <div class="stat-number">{{ delivered_routes }}</div>
-                    <p class="mb-0">Доставлено</p>
+                    <div class="stat-label">Доставлено</div>
                 </div>
             </div>
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body text-center">
-                        <i class="bi bi-cash-stack" style="font-size: 48px; color: #667eea;"></i>
-                        <h3 class="mt-3">{{ total_spent|floatformat:0 }} грн</h3>
-                        <p class="text-muted mb-0">Всього витрачено</p>
-                    </div>
+            <div class="col-6 col-md-6">
+                <div class="stat-card">
+                    <i class="bi bi-cash-stack" style="font-size: 1.5rem; color: #667eea;"></i>
+                    <div class="stat-number" style="color: #333;">{{ total_spent|floatformat:0 }} грн</div>
+                    <div class="stat-label" style="color: #666;">Витрачено</div>
                 </div>
             </div>
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body text-center">
-                        <i class="bi bi-graph-up" style="font-size: 48px; color: #764ba2;"></i>
-                        <h3 class="mt-3">{{ all_routes|length }}</h3>
-                        <p class="text-muted mb-0">Активних маршрутів</p>
-                    </div>
+            <div class="col-6 col-md-6">
+                <div class="stat-card">
+                    <i class="bi bi-graph-up" style="font-size: 1.5rem; color: #764ba2;"></i>
+                    <div class="stat-number" style="color: #333;">{{ all_routes|length }}</div>
+                    <div class="stat-label" style="color: #666;">Активних</div>
                 </div>
             </div>
         {% elif user.role == 'carrier' %}
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="stat-card">
-                    <i class="bi bi-cash-stack" style="font-size: 32px;"></i>
+            <div class="col-6 col-md-3">
+                <div class="stat-card primary">
+                    <i class="bi bi-cash-stack stat-icon"></i>
                     <div class="stat-number">{{ total_bids }}</div>
-                    <p class="mb-0">Всього ставок</p>
+                    <div class="stat-label">Ставок</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="stat-card success">
-                    <i class="bi bi-check-circle" style="font-size: 32px;"></i>
+                    <i class="bi bi-check-circle stat-icon"></i>
                     <div class="stat-number">{{ accepted_bids }}</div>
-                    <p class="mb-0">Прийнято</p>
+                    <div class="stat-label">Прийнято</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="stat-card info">
-                    <i class="bi bi-truck" style="font-size: 32px;"></i>
+                    <i class="bi bi-truck stat-icon"></i>
                     <div class="stat-number">{{ active_routes }}</div>
-                    <p class="mb-0">Активних</p>
+                    <div class="stat-label">Активних</div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-6 col-md-3">
                 <div class="stat-card warning">
-                    <i class="bi bi-trophy" style="font-size: 32px;"></i>
+                    <i class="bi bi-trophy stat-icon"></i>
                     <div class="stat-number">{{ completed_routes }}</div>
-                    <p class="mb-0">Завершено</p>
+                    <div class="stat-label">Завершено</div>
                 </div>
             </div>
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body text-center">
-                        <i class="bi bi-wallet2" style="font-size: 48px; color: #11998e;"></i>
-                        <h3 class="mt-3">{{ total_earned|floatformat:0 }} грн</h3>
-                        <p class="text-muted mb-0">Всього зароблено</p>
-                    </div>
+            <div class="col-6 col-md-6">
+                <div class="stat-card">
+                    <i class="bi bi-wallet2" style="font-size: 1.5rem; color: #11998e;"></i>
+                    <div class="stat-number" style="color: #333;">{{ total_earned|floatformat:0 }} грн</div>
+                    <div class="stat-label" style="color: #666;">Зароблено</div>
                 </div>
             </div>
-            <div class="col-md-6 mb-3">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body text-center">
-                        <i class="bi bi-graph-up-arrow" style="font-size: 48px; color: #38ef7d;"></i>
-                        <h3 class="mt-3">{{ average_price|floatformat:0 }} грн</h3>
-                        <p class="text-muted mb-0">Середня ціна</p>
-                    </div>
+            <div class="col-6 col-md-6">
+                <div class="stat-card">
+                    <i class="bi bi-graph-up-arrow" style="font-size: 1.5rem; color: #38ef7d;"></i>
+                    <div class="stat-number" style="color: #333;">{{ average_price|floatformat:0 }} грн</div>
+                    <div class="stat-label" style="color: #666;">Середня ціна</div>
                 </div>
             </div>
         {% endif %}
     </div>
 
-    <!-- Profile Information -->
+    <!-- Main Content -->
     <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-person"></i> Особиста інформація</h5>
+        <div class="col-md-6 mb-3">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5><i class="bi bi-person"></i> Інформація</h5>
                 </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tr>
-                            <th>Логін:</th>
-                            <td>{{ user.username }}</td>
-                        </tr>
-                        <tr>
-                            <th>Email:</th>
-                            <td>{{ user.email }}</td>
-                        </tr>
-                        <tr>
-                            <th>Телефон:</th>
-                            <td>{{ user.phone|default:"Не вказано" }}</td>
-                        </tr>
-                        {% if user.role == 'company' %}
-                            <tr>
-                                <th>Назва компанії:</th>
-                                <td>{{ user.company_name }}</td>
-                            </tr>
-                            {% if profile %}
-                                <tr>
-                                    <th>Адреса:</th>
-                                    <td>{{ profile.address }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Податковий номер:</th>
-                                    <td>{{ profile.tax_id }}</td>
-                                </tr>
-                                {% if profile.description %}
-                                <tr>
-                                    <th>Опис:</th>
-                                    <td>{{ profile.description }}</td>
-                                </tr>
-                                {% endif %}
-                            {% endif %}
-                        {% elif user.role == 'carrier' %}
-                            {% if profile %}
-                                <tr>
-                                    <th>Номер ліцензії:</th>
-                                    <td>{{ profile.license_number }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Тип транспорту:</th>
-                                    <td>{{ profile.vehicle_type }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Досвід:</th>
-                                    <td>{{ profile.experience_years }} років</td>
-                                </tr>
-                                <tr>
-                                    <th>Рейтинг:</th>
-                                    <td>
-                                        {% for i in "12345" %}
-                                            {% if forloop.counter <= profile.rating %}
-                                                <i class="bi bi-star-fill text-warning"></i>
-                                            {% else %}
-                                                <i class="bi bi-star text-muted"></i>
-                                            {% endif %}
-                                        {% endfor %}
-                                        ({{ profile.rating }})
-                                    </td>
-                                </tr>
-                            {% endif %}
+                <div class="info-card-body">
+                    <div class="info-row">
+                        <div class="info-label">Логін:</div>
+                        <div class="info-value">{{ user.username }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">{{ user.email }}</div>
+                    </div>
+                    {% if user.role == 'company' %}
+                        <div class="info-row">
+                            <div class="info-label">Компанія:</div>
+                            <div class="info-value">{{ user.company_name|default:"Не вказано" }}</div>
+                        </div>
+                        {% if profile %}
+                            <div class="info-row">
+                                <div class="info-label">Адреса:</div>
+                                <div class="info-value">{{ profile.address|default:"Не вказано" }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Податковий номер:</div>
+                                <div class="info-value">{{ profile.tax_id }}</div>
+                            </div>
                         {% endif %}
-                    </table>
+                    {% elif user.role == 'carrier' %}
+                        {% if profile %}
+                            <div class="info-row">
+                                <div class="info-label">Тип транспорту:</div>
+                                <div class="info-value">{{ profile.vehicle_type }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Модель:</div>
+                                <div class="info-value">{{ profile.vehicle_model }}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Досвід:</div>
+                                <div class="info-value">{{ profile.experience_years }} років</div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
         
-        <!-- Recent Activity -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">
+        <div class="col-md-6 mb-3">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5>
                         <i class="bi bi-clock-history"></i> 
                         {% if user.role == 'company' %}Останні маршрути{% else %}Останні ставки{% endif %}
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="info-card-body">
                     {% if user.role == 'company' %}
                         {% if recent_routes %}
-                            <div class="list-group list-group-flush">
-                                {% for route in recent_routes %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">
-                                                <i class="bi bi-geo-alt"></i> {{ route.origin_city }} 
-                                                <i class="bi bi-arrow-right"></i> 
-                                                {{ route.destination_city }}
-                                            </h6>
-                                            <small class="text-muted">{{ route.created_at|date:"d.m.Y H:i" }}</small>
-                                        </div>
-                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
-                                            {{ route.get_status_display }}
-                                        </span>
-                                    </div>
-                                    <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-outline-primary mt-2">
-                                        Деталі
-                                    </a>
+                            {% for route in recent_routes|slice:":5" %}
+                            <div class="info-row">
+                                <div class="info-value">
+                                    <strong>{{ route.origin_city }} → {{ route.destination_city }}</strong><br>
+                                    <small class="text-muted">{{ route.created_at|date:"d.m.Y" }}</small>
+                                    <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %} ms-2">
+                                        {{ route.get_status_display }}
+                                    </span>
                                 </div>
-                                {% endfor %}
                             </div>
+                            {% endfor %}
                         {% else %}
-                            <p class="text-muted text-center py-4">
-                                <i class="bi bi-inbox" style="font-size: 48px;"></i><br>
-                                Поки немає маршрутів
-                            </p>
+                            <div class="text-center py-3 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mb-0 mt-2">Немає маршрутів</p>
+                            </div>
                         {% endif %}
                     {% elif user.role == 'carrier' %}
                         {% if recent_bids %}
-                            <div class="list-group list-group-flush">
-                                {% for bid in recent_bids %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">{{ bid.route.origin_city }} → {{ bid.route.destination_city }}</h6>
-                                            <p class="mb-1"><strong>{{ bid.proposed_price }} грн</strong></p>
-                                            <small class="text-muted">{{ bid.created_at|date:"d.m.Y H:i" }}</small>
-                                        </div>
-                                        {% if bid.is_accepted %}
-                                            <span class="badge bg-success">Прийнято</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">Очікує</span>
-                                        {% endif %}
-                                    </div>
+                            {% for bid in recent_bids|slice:":5" %}
+                            <div class="info-row">
+                                <div class="info-value">
+                                    <strong>{{ bid.route.origin_city }} → {{ bid.route.destination_city }}</strong><br>
+                                    <span class="text-success">{{ bid.proposed_price }} грн</span>
+                                    <small class="text-muted ms-2">{{ bid.created_at|date:"d.m.Y" }}</small>
                                 </div>
-                                {% endfor %}
                             </div>
+                            {% endfor %}
                         {% else %}
-                            <p class="text-muted text-center py-4">
-                                <i class="bi bi-inbox" style="font-size: 48px;"></i><br>
-                                Поки немає ставок
-                            </p>
+                            <div class="text-center py-3 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mb-0 mt-2">Немає ставок</p>
+                            </div>
                         {% endif %}
                     {% endif %}
                 </div>
@@ -320,4 +483,550 @@
         </div>
     </div>
 </div>
+
+<!-- Modal для редагування профілю -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable" style="max-width: 550px;">
+        <div class="modal-content" style="border-radius: 15px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 1.25rem 1.5rem; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border-radius: 50%;"></div>
+                <h5 class="modal-title mb-0" id="editProfileModalLabel" style="font-weight: 600; position: relative; z-index: 1;">
+                    <i class="bi bi-pencil-square"></i> Редагування профілю
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити" style="position: relative; z-index: 1;"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem; background: #fafbfc;">
+                {% if edit_form %}
+                    <form method="post" enctype="multipart/form-data" id="editProfileForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="edit_profile" value="1">
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-envelope"></i> Email</label>
+                            {{ edit_form.email }}
+                            {% if edit_form.email.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if user.role == 'company' %}
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-building"></i> Назва компанії</label>
+                            {{ edit_form.company_name }}
+                            {% if edit_form.company_name.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.company_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-receipt"></i> Податковий номер</label>
+                            {{ edit_form.tax_id }}
+                            {% if edit_form.tax_id.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.tax_id.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-map"></i> Адреса</label>
+                            <div id="address_map_container" style="height: 100px; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0; background: #f8f9fa;"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="window.openMapModal && window.openMapModal()" style="font-size: 0.8rem;">
+                                <i class="bi bi-geo-alt-fill"></i> Вказати на карті
+                            </button>
+                            {{ edit_form.address }}
+                            {{ edit_form.address_lat.as_hidden }}
+                            {{ edit_form.address_lng.as_hidden }}
+                            {% if edit_form.address.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-file-text"></i> Опис</label>
+                            {{ edit_form.description }}
+                            {% if edit_form.description.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-image"></i> Логотип</label>
+                            {% if profile and profile.logo %}
+                                <div class="mb-2">
+                                    <img src="{{ profile.logo.url }}" alt="Current logo" style="max-width: 70px; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                </div>
+                            {% endif %}
+                            {{ edit_form.logo }}
+                            {% if edit_form.logo.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.logo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% elif user.role == 'carrier' %}
+                        <div class="row g-2">
+                            <div class="col-6 mb-2">
+                                <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-truck"></i> Тип транспорту</label>
+                                {{ edit_form.vehicle_type }}
+                                {% if edit_form.vehicle_type.errors %}
+                                    <div class="text-danger small mt-1">{{ edit_form.vehicle_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-calendar-check"></i> Досвід</label>
+                                {{ edit_form.experience_years }}
+                                {% if edit_form.experience_years.errors %}
+                                    <div class="text-danger small mt-1">{{ edit_form.experience_years.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-car-front"></i> Модель</label>
+                            {{ edit_form.vehicle_model }}
+                            <div id="vehicle_model_custom_container" style="display: none;" class="mt-2">
+                                {{ edit_form.vehicle_model_custom }}
+                            </div>
+                            {% if edit_form.vehicle_model.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.vehicle_model.errors }}</div>
+                            {% endif %}
+                            {% if edit_form.vehicle_model_custom.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.vehicle_model_custom.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-map"></i> Адреса</label>
+                            <div id="address_map_container" style="height: 100px; border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0; background: #f8f9fa;"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="window.openMapModal && window.openMapModal()" style="font-size: 0.8rem;">
+                                <i class="bi bi-geo-alt-fill"></i> Вказати на карті
+                            </button>
+                            {{ edit_form.address }}
+                            {{ edit_form.address_lat.as_hidden }}
+                            {{ edit_form.address_lng.as_hidden }}
+                            {% if edit_form.address.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label" style="font-size: 0.85rem; color: #667eea; font-weight: 600; margin-bottom: 0.4rem;"><i class="bi bi-file-text"></i> Опис</label>
+                            {{ edit_form.description }}
+                            {% if edit_form.description.errors %}
+                                <div class="text-danger small mt-1">{{ edit_form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 0.75rem 1.25rem;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" style="font-size: 0.85rem;">Скасувати</button>
+                <button type="submit" form="editProfileForm" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; font-size: 0.85rem;">
+                    <i class="bi bi-check-circle"></i> Зберегти
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal для карти адреси -->
+<div class="modal fade" id="addressMapModal" tabindex="-1" aria-labelledby="addressMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -30%; right: -20%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border-radius: 50%;"></div>
+                <h5 class="modal-title" id="addressMapModalLabel" style="position: relative; z-index: 1;">
+                    <i class="bi bi-geo-alt"></i> Вкажіть вашу адресу
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити" style="position: relative; z-index: 1;"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; background: #fafbfc;">
+                <div id="addressMapModalMap" style="height: 400px; border-radius: 10px; border: 1px solid #e0e0e0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);"></div>
+                <div class="mt-3">
+                    <div class="input-group">
+                        <input type="text" id="addressSearchInput" class="form-control form-control-enhanced" placeholder="Введіть адресу для пошуку..." style="border-radius: 8px 0 0 8px;">
+                        <button type="button" class="btn btn-primary" onclick="window.searchAddress && window.searchAddress()" style="border-radius: 0 8px 8px 0;">
+                            <i class="bi bi-search"></i> Пошук
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.confirmAddress && window.confirmAddress()" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none;">
+                    <i class="bi bi-check-circle"></i> Підтвердити адресу
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // КАРТА АДРЕСИ
+    let addressMap = null;
+    let addressMarker = null;
+    let selectedLat = null;
+    let selectedLng = null;
+    let selectedAddress = '';
+
+    window.openMapModal = function() {
+        const modalElement = document.getElementById('addressMapModal');
+        if (!modalElement) return;
+        
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // Очікуємо повного відкриття модального вікна
+        modalElement.addEventListener('shown.bs.modal', function onModalShown() {
+            modalElement.removeEventListener('shown.bs.modal', onModalShown);
+            
+            // Перевіряємо чи Leaflet завантажений
+            if (typeof L === 'undefined') {
+                console.error('Leaflet не завантажений!');
+                return;
+            }
+            
+            // Додаткова затримка для гарантії що DOM готовий
+            setTimeout(function() {
+                if (window.initAddressMap) {
+                    window.initAddressMap();
+                }
+            }, 100);
+        }, { once: true });
+        
+        modal.show();
+    };
+
+    window.initAddressMap = function() {
+        const mapContainer = document.getElementById('addressMapModalMap');
+        if (!mapContainer) {
+            console.warn('Map container not found');
+            return;
+        }
+        
+        // Перевіряємо чи Leaflet завантажений
+        if (typeof L === 'undefined') {
+            console.error('Leaflet library not loaded');
+            mapContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Помилка завантаження карти. Перезавантажте сторінку.</div>';
+            return;
+        }
+        
+        // Видаляємо попередню карту якщо вона існує
+        if (addressMap) {
+            try {
+                addressMap.remove();
+            } catch (e) {
+                console.warn('Error removing old map:', e);
+            }
+            addressMap = null;
+        }
+
+        // Отримуємо існуючі координати або використовуємо координати Києва
+        const latField = document.getElementById('id_address_lat');
+        const lngField = document.getElementById('id_address_lng');
+        const existingLat = (latField && latField.value) ? parseFloat(latField.value) : 50.45;
+        const existingLng = (lngField && lngField.value) ? parseFloat(lngField.value) : 30.52;
+
+        try {
+            // Перевіряємо чи контейнер видимий
+            if (mapContainer.offsetWidth === 0 || mapContainer.offsetHeight === 0) {
+                setTimeout(function() {
+                    window.initAddressMap();
+                }, 200);
+                return;
+            }
+            
+            addressMap = L.map('addressMapModalMap', {
+                zoomControl: true
+            }).setView([existingLat, existingLng], existingLat && existingLng ? 13 : 6);
+        } catch (e) {
+            console.error('Error initializing map:', e);
+            mapContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Помилка ініціалізації карти. Спробуйте ще раз.</div>';
+            return;
+        }
+        
+        if (!addressMap) {
+            console.error('Map object is null');
+            return;
+        }
+        
+        // Додаємо тайли карти з обробкою помилок
+        try {
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19,
+                errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5FcnJvcjwvdGV4dD48L3N2Zz4='
+            }).addTo(addressMap);
+        } catch (e) {
+            console.error('Error adding tile layer:', e);
+        }
+
+        // Додаємо маркер якщо є координати
+        if (existingLat && existingLng && !isNaN(existingLat) && !isNaN(existingLng)) {
+            try {
+                addressMarker = L.marker([existingLat, existingLng]).addTo(addressMap);
+                selectedLat = existingLat;
+                selectedLng = existingLng;
+            } catch (e) {
+                console.warn('Error adding marker:', e);
+            }
+        }
+
+        addressMap.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            if (addressMarker) {
+                addressMap.removeLayer(addressMarker);
+            }
+            
+            addressMarker = L.marker([lat, lng]).addTo(addressMap);
+            selectedLat = lat;
+            selectedLng = lng;
+            
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1')
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if (data.address) {
+                        const parts = [];
+                        if (data.address.road) parts.push(data.address.road);
+                        if (data.address.house_number) parts.push(data.address.house_number);
+                        if (data.address.city || data.address.town) parts.push(data.address.city || data.address.town);
+                        if (data.address.country) parts.push(data.address.country);
+                        selectedAddress = parts.join(', ');
+                        document.getElementById('addressSearchInput').value = selectedAddress;
+                    }
+                })
+                .catch(function(err) { console.error('Geocoding error:', err); });
+        });
+    };
+
+    window.searchAddress = function() {
+        const query = document.getElementById('addressSearchInput').value;
+        if (!query) return;
+
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    
+                    addressMap.setView([lat, lng], 15);
+                    
+                    if (addressMarker) {
+                        addressMap.removeLayer(addressMarker);
+                    }
+                    
+                    addressMarker = L.marker([lat, lng]).addTo(addressMap);
+                    selectedLat = lat;
+                    selectedLng = lng;
+                    selectedAddress = data[0].display_name;
+                    document.getElementById('addressSearchInput').value = selectedAddress;
+                }
+            })
+            .catch(function(err) { console.error('Search error:', err); });
+    };
+
+    window.confirmAddress = function() {
+        if (selectedLat && selectedLng) {
+            const latField = document.getElementById('id_address_lat');
+            const lngField = document.getElementById('id_address_lng');
+            const addressField = document.getElementById('id_address');
+            const previewContainer = document.getElementById('address_map_container');
+            
+            if (latField) latField.value = selectedLat;
+            if (lngField) lngField.value = selectedLng;
+            if (addressField) {
+                addressField.value = selectedAddress || (selectedLat + ', ' + selectedLng);
+            }
+            
+            if (window.previewMap) {
+                window.previewMap.remove();
+                window.previewMap = null;
+            }
+            
+            // Оновлюємо превью карти
+            const previewContainers = ['address_map_container', 'address_map_container_carrier'];
+            previewContainers.forEach(function(containerId) {
+                const previewContainer = document.getElementById(containerId);
+                if (previewContainer) {
+                    // Видаляємо попередню карту
+                    if (window.previewMap) {
+                        try {
+                            window.previewMap.remove();
+                        } catch (e) {
+                            console.warn('Error removing preview map:', e);
+                        }
+                        window.previewMap = null;
+                    }
+                    
+                    previewContainer.innerHTML = '';
+                    
+                    if (typeof L !== 'undefined') {
+                        try {
+                            // Приховуємо placeholder
+                            const placeholder = containerId === 'address_map_container' ? document.getElementById('company_map_placeholder') : document.getElementById('carrier_map_placeholder');
+                            if (placeholder) placeholder.style.display = 'none';
+                            
+                            // Невелика затримка для гарантії що контейнер готовий
+                            setTimeout(function() {
+                                if (previewContainer.offsetWidth > 0 && previewContainer.offsetHeight > 0) {
+                                    // Видаляємо стару карту якщо є
+                                    if (window.previewMap && containerId === 'address_map_container') {
+                                        try {
+                                            window.previewMap.remove();
+                                        } catch (e) {}
+                                        window.previewMap = null;
+                                    }
+                                    if (window.previewMapCarrier && containerId === 'address_map_container_carrier') {
+                                        try {
+                                            window.previewMapCarrier.remove();
+                                        } catch (e) {}
+                                        window.previewMapCarrier = null;
+                                    }
+                                    
+                                    const mapInstance = L.map(previewContainer, {
+                                        zoomControl: false,
+                                        attributionControl: false
+                                    }).setView([selectedLat, selectedLng], 13);
+                                    
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        maxZoom: 19
+                                    }).addTo(mapInstance);
+                                    
+                                    L.marker([selectedLat, selectedLng]).addTo(mapInstance);
+                                    
+                                    // Зберігаємо посилання на карту
+                                    if (containerId === 'address_map_container') {
+                                        window.previewMap = mapInstance;
+                                    } else {
+                                        window.previewMapCarrier = mapInstance;
+                                    }
+                                }
+                            }, 100);
+                        } catch (e) {
+                            console.warn('Error creating preview map:', e);
+                            previewContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999; font-size: 0.85rem;"><i class="bi bi-geo-alt" style="margin-right: 0.5rem;"></i> ' + (selectedAddress || 'Адреса вибрана') + '</div>';
+                        }
+                    } else {
+                        previewContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999; font-size: 0.85rem;"><i class="bi bi-geo-alt" style="margin-right: 0.5rem;"></i> ' + (selectedAddress || 'Адреса вибрана') + '</div>';
+                    }
+                }
+            });
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addressMapModal'));
+            if (modal) {
+                modal.hide();
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const vehicleModelSelect = document.getElementById('id_vehicle_model');
+        const vehicleModelCustom = document.getElementById('id_vehicle_model_custom');
+        const vehicleModelCustomContainer = document.getElementById('vehicle_model_custom_container');
+        const searchInput = document.getElementById('addressSearchInput');
+        
+        if (vehicleModelSelect && vehicleModelCustom && vehicleModelCustomContainer) {
+            vehicleModelSelect.addEventListener('change', function() {
+                if (this.value === 'Інша модель' || this.value === 'custom') {
+                    vehicleModelCustomContainer.style.display = 'block';
+                } else {
+                    vehicleModelCustomContainer.style.display = 'none';
+                }
+            });
+            
+            if (vehicleModelSelect.value === 'Інша модель' || vehicleModelSelect.value === 'custom') {
+                vehicleModelCustomContainer.style.display = 'block';
+            }
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchAddress();
+                }
+            });
+        }
+        
+        // Ініціалізуємо превью карти при завантаженні сторінки якщо є координати
+        function initPreviewMap() {
+            if (typeof L === 'undefined') return;
+            
+            const latField = document.getElementById('id_address_lat');
+            const lngField = document.getElementById('id_address_lng');
+            const lat = (latField && latField.value) ? parseFloat(latField.value) : null;
+            const lng = (lngField && lngField.value) ? parseFloat(lngField.value) : null;
+            
+            if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                const previewContainers = ['address_map_container', 'address_map_container_carrier'];
+                previewContainers.forEach(function(containerId) {
+                    const previewContainer = document.getElementById(containerId);
+                    if (previewContainer && previewContainer.offsetWidth > 0 && previewContainer.offsetHeight > 0) {
+                        try {
+                            // Видаляємо попередню карту якщо є
+                            if (containerId === 'address_map_container' && window.previewMap) {
+                                try {
+                                    window.previewMap.remove();
+                                } catch (e) {}
+                                window.previewMap = null;
+                            }
+                            if (containerId === 'address_map_container_carrier' && window.previewMapCarrier) {
+                                try {
+                                    window.previewMapCarrier.remove();
+                                } catch (e) {}
+                                window.previewMapCarrier = null;
+                            }
+                            
+                            // Приховуємо placeholder
+                            const placeholder = containerId === 'address_map_container' ? document.getElementById('company_map_placeholder') : document.getElementById('carrier_map_placeholder');
+                            if (placeholder) placeholder.style.display = 'none';
+                            
+                            const mapInstance = L.map(previewContainer, {
+                                zoomControl: false,
+                                attributionControl: false
+                            }).setView([lat, lng], 13);
+                            
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                maxZoom: 19
+                            }).addTo(mapInstance);
+                            
+                            L.marker([lat, lng]).addTo(mapInstance);
+                            
+                            // Зберігаємо посилання
+                            if (containerId === 'address_map_container') {
+                                window.previewMap = mapInstance;
+                            } else {
+                                window.previewMapCarrier = mapInstance;
+                            }
+                        } catch (e) {
+                            console.warn('Error initializing preview map:', e);
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Очікуємо завантаження Leaflet перед ініціалізацією
+        if (typeof L !== 'undefined') {
+            setTimeout(initPreviewMap, 500);
+        } else {
+            // Якщо Leaflet ще не завантажений, чекаємо
+            var checkLeaflet = setInterval(function() {
+                if (typeof L !== 'undefined') {
+                    clearInterval(checkLeaflet);
+                    setTimeout(initPreviewMap, 300);
+                }
+            }, 100);
+            
+            // Максимальна затримка 5 секунд
+            setTimeout(function() {
+                clearInterval(checkLeaflet);
+            }, 5000);
+        }
+    });
+</script>
 {% endblock %}

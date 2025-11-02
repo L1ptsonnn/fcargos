@@ -308,8 +308,14 @@
                                                     <i class="bi bi-cash-coin"></i> {{ bid.proposed_price }} грн
                                                 </strong>
                                             </p>
-                                            <small class="text-muted">
+                                            <small class="text-muted d-block mt-1">
                                                 <i class="bi bi-calendar"></i> {{ bid.created_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                            <small class="d-block mt-1">
+                                                <i class="bi bi-building"></i> 
+                                                <a href="{% url 'user_profile' bid.route.company.pk %}" class="text-decoration-none">
+                                                    {{ bid.route.company.company_name|default:bid.route.company.username }}
+                                                </a>
                                             </small>
                                         </div>
                                         {% if bid.is_accepted %}
@@ -374,8 +380,14 @@
                                                     <i class="bi bi-cash-coin"></i> {{ route.price }} грн
                                                 </strong>
                                             </p>
-                                            <small class="text-muted">
+                                            <small class="text-muted d-block mt-1">
                                                 <i class="bi bi-calendar"></i> {{ route.created_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                            <small class="d-block mt-1">
+                                                <i class="bi bi-building"></i> 
+                                                <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none">
+                                                    {{ route.company.company_name|default:route.company.username }}
+                                                </a>
                                             </small>
                                         </div>
                                         <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">

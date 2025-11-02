@@ -24,6 +24,12 @@
                     </div>
                     <small class="text-muted d-block mt-2">
                         <i class="bi bi-calendar"></i> {{ route.created_at|date:"d.m.Y H:i" }}
+                        {% if user.role == 'carrier' and route.company %}
+                        | <i class="bi bi-building"></i> 
+                        <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none" onclick="event.stopPropagation()">
+                            {{ route.company.company_name|default:route.company.username }}
+                        </a>
+                        {% endif %}
                     </small>
                 </div>
                 <div class="ms-3">

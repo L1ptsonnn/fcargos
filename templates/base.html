@@ -389,11 +389,25 @@
                         }
                     })
                     .catch(error => {
-                        // Тихо ігноруємо помилки - можливо користувач не авторизований
-                        // Тільки логуємо для дебагу в режимі розробки
+                        // Покращена обробка помилок для сповіщень
                         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                             console.debug('Notifications loading error:', error.message);
                         }
+                        
+                        // Показуємо помилку тільки якщо це не редирект (неавторизований користувач)
+                        if (error.message && !error.message.includes('Redirected')) {
+                            const notificationsList = document.getElementById('notificationsList');
+                            if (notificationsList) {
+                                notificationsList.innerHTML = `
+                                    <div class="alert alert-warning m-3">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        <strong>Помилка завантаження сповіщень</strong>
+                                        <p class="mb-0 small mt-2">Спробуйте оновити сторінку або перевірте інтернет-з'єднання.</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                        // Не показуємо помилку для неавторизованих користувачів (редирект)
                     });
             }
             
@@ -549,18 +563,33 @@
                         }
                     })
                     .catch(error => {
-                        // Тихо ігноруємо помилки - можливо користувач не авторизований
-                        // Тільки логуємо для дебагу в режимі розробки
+                        // Покращена обробка помилок
+                        const chatsList = document.getElementById('chatsList');
+                        
+                        // Логуємо помилку для дебагу
                         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                             console.debug('Chats loading error:', error.message);
                         }
-                        const chatsList = document.getElementById('chatsList');
+                        
+                        // Показуємо користувачу дружнє повідомлення
                         if (chatsList) {
-                            chatsList.innerHTML = `
-                                <div class="alert alert-danger m-3">
-                                    <i class="bi bi-exclamation-triangle"></i> Помилка завантаження чатів. Перевірте консоль.
-                                </div>
-                            `;
+                            if (error.message && error.message.includes('Redirected')) {
+                                // Користувач не авторизований - не показуємо помилку
+                                chatsList.innerHTML = `
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-lock" style="font-size: 48px;"></i>
+                                        <p class="mt-3">Будь ласка, увійдіть в систему</p>
+                                    </div>
+                                `;
+                            } else {
+                                chatsList.innerHTML = `
+                                    <div class="alert alert-warning m-3">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        <strong>Помилка завантаження чатів</strong>
+                                        <p class="mb-0 small mt-2">Можливо проблема з інтернет-з'єднанням. Спробуйте оновити сторінку.</p>
+                                    </div>
+                                `;
+                            }
                         }
                     });
             }
@@ -908,11 +937,13 @@
                     });
                 }
                 // Завантажуємо всі маршрути без фільтрів
-                loadAllRoutes();
+                if (window.loadAllRoutes) {
+                    window.loadAllRoutes();
+                }
             };
             
-            // Завантаження всіх маршрутів без фільтрів
-            function loadAllRoutes() {
+            // Завантаження всіх маршрутів без фільтрів (глобальна функція)
+            window.loadAllRoutes = function() {
                 const routesList = document.getElementById('routesWindowList');
                 if (!routesList) return;
                 
@@ -932,16 +963,38 @@
                 })
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                            throw new Error('Network response was not ok: ' + response.status);
+                        }
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Expected JSON but got ' + contentType);
                         }
                         return response.json();
                     })
                     .then(data => {
-                        renderRoutes(data.routes || []);
+                        if (data && data.routes) {
+                            renderRoutes(data.routes);
+                        } else {
+                            showNoRoutes();
+                        }
                     })
                     .catch(error => {
                         console.error('Помилка завантаження маршрутів:', error);
-                        showNoRoutes();
+                        const routesList = document.getElementById('routesWindowList');
+                        if (routesList) {
+                            routesList.innerHTML = `
+                                <div class="alert alert-warning m-3">
+                                    <i class="bi bi-exclamation-triangle"></i> 
+                                    <strong>Помилка завантаження маршрутів</strong>
+                                    <p class="mb-0 small mt-2">Можливо проблема з інтернет-з'єднанням.</p>
+                                    <button class="btn btn-sm btn-primary mt-2" onclick="if(window.loadAllRoutes) window.loadAllRoutes()">
+                                        <i class="bi bi-arrow-clockwise"></i> Спробувати ще раз
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            showNoRoutes();
+                        }
                     });
             }
             
@@ -1016,6 +1069,23 @@
                                 </div>
                                 <div class="route-compact-info">
                                     <div class="route-compact-details">
+                                        ${route.company_id && route.company_name ? `
+                                        <div class="compact-detail-item">
+                                            <i class="bi bi-building"></i>
+                                            <a href="/logistics/profile/${route.company_id}/" class="text-decoration-none" onclick="event.stopPropagation();" style="color: inherit;">
+                                                <span class="detail-label">${escapeHtml(route.company_name)}</span>
+                                            </a>
+                                        </div>
+                                        ` : ''}
+                                        ${route.carrier_id && route.carrier_name ? `
+                                        <div class="compact-detail-item">
+                                            <i class="bi bi-truck"></i>
+                                            <a href="/logistics/profile/${route.carrier_id}/" class="text-decoration-none" onclick="event.stopPropagation();" style="color: inherit;">
+                                                <span class="detail-label">${escapeHtml(route.carrier_name)}</span>
+                                                ${route.carrier_rating ? `<span class="ms-1"><i class="bi bi-star-fill text-warning" style="font-size: 0.85em;"></i> ${route.carrier_rating.toFixed(1)}</span>` : ''}
+                                            </a>
+                                        </div>
+                                        ` : ''}
                                         <div class="compact-detail-item">
                                             <i class="bi bi-box-seam"></i>
                                             <span class="detail-label">${escapeHtml(route.cargo_type)}</span>
@@ -1075,9 +1145,11 @@
             }
             
             // Завантаження маршрутів у вікно (завантажує всі маршрути)
-            function loadRoutesWindow() {
-                loadAllRoutes();
-            }
+            window.loadRoutesWindow = function() {
+                if (window.loadAllRoutes) {
+                    window.loadAllRoutes();
+                }
+            };
             
             // Завантажуємо список міст для фільтра
             fetch('{% url "routes_list" %}?get_cities=1', {
@@ -1107,13 +1179,17 @@
             if (routesOffcanvasEl) {
                 routesOffcanvasEl.addEventListener('show.bs.offcanvas', function() {
                     // Завантажуємо всі маршрути при відкритті
-                    loadAllRoutes();
+                    if (window.loadAllRoutes) {
+                        window.loadAllRoutes();
+                    }
                 });
             }
             if (routesWindowTrigger) {
                 routesWindowTrigger.addEventListener('click', function(e) {
-                    setTimeout(() => {
-                        loadAllRoutes();
+                    setTimeout(function() {
+                        if (window.loadAllRoutes) {
+                            window.loadAllRoutes();
+                        }
                     }, 100);
                 });
             }

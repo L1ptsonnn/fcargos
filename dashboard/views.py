@@ -12,11 +12,15 @@ def home(request):
     if request.user.is_authenticated:
         check_expired_routes()
     
-    routes = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')[:10]
+    # Для каруселі - тільки 3 останні маршрути
+    routes_carousel = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier').order_by('-created_at')[:3]
     
-    # Формуємо дані для карти з валідацією
+    # Для карти - ВСІ маршрути
+    routes_all = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')
+    
+    # Формуємо дані для карти з валідацією (ВСІ маршрути)
     routes_data = []
-    for route in routes:
+    for route in routes_all:
         try:
             origin_lat = float(route.origin_lat) if route.origin_lat else None
             origin_lng = float(route.origin_lng) if route.origin_lng else None
@@ -49,8 +53,8 @@ def home(request):
             continue
     
     context = {
-        'routes': routes,
-        'routes_data': json.dumps(routes_data),
+        'routes': routes_carousel,  # Для каруселі тільки 3
+        'routes_data': json.dumps(routes_data),  # Для карти всі маршрути
     }
     return render(request, 'dashboard/home.html', context)
 

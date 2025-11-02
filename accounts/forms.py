@@ -116,6 +116,55 @@ class CompanyRegistrationForm(UserCreationForm):
         return user
 
 
+class CompanyProfileEditForm(forms.ModelForm):
+    """Форма редагування профілю компанії"""
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
+    )
+    company_name = forms.CharField(
+        label='Назва компанії',
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced'})
+    )
+    
+    class Meta:
+        model = CompanyProfile
+        fields = ('address', 'address_lat', 'address_lng', 'tax_id', 'description', 'logo')
+        widgets = {
+            'address': forms.Textarea(attrs={
+                'class': 'form-control form-control-enhanced',
+                'rows': 2,
+                'id': 'address_field',
+                'placeholder': 'Вкажіть адресу на карті',
+                'readonly': True
+            }),
+            'address_lat': forms.HiddenInput(attrs={'id': 'address_lat'}),
+            'address_lng': forms.HiddenInput(attrs={'id': 'address_lng'}),
+            'tax_id': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'description': forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 5}),
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields['email'].initial = self.user.email
+            self.fields['company_name'].initial = self.user.company_name
+    
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        if self.user:
+            self.user.email = self.cleaned_data['email']
+            self.user.company_name = self.cleaned_data['company_name']
+            self.user.save()
+        if commit:
+            profile.save()
+        return profile
+
+
 class CarrierRegistrationForm(UserCreationForm):
     # Популярні моделі вантажівок
     POPULAR_VEHICLE_MODELS = [
@@ -222,7 +271,7 @@ class CarrierRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ('username', 'email', 'password1', 'password2', 'vehicle_type', 'vehicle_model', 'vehicle_model_custom', 'address', 'address_lat', 'address_lng', 'experience_years')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
@@ -290,3 +339,137 @@ class CarrierRegistrationForm(UserCreationForm):
             )
         return user
 
+
+class CarrierProfileEditForm(forms.ModelForm):
+    """Форма редагування профілю перевізника"""
+    POPULAR_VEHICLE_MODELS = [
+        ('', 'Оберіть модель або введіть свою'),
+        ('Mercedes-Benz Actros', 'Mercedes-Benz Actros'),
+        ('Volvo FH', 'Volvo FH'),
+        ('Scania R-series', 'Scania R-series'),
+        ('MAN TGX', 'MAN TGX'),
+        ('DAF XF', 'DAF XF'),
+        ('Iveco Stralis', 'Iveco Stralis'),
+        ('Renault T', 'Renault T'),
+        ('Mercedes-Benz Atego', 'Mercedes-Benz Atego'),
+        ('Volvo FL', 'Volvo FL'),
+        ('MAN TGL', 'MAN TGL'),
+        ('Ford Transit', 'Ford Transit'),
+        ('Mercedes Sprinter', 'Mercedes Sprinter'),
+        ('Fiat Ducato', 'Fiat Ducato'),
+        ('Renault Master', 'Renault Master'),
+        ('ГАЗель', 'ГАЗель'),
+        ('ЗІЛ', 'ЗІЛ'),
+        ('КрАЗ', 'КрАЗ'),
+        ('КАМАЗ', 'КАМАЗ'),
+        ('Інша модель', 'Інша модель'),
+    ]
+    
+    LICENSE_COUNTRIES = [
+        ('UA', 'Україна (UA)'),
+        ('PL', 'Польща (PL)'),
+        ('DE', 'Німеччина (D)'),
+        ('FR', 'Франція (F)'),
+        ('IT', 'Італія (I)'),
+        ('ES', 'Іспанія (E)'),
+        ('NL', 'Нідерланди (NL)'),
+        ('BE', 'Бельгія (B)'),
+        ('AT', 'Австрія (A)'),
+        ('CZ', 'Чехія (CZ)'),
+        ('SK', 'Словаччина (SK)'),
+        ('HU', 'Угорщина (H)'),
+        ('RO', 'Румунія (RO)'),
+        ('BG', 'Болгарія (BG)'),
+        ('TR', 'Туреччина (TR)'),
+    ]
+    
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
+    )
+    vehicle_model_custom = forms.CharField(
+        label='Ваша модель',
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-enhanced',
+            'id': 'vehicle_model_custom',
+            'style': 'display: none;',
+            'placeholder': 'Введіть модель вашого транспорту'
+        })
+    )
+    
+    class Meta:
+        model = CarrierProfile
+        fields = ('vehicle_type', 'vehicle_model', 'address', 'address_lat', 'address_lng', 'experience_years', 'description')
+        widgets = {
+            'vehicle_type': forms.Select(attrs={'class': 'form-select form-select-enhanced'}),
+            'vehicle_model': forms.Select(attrs={
+                'class': 'form-select form-select-enhanced',
+                'id': 'vehicle_model_select'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control form-control-enhanced',
+                'rows': 2,
+                'id': 'address_field',
+                'placeholder': 'Вкажіть адресу на карті',
+                'readonly': True
+            }),
+            'address_lat': forms.HiddenInput(attrs={'id': 'address_lat'}),
+            'address_lng': forms.HiddenInput(attrs={'id': 'address_lng'}),
+            'experience_years': forms.NumberInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'description': forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 5}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields['email'].initial = self.user.email
+        
+        # Налаштування vehicle_type choices
+        self.fields['vehicle_type'].choices = [
+            ('', 'Оберіть тип'),
+            ('Вантажівка', 'Вантажівка'),
+            ('Фургон', 'Фургон'),
+            ('Рефрижератор', 'Рефрижератор'),
+            ('Цистерна', 'Цистерна'),
+            ('Автопоїзд', 'Автопоїзд'),
+            ('Тягач', 'Тягач'),
+            ('Інший', 'Інший'),
+        ]
+        
+        # Налаштування vehicle_model choices
+        model_choices = list(self.POPULAR_VEHICLE_MODELS)
+        
+        # Додаємо вибір моделі якщо вона не в списку
+        if self.instance and self.instance.vehicle_model:
+            current_model = self.instance.vehicle_model
+            if current_model not in [choice[0] for choice in self.POPULAR_VEHICLE_MODELS]:
+                model_choices.append(('custom', current_model))
+                self.fields['vehicle_model'].initial = 'custom'
+                self.fields['vehicle_model_custom'].initial = current_model
+                self.fields['vehicle_model_custom'].widget.attrs['style'] = 'display: block;'
+        
+        self.fields['vehicle_model'].choices = model_choices
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        vehicle_model = cleaned_data.get('vehicle_model')
+        vehicle_model_custom = cleaned_data.get('vehicle_model_custom')
+        
+        if vehicle_model == 'Інша модель' or vehicle_model == 'custom':
+            if not vehicle_model_custom:
+                raise forms.ValidationError({'vehicle_model_custom': 'Будь ласка, введіть модель вашого транспорту.'})
+            cleaned_data['vehicle_model'] = vehicle_model_custom
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        if self.user:
+            self.user.email = self.cleaned_data['email']
+            self.user.save()
+        if commit:
+            profile.save()
+        return profile

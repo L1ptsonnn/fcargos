@@ -107,6 +107,12 @@
                         <hr class="my-3">
                         <div class="mb-3">
                             <p class="mb-2">
+                                <strong><i class="bi bi-building"></i> Компанія:</strong> 
+                                <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none">
+                                    {{ route.company.company_name|default:route.company.username }}
+                                </a>
+                            </p>
+                            <p class="mb-2">
                                 <strong><i class="bi bi-box"></i> Тип вантажу:</strong> 
                                 <span class="badge bg-secondary">{{ route.cargo_type }}</span>
                             </p>
