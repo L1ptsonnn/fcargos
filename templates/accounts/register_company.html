@@ -353,6 +353,57 @@
     .phone-number-input {
         flex: 1;
     }
+    
+    .form-label-enhanced {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-label-enhanced i {
+        color: var(--primary-gradient-start);
+        font-size: 1.1rem;
+    }
+    
+    .form-control-enhanced {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    
+    .form-control-enhanced:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        transform: translateY(-2px);
+        background: #fff;
+    }
+    
+    .form-group-enhanced {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .help-text-custom {
+        font-size: 0.85rem;
+        color: #718096;
+        margin-top: 0.25rem;
+        padding-left: 1.5rem;
+    }
+    
+    .error-list-custom {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+        list-style: none;
+    }
 </style>
 {% endblock %}
 

@@ -235,16 +235,6 @@ class CarrierRegistrationForm(UserCreationForm):
             'placeholder': 'XXXXXXXXX'
         })
     )
-    license_number = forms.CharField(
-        label='Номер ліцензії/номерний знак',
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced', 'placeholder': 'Введіть номер без коду країни'})
-    )
-    license_country = forms.ChoiceField(
-        label='Країна номера',
-        choices=LICENSE_COUNTRIES,
-        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced'})
-    )
     vehicle_type = forms.ChoiceField(
         label='Тип транспорту',
         choices=[
@@ -322,10 +312,9 @@ class CarrierRegistrationForm(UserCreationForm):
                 Column('password1', css_class='col-md-6'),
                 Column('password2', css_class='col-md-6'),
             ),
-            'phone',
             Row(
-                Column('license_country', css_class='col-md-4'),
-                Column('license_number', css_class='col-md-8'),
+                Column('phone_country', css_class='col-md-4'),
+                Column('phone', css_class='col-md-8'),
             ),
             'vehicle_type',
             'vehicle_model',
@@ -385,8 +374,8 @@ class CarrierRegistrationForm(UserCreationForm):
             
             CarrierProfile.objects.create(
                 user=user,
-                license_number=self.cleaned_data['license_number'],
-                license_country=self.cleaned_data['license_country'],
+                license_number=f"CARRIER-{user.id}-{user.username[:3].upper()}",  # Автоматично генеруємо номер
+                license_country='UA',  # За замовчуванням
                 vehicle_type=self.cleaned_data['vehicle_type'],
                 vehicle_model=vehicle_model,
                 address=self.cleaned_data.get('address', ''),

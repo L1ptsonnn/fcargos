@@ -500,28 +500,6 @@
                                 <span><i class="bi bi-car-front"></i> Транспорт</span>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group-enhanced">
-                                        <label class="form-label-enhanced">
-                                            <i class="bi bi-flag"></i> {{ form.license_country.label }}
-                                        </label>
-                                        {{ form.license_country }}
-                                    </div>
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="form-group-enhanced">
-                                        <label class="form-label-enhanced">
-                                            <i class="bi bi-123"></i> {{ form.license_number.label }}
-                                        </label>
-                                        {{ form.license_number }}
-                                        {% if form.license_number.errors %}
-                                            <ul class="error-list-custom">{{ form.license_number.errors }}</ul>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            
                             <div class="form-group-enhanced">
                                 <label class="form-label-enhanced">
                                     <i class="bi bi-truck"></i> {{ form.vehicle_type.label }}

@@ -346,9 +346,9 @@
                     mapElement.innerHTML = '<div class="alert alert-danger m-4"><i class="bi bi-x-circle"></i> Помилка завантаження карти. Перезавантажте сторінку.</div>';
                 }
             }, 2000);
-            return;
-        }
-        
+                return;
+            }
+            
         try {
             // Ініціалізація карти
             const map = L.map('trackingMap').setView([currentLat, currentLng], 7);
