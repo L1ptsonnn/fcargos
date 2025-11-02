@@ -701,8 +701,16 @@
         
         // Обробник зміни країни
         phoneCountry.addEventListener('change', function() {
-            // При зміні країни НЕ очищаємо поле - користувач може вже ввів номер
-            // Тільки оновлюємо placeholder
+            const selectedCountryCode = this.value.replace('+', '');
+            const currentValue = phoneInput.value;
+            
+            // Якщо поле порожнє або містить тільки цифри без коду країни на початку
+            if (!currentValue || (!currentValue.startsWith(selectedCountryCode) && /^\d+$/.test(currentValue))) {
+                // Не підставляємо автоматично - користувач має ввести сам
+                // Тільки оновлюємо placeholder
+            }
+            
+            // Оновлюємо placeholder
             setPlaceholder();
         });
         
