@@ -926,49 +926,66 @@
                 
                 routesList.innerHTML = routes.map((route, index) => {
                     const statusBadge = route.status === 'pending' ? 'warning' : 
-                                       route.status === 'in_transit' ? 'info' : 'success';
+                                       route.status === 'in_transit' ? 'info' : 
+                                       route.status === 'expired' ? 'danger' : 'success';
                     const statusText = route.status === 'pending' ? 'Очікує' : 
-                                     route.status === 'in_transit' ? 'В дорозі' : 'Доставлено';
+                                     route.status === 'in_transit' ? 'В дорозі' : 
+                                     route.status === 'expired' ? 'Просрочений' : 'Доставлено';
+                    const statusIcon = route.status === 'pending' ? 'clock' : 
+                                      route.status === 'in_transit' ? 'truck' : 
+                                      route.status === 'expired' ? 'exclamation-circle' : 'check-circle';
                     return `
-                        <div class="route-item" data-route-id="${route.id}">
-                            <div class="route-item-body">
-                                <div class="route-header">
-                                    <div class="route-cities">
-                                        <div class="route-city origin">
-                                            <i class="bi bi-geo-alt-fill"></i>
-                                            <span>${escapeHtml(route.origin_city)}</span>
+                        <div class="route-item-compact" data-route-id="${route.id}">
+                            <div class="route-item-compact-body">
+                                <div class="route-compact-header">
+                                    <div class="route-compact-cities">
+                                        <div class="route-compact-city origin-city">
+                                            <div class="city-icon origin-icon">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                            </div>
+                                            <div class="city-name">${escapeHtml(route.origin_city)}</div>
                                         </div>
-                                        <div class="route-arrow">
-                                            <i class="bi bi-arrow-down"></i>
+                                        <div class="route-compact-arrow">
+                                            <i class="bi bi-arrow-right"></i>
                                         </div>
-                                        <div class="route-city destination">
-                                            <i class="bi bi-geo-alt-fill"></i>
-                                            <span>${escapeHtml(route.destination_city)}</span>
+                                        <div class="route-compact-city dest-city">
+                                            <div class="city-icon dest-icon">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                            </div>
+                                            <div class="city-name">${escapeHtml(route.destination_city)}</div>
                                         </div>
                                     </div>
-                                    <span class="route-status badge bg-${statusBadge}">${statusText}</span>
-                                </div>
-                                <div class="route-details">
-                                    <div class="route-detail">
-                                        <i class="bi bi-box"></i>
-                                        <span>${escapeHtml(route.cargo_type)}</span>
-                                    </div>
-                                    <div class="route-detail">
-                                        <i class="bi bi-weight"></i>
-                                        <span>${route.weight} кг</span>
-                                    </div>
-                                    <div class="route-detail">
-                                        <i class="bi bi-cash-coin"></i>
-                                        <span class="route-price">${route.price} грн</span>
-                                    </div>
-                                    <div class="route-detail">
-                                        <i class="bi bi-calendar"></i>
-                                        <span>${route.pickup_date}</span>
+                                    <div class="route-compact-status">
+                                        <span class="badge status-badge bg-${statusBadge}">
+                                            <i class="bi bi-${statusIcon}"></i> ${statusText}
+                                        </span>
                                     </div>
                                 </div>
-                                <a href="/logistics/routes/${route.id}/" class="btn btn-primary btn-sm route-details-btn">
-                                    <i class="bi bi-eye"></i> Деталі
-                                </a>
+                                <div class="route-compact-info">
+                                    <div class="route-compact-details">
+                                        <div class="compact-detail-item">
+                                            <i class="bi bi-box-seam"></i>
+                                            <span class="detail-label">${escapeHtml(route.cargo_type)}</span>
+                                        </div>
+                                        <div class="compact-detail-item">
+                                            <i class="bi bi-speedometer2"></i>
+                                            <span class="detail-value">${route.weight} кг</span>
+                                        </div>
+                                        <div class="compact-detail-item price-item">
+                                            <i class="bi bi-cash-stack"></i>
+                                            <span class="detail-price">${parseFloat(route.price).toLocaleString('uk-UA')} грн</span>
+                                        </div>
+                                        <div class="compact-detail-item">
+                                            <i class="bi bi-calendar3"></i>
+                                            <span class="detail-value">${route.pickup_date}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="route-compact-action">
+                                    <a href="/logistics/routes/${route.id}/" class="btn btn-sm btn-primary route-view-btn">
+                                        <i class="bi bi-arrow-right-circle"></i> Переглянути
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     `;
