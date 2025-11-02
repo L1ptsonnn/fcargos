@@ -6,120 +6,504 @@
 
 {% block extra_css %}
 <style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        min-height: 100vh;
+    }
+    
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .register-container {
+        position: relative;
+        padding: 2rem 0;
+    }
+    
+    .register-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .register-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+        background-size: 300% 100%;
+        animation: gradientFlow 3s linear infinite;
+    }
+    
+    @keyframes gradientFlow {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 300% 0%; }
+    }
+    
+    .register-header {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        color: white;
+        padding: 2.5rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .register-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .register-header i {
+        font-size: 64px;
+        margin-bottom: 1rem;
+        display: block;
+        animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .register-header h3 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .register-body {
+        padding: 2.5rem;
+    }
+    
+    .form-group-enhanced {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .form-label-enhanced {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-label-enhanced i {
+        color: var(--primary-gradient-start);
+        font-size: 1.1rem;
+    }
+    
+    .form-control-enhanced {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    
+    .form-control-enhanced:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        transform: translateY(-2px);
+        background: #fff;
+    }
+    
+    .form-select-enhanced {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+        cursor: pointer;
+    }
+    
+    .form-select-enhanced:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        transform: translateY(-2px);
+    }
+    
     .map-container-small {
         height: 250px;
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
         border: 2px solid var(--primary-gradient-start);
         margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
-    .logo-upload-btn {
+    
+    .btn-map {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        border: 2px solid var(--primary-gradient-start);
+    }
+    
+    .btn-map:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+        background: var(--primary-gradient-start);
+        color: white;
+    }
+    
+    .btn-submit-enhanced {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 16px 32px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+        width: 100%;
+        margin-top: 2rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         position: relative;
         overflow: hidden;
-        display: inline-block;
-        cursor: pointer;
-        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
-        color: white;
-        padding: 12px 24px;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-        border: none;
-        width: 100%;
     }
-    .logo-upload-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-    }
-    .logo-upload-btn input[type="file"] {
+    
+    .btn-submit-enhanced::before {
+        content: '';
         position: absolute;
-        left: -9999px;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
     }
-    .logo-preview {
-        max-width: 150px;
-        max-height: 150px;
-        border-radius: 10px;
-        margin-top: 15px;
-        display: none;
+    
+    .btn-submit-enhanced:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-submit-enhanced:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .btn-submit-enhanced i {
+        margin-right: 8px;
+    }
+    
+    .section-divider {
+        margin: 2rem 0;
+        text-align: center;
+        position: relative;
+    }
+    
+    .section-divider::before,
+    .section-divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 45%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    }
+    
+    .section-divider::before {
+        left: 0;
+    }
+    
+    .section-divider::after {
+        right: 0;
+    }
+    
+    .section-divider span {
+        background: white;
+        padding: 0 1rem;
+        position: relative;
+        z-index: 1;
+        color: #718096;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .decorative-shapes {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    .shape {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.1;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .shape-1 {
+        width: 200px;
+        height: 200px;
+        background: #667eea;
+        top: 10%;
+        right: -50px;
+        animation-delay: 0s;
+    }
+    
+    .shape-2 {
+        width: 150px;
+        height: 150px;
+        background: #764ba2;
+        bottom: 20%;
+        left: -30px;
+        animation-delay: 2s;
+    }
+    
+    .shape-3 {
+        width: 100px;
+        height: 100px;
+        background: #f093fb;
+        top: 50%;
+        right: 10%;
+        animation-delay: 4s;
+    }
+    
+    .help-text-custom {
+        font-size: 0.85rem;
+        color: #718096;
+        margin-top: 0.25rem;
+        padding-left: 1.5rem;
+    }
+    
+    .error-list-custom {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+        list-style: none;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">
-                    <div class="text-center py-3">
-                        <i class="bi bi-truck" style="font-size: 48px;"></i>
-                        <h3 class="mt-2 mb-0">Реєстрація перевізника</h3>
+<div class="register-container">
+    <div class="decorative-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="register-card">
+                    <div class="register-header">
+                        <i class="bi bi-truck"></i>
+                        <h3>Реєстрація перевізника</h3>
+                        <p class="mb-0 mt-2 opacity-75">Приєднуйтесь до нашої платформи та розширюйте свій бізнес</p>
                     </div>
-                </div>
-                <div class="card-body p-5">
-                    <form method="post" id="carrierForm">
-                        {% csrf_token %}
-                        {{ form.username.label_tag }}
-                        {{ form.username }}
-                        
-                        {{ form.email.label_tag }}
-                        {{ form.email }}
-                        
-                        {{ form.password1.label_tag }}
-                        {{ form.password1 }}
-                        {% if form.password1.help_text %}
-                            <small class="text-muted">{{ form.password1.help_text }}</small>
-                        {% endif %}
-                        
-                        {{ form.password2.label_tag }}
-                        {{ form.password2 }}
-                        {% if form.password2.help_text %}
-                            <small class="text-muted">{{ form.password2.help_text }}</small>
-                        {% endif %}
-                        
-                        {{ form.phone.label_tag }}
-                        {{ form.phone }}
-                        
-                        <div class="row">
-                            <div class="col-md-4">
-                                {{ form.license_country.label_tag }}
-                                {{ form.license_country }}
+                    
+                    <div class="register-body">
+                        <form method="post" id="carrierForm">
+                            {% csrf_token %}
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-person-circle"></i> Особисті дані</span>
                             </div>
-                            <div class="col-md-8">
-                                {{ form.license_number.label_tag }}
-                                {{ form.license_number }}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-person"></i> {{ form.username.label }}
+                                        </label>
+                                        {{ form.username }}
+                                        {% if form.username.errors %}
+                                            <ul class="error-list-custom">{{ form.username.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-envelope"></i> {{ form.email.label }}
+                                        </label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <ul class="error-list-custom">{{ form.email.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        {{ form.vehicle_type.label_tag }}
-                        {{ form.vehicle_type }}
-                        
-                        {{ form.vehicle_model.label_tag }}
-                        {{ form.vehicle_model }}
-                        
-                        <div id="customModelContainer" style="display: none;">
-                            {{ form.vehicle_model_custom.label_tag }}
-                            {{ form.vehicle_model_custom }}
-                        </div>
-                        
-                        <div class="mt-3">
-                            <label class="form-label">Вкажіть вашу адресу на карті:</label>
-                            <div id="address_map_container" class="map-container-small"></div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openMapModal()">
-                                <i class="bi bi-geo-alt"></i> Вказати адресу на карті
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-lock"></i> {{ form.password1.label }}
+                                        </label>
+                                        {{ form.password1 }}
+                                        {% if form.password1.help_text %}
+                                            <div class="help-text-custom">{{ form.password1.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.password1.errors %}
+                                            <ul class="error-list-custom">{{ form.password1.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-lock-fill"></i> {{ form.password2.label }}
+                                        </label>
+                                        {{ form.password2 }}
+                                        {% if form.password2.help_text %}
+                                            <div class="help-text-custom">{{ form.password2.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.password2.errors %}
+                                            <ul class="error-list-custom">{{ form.password2.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-telephone"></i> {{ form.phone.label }}
+                                </label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <ul class="error-list-custom">{{ form.phone.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-car-front"></i> Транспорт</span>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-flag"></i> {{ form.license_country.label }}
+                                        </label>
+                                        {{ form.license_country }}
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-123"></i> {{ form.license_number.label }}
+                                        </label>
+                                        {{ form.license_number }}
+                                        {% if form.license_number.errors %}
+                                            <ul class="error-list-custom">{{ form.license_number.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-truck"></i> {{ form.vehicle_type.label }}
+                                </label>
+                                {{ form.vehicle_type }}
+                                {% if form.vehicle_type.errors %}
+                                    <ul class="error-list-custom">{{ form.vehicle_type.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-gear"></i> {{ form.vehicle_model.label }}
+                                </label>
+                                {{ form.vehicle_model }}
+                                {% if form.vehicle_model.errors %}
+                                    <ul class="error-list-custom">{{ form.vehicle_model.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            
+                            <div id="customModelContainer" style="display: none;">
+                                <div class="form-group-enhanced">
+                                    <label class="form-label-enhanced">
+                                        <i class="bi bi-pencil"></i> {{ form.vehicle_model_custom.label }}
+                                    </label>
+                                    {{ form.vehicle_model_custom }}
+                                    {% if form.vehicle_model_custom.errors %}
+                                        <ul class="error-list-custom">{{ form.vehicle_model_custom.errors }}</ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-geo-alt"></i> Адреса</span>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-map"></i> Вкажіть вашу адресу на карті
+                                </label>
+                                <div id="address_map_container" class="map-container-small"></div>
+                                <button type="button" class="btn btn-map btn-outline-primary" onclick="openMapModal()">
+                                    <i class="bi bi-geo-alt-fill"></i> Вказати адресу на карті
+                                </button>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                {{ form.address }}
+                            </div>
+                            {{ form.address_lat.as_hidden }}
+                            {{ form.address_lng.as_hidden }}
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-star"></i> Досвід</span>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-calendar-check"></i> {{ form.experience_years.label }}
+                                </label>
+                                {{ form.experience_years }}
+                                {% if form.experience_years.errors %}
+                                    <ul class="error-list-custom">{{ form.experience_years.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="submit" class="btn btn-submit-enhanced">
+                                <i class="bi bi-check-circle-fill"></i> Зареєструватися
                             </button>
-                        </div>
-                        
-                        {{ form.address }}
-                        {{ form.address_lat.as_hidden }}
-                        {{ form.address_lng.as_hidden }}
-                        
-                        {{ form.experience_years.label_tag }}
-                        {{ form.experience_years }}
-                        
-                        <button type="submit" class="btn btn-success w-100 mt-3">
-                            <i class="bi bi-check-circle"></i> Зареєструватися
-                        </button>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

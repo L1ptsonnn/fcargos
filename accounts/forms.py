@@ -30,7 +30,7 @@ class LoginForm(forms.Form):
 class CompanyRegistrationForm(UserCreationForm):
     email = forms.EmailField(
         label='Email',
-        widget=forms.EmailInput(attrs={'class': 'form-control'})
+        widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
     )
     company_name = forms.CharField(
         label='Назва компанії',
@@ -65,6 +65,11 @@ class CompanyRegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'company_name', 'phone')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -143,22 +148,22 @@ class CarrierRegistrationForm(UserCreationForm):
     
     email = forms.EmailField(
         label='Email',
-        widget=forms.EmailInput(attrs={'class': 'form-control'})
+        widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
     )
     phone = forms.CharField(
         label='Телефон',
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+380XXXXXXXXX'})
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced', 'placeholder': '+380XXXXXXXXX'})
     )
     license_number = forms.CharField(
         label='Номер ліцензії/номерний знак',
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введіть номер без коду країни'})
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced', 'placeholder': 'Введіть номер без коду країни'})
     )
     license_country = forms.ChoiceField(
         label='Країна номера',
         choices=LICENSE_COUNTRIES,
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced'})
     )
     vehicle_type = forms.ChoiceField(
         label='Тип транспорту',
@@ -172,20 +177,20 @@ class CarrierRegistrationForm(UserCreationForm):
             ('Тягач', 'Тягач'),
             ('Інший', 'Інший'),
         ],
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced'})
     )
     vehicle_model = forms.ChoiceField(
         label='Модель машини',
         choices=POPULAR_VEHICLE_MODELS,
         required=False,
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'vehicle_model_select'})
+        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced', 'id': 'vehicle_model_select'})
     )
     vehicle_model_custom = forms.CharField(
         label='Ваша модель',
         max_length=150,
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-control-enhanced',
             'id': 'vehicle_model_custom',
             'style': 'display: none;',
             'placeholder': 'Введіть модель вашого транспорту'
@@ -195,7 +200,7 @@ class CarrierRegistrationForm(UserCreationForm):
         label='Адреса',
         required=False,
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-control-enhanced',
             'rows': 2,
             'id': 'address_field',
             'placeholder': 'Вкажіть адресу на карті',
@@ -213,12 +218,17 @@ class CarrierRegistrationForm(UserCreationForm):
     experience_years = forms.IntegerField(
         label='Досвід (років)',
         min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control'})
+        widget=forms.NumberInput(attrs={'class': 'form-control form-control-enhanced'})
     )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'phone')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
