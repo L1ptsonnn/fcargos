@@ -84,6 +84,7 @@ class CompanyRegistrationForm(UserCreationForm):
                 Column('password2', css_class='col-md-6'),
             ),
             'company_name',
+            'phone_country',
             'phone',
             'address',
             'tax_id',
@@ -242,6 +243,7 @@ class CarrierRegistrationForm(UserCreationForm):
                 Column('password1', css_class='col-md-6'),
                 Column('password2', css_class='col-md-6'),
             ),
+            'phone_country',
             'phone',
             Row(
                 Column('license_country', css_class='col-md-4'),

@@ -138,6 +138,93 @@
         background: #fff;
     }
     
+    /* Спеціальні стилі для полів паролів */
+    .password-field-wrapper {
+        position: relative;
+    }
+    
+    .password-field-wrapper .form-control-enhanced {
+        padding-right: 45px;
+    }
+    
+    .password-toggle-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #718096;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 1.1rem;
+        transition: color 0.3s ease;
+        z-index: 10;
+    }
+    
+    .password-toggle-btn:hover {
+        color: var(--primary-gradient-start);
+    }
+    
+    .password-strength-indicator {
+        margin-top: 8px;
+        height: 4px;
+        border-radius: 2px;
+        background: #e2e8f0;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+    
+    .password-strength-weak {
+        background: #ef4444;
+        width: 33%;
+    }
+    
+    .password-strength-medium {
+        background: #f59e0b;
+        width: 66%;
+    }
+    
+    .password-strength-strong {
+        background: #10b981;
+        width: 100%;
+    }
+    
+    /* Телефон з країною */
+    .phone-input-group {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .phone-country-select {
+        flex: 0 0 120px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+        cursor: pointer;
+    }
+    
+    .phone-country-select:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        transform: translateY(-2px);
+        outline: none;
+    }
+    
+    .phone-number-input {
+        flex: 1;
+    }
+    
     .form-select-enhanced {
         border: 2px solid #e2e8f0;
         border-radius: 12px;
@@ -372,7 +459,15 @@
                                         <label class="form-label-enhanced">
                                             <i class="bi bi-lock"></i> {{ form.password1.label }}
                                         </label>
-                                        {{ form.password1 }}
+                                        <div class="password-field-wrapper">
+                                            {{ form.password1 }}
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('id_password1', this)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="password-strength-indicator" id="password1Strength">
+                                            <div class="password-strength-bar" id="password1Bar"></div>
+                                        </div>
                                         {% if form.password1.help_text %}
                                             <div class="help-text-custom">{{ form.password1.help_text }}</div>
                                         {% endif %}
@@ -386,7 +481,12 @@
                                         <label class="form-label-enhanced">
                                             <i class="bi bi-lock-fill"></i> {{ form.password2.label }}
                                         </label>
-                                        {{ form.password2 }}
+                                        <div class="password-field-wrapper">
+                                            {{ form.password2 }}
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('id_password2', this)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
                                         {% if form.password2.help_text %}
                                             <div class="help-text-custom">{{ form.password2.help_text }}</div>
                                         {% endif %}
@@ -399,9 +499,12 @@
                             
                             <div class="form-group-enhanced">
                                 <label class="form-label-enhanced">
-                                    <i class="bi bi-telephone"></i> {{ form.phone.label }}
+                                    <i class="bi bi-telephone"></i> Номер телефону
                                 </label>
-                                {{ form.phone }}
+                                <div class="phone-input-group">
+                                    {{ form.phone_country }}
+                                    {{ form.phone }}
+                                </div>
                                 {% if form.phone.errors %}
                                     <ul class="error-list-custom">{{ form.phone.errors }}</ul>
                                 {% endif %}
@@ -686,7 +789,100 @@
                 }
             });
         }
+        
+        // Обробка телефону з країною
+        const phoneCountry = document.getElementById('phone_country_carrier');
+        const phoneInput = document.getElementById('phone_input_carrier');
+        
+        if (phoneCountry && phoneInput) {
+            // Встановлюємо за замовчуванням Україну
+            if (!phoneCountry.value) {
+                phoneCountry.value = '+380';
+            }
+            
+            // Додаємо обробник зміни країни
+            phoneCountry.addEventListener('change', function() {
+                // Оновлюємо placeholder відповідно до країни
+                updatePhonePlaceholder(this.value, phoneInput);
+            });
+            
+            // Обмежуємо введення тільки цифрами
+            phoneInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        }
+        
+        // Перевірка сили пароля
+        const password1Input = document.getElementById('id_password1');
+        const password1Bar = document.getElementById('password1Bar');
+        const password1Strength = document.getElementById('password1Strength');
+        
+        if (password1Input && password1Bar) {
+            password1Input.addEventListener('input', function() {
+                checkPasswordStrength(this.value, password1Bar, password1Strength);
+            });
+        }
     });
+    
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+    
+    function checkPasswordStrength(password, barElement, strengthElement) {
+        if (!password) {
+            barElement.className = 'password-strength-bar';
+            barElement.style.width = '0%';
+            return;
+        }
+        
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+        if (/\d/.test(password)) strength++;
+        if (/[^a-zA-Z\d]/.test(password)) strength++;
+        
+        barElement.className = 'password-strength-bar';
+        if (strength <= 2) {
+            barElement.classList.add('password-strength-weak');
+        } else if (strength <= 3) {
+            barElement.classList.add('password-strength-medium');
+        } else {
+            barElement.classList.add('password-strength-strong');
+        }
+    }
+    
+    function updatePhonePlaceholder(countryCode, phoneInput) {
+        const placeholders = {
+            '+380': 'XXXXXXXXX',
+            '+48': 'XXXXXXXX',
+            '+49': 'XXXXXXXXX',
+            '+33': 'X XX XX XX XX',
+            '+39': 'XXXXXXXXX',
+            '+34': 'XXXXXXXXX',
+            '+31': 'X XXXXXXXX',
+            '+32': 'X XX XX XX',
+            '+43': 'XXXXXXXXX',
+            '+420': 'XXX XXX XXX',
+            '+421': 'XXX XXX XXX',
+            '+36': 'XX XXX XXXX',
+            '+40': 'XXXXXXXXX',
+            '+359': 'XXX XXX XXX',
+            '+90': 'XXX XXX XXXX',
+        };
+        phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
+    }
 </script>
 {% endblock %}
 
