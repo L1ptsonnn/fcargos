@@ -742,48 +742,45 @@
         }
         
         // Функція для очищення поля від будь-яких кодів країн та символів
-        function cleanPhoneInput() {
-            let value = phoneInput.value || '';
+        function cleanPhoneInput(currentValue) {
+            // Якщо не передано значення, беремо з поля
+            let value = currentValue !== undefined ? String(currentValue) : (phoneInput.value || '');
             
-            // Видаляємо всі нецифрові символи
+            // Видаляємо всі нецифрові символи (+, пробіли, дужки тощо)
             value = value.replace(/[^0-9]/g, '');
             
-            // Список кодів країн (без +) для видалення
-            const countryCodes = [
-                '380', '48', '49', '33', '39', '34', '31', '32', '43', 
-                '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81'
-            ];
-            
-            // Видаляємо будь-який код країни з початку
-            for (const code of countryCodes) {
-                if (value.startsWith(code) && value.length > code.length) {
-                    value = value.substring(code.length);
-                    break;
-                }
-            }
+            // НЕ видаляємо коди країн автоматично - користувач може вводити свій номер
+            // Код країни буде додано на сервері
             
             return value;
         }
         
         // Обробник зміни країни
         phoneCountry.addEventListener('change', function() {
-            // Очищаємо поле від будь-яких кодів
-            phoneInput.value = cleanPhoneInput();
-            // Оновлюємо placeholder
+            // При зміні країни НЕ очищаємо поле - користувач може вже ввів номер
+            // Тільки оновлюємо placeholder
             setPlaceholder();
         });
         
         // Обробник введення - дозволяємо тільки цифри
         phoneInput.addEventListener('input', function(e) {
             const cursorPosition = this.selectionStart;
-            let value = cleanPhoneInput();
+            const oldValue = this.value;
             
-            // Встановлюємо очищене значення
-            this.value = value;
+            // Видаляємо всі нецифрові символи
+            let value = oldValue.replace(/[^0-9]/g, '');
             
-            // Відновлюємо позицію курсора
-            const newPosition = Math.min(cursorPosition, value.length);
-            this.setSelectionRange(newPosition, newPosition);
+            // НЕ видаляємо коди країн - дозволяємо користувачу вводити що завгодно
+            // Сервер сам обробить і додасть правильний код
+            
+            // Встановлюємо очищене значення тільки якщо воно змінилося
+            if (this.value !== value) {
+                this.value = value;
+                
+                // Відновлюємо позицію курсора
+                const newPosition = Math.min(cursorPosition, value.length);
+                this.setSelectionRange(newPosition, newPosition);
+            }
         });
         
         // Обробник вставки (paste)
@@ -791,20 +788,11 @@
             e.preventDefault();
             const pastedText = (e.clipboardData || window.clipboardData).getData('text');
             
-            // Очищаємо вставлений текст
+            // Просто видаляємо всі нецифрові символи
             let cleaned = pastedText.replace(/[^0-9]/g, '');
             
-            // Видаляємо коди країн з початку
-            const countryCodes = [
-                '380', '48', '49', '33', '39', '34', '31', '32', '43', 
-                '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81'
-            ];
-            for (const code of countryCodes) {
-                if (cleaned.startsWith(code) && cleaned.length > code.length) {
-                    cleaned = cleaned.substring(code.length);
-                    break;
-                }
-            }
+            // НЕ видаляємо коди країн - дозволяємо вставити що завгодно
+            // Сервер обробить правильно
             
             // Вставляємо очищений текст
             const start = this.selectionStart;
@@ -820,20 +808,24 @@
         // Обробник фокусу - оновлюємо placeholder
         phoneInput.addEventListener('focus', function() {
             setPlaceholder();
-            // Додаткова очистка на випадок автозаповнення браузера
-            setTimeout(() => {
-                if (this.value) {
-                    this.value = cleanPhoneInput();
+            // Видаляємо тільки нецифрові символи (не коди країн)
+            if (this.value) {
+                const cleaned = this.value.replace(/[^0-9]/g, '');
+                if (this.value !== cleaned) {
+                    this.value = cleaned;
                 }
-            }, 10);
+            }
         });
         
         // Обробник втрати фокусу - оновлюємо placeholder
         phoneInput.addEventListener('blur', function() {
             setPlaceholder();
-            // Фінальна очистка
+            // Видаляємо тільки нецифрові символи (не коди країн)
             if (this.value) {
-                this.value = cleanPhoneInput();
+                const cleaned = this.value.replace(/[^0-9]/g, '');
+                if (this.value !== cleaned) {
+                    this.value = cleaned;
+                }
             }
         });
         
@@ -864,9 +856,12 @@
             }
         });
         
-        // Очищаємо поле при завантаженні сторінки
+        // Очищаємо поле від нецифрових символів при завантаженні сторінки
         if (phoneInput.value) {
-            phoneInput.value = cleanPhoneInput();
+            const cleaned = phoneInput.value.replace(/[^0-9]/g, '');
+            if (phoneInput.value !== cleaned) {
+                phoneInput.value = cleaned;
+            }
         }
         
         // Встановлюємо початковий placeholder
@@ -1072,24 +1067,40 @@
 
     function confirmAddress() {
         if (selectedLat && selectedLng) {
-            document.getElementById('id_address_lat').value = selectedLat;
-            document.getElementById('id_address_lng').value = selectedLng;
-            document.getElementById('id_address').value = selectedAddress || `${selectedLat}, ${selectedLng}`;
+            const latField = document.getElementById('id_address_lat');
+            const lngField = document.getElementById('id_address_lng');
+            const addressField = document.getElementById('id_address');
+            const previewContainer = document.getElementById('address_map_container');
+            
+            if (latField) latField.value = selectedLat;
+            if (lngField) lngField.value = selectedLng;
+            if (addressField) {
+                addressField.value = selectedAddress || `${selectedLat}, ${selectedLng}`;
+            }
             
             // Оновлюємо превью карти
             if (window.previewMap) {
                 window.previewMap.remove();
+                window.previewMap = null;
             }
             
-            const previewContainer = document.getElementById('address_map_container');
-            previewContainer.innerHTML = '';
-            window.previewMap = L.map(previewContainer).setView([selectedLat, selectedLng], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(window.previewMap);
-            L.marker([selectedLat, selectedLng]).addTo(window.previewMap);
+            if (previewContainer) {
+                previewContainer.innerHTML = '';
+                try {
+                    window.previewMap = L.map(previewContainer).setView([selectedLat, selectedLng], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap'
+                    }).addTo(window.previewMap);
+                    L.marker([selectedLat, selectedLng]).addTo(window.previewMap);
+                } catch (e) {
+                    console.warn('Error creating preview map:', e);
+                }
+            }
             
-            bootstrap.Modal.getInstance(document.getElementById('addressMapModal')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addressMapModal'));
+            if (modal) {
+                modal.hide();
+            }
         }
     }
 
