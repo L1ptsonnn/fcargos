@@ -35,26 +35,26 @@ class CompanyRegistrationForm(UserCreationForm):
     company_name = forms.CharField(
         label='Назва компанії',
         max_length=255,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced'})
     )
     phone = forms.CharField(
         label='Телефон',
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced'})
     )
     address = forms.CharField(
         label='Адреса',
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+        widget=forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 3})
     )
     tax_id = forms.CharField(
         label='Податковий номер',
         max_length=50,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced'})
     )
     description = forms.CharField(
         label='Опис',
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5})
+        widget=forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 5})
     )
     logo = forms.ImageField(
         label='Логотип',
