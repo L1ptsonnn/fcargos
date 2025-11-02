@@ -154,13 +154,24 @@ class CompanyRegistrationForm(UserCreationForm):
         user.role = 'company'
         user.company_name = self.cleaned_data['company_name']
         # Формуємо повний номер телефону
-        phone_country = self.cleaned_data.get('phone_country', '+380')
+        phone_country = self.cleaned_data.get('phone_country')
+        if not phone_country:
+            phone_country = '+380'
         phone = self.cleaned_data.get('phone', '')
-        if phone and not phone.startswith('+'):
+        if phone:
+            # Видаляємо всі нецифрові символи
             phone = ''.join(filter(str.isdigit, phone))
+            # Видаляємо код країни, якщо він присутній на початку
+            country_code_digits = phone_country.replace('+', '')
+            if phone.startswith(country_code_digits) and len(phone) > len(country_code_digits):
+                phone = phone[len(country_code_digits):]
+            # Видаляємо код 380, якщо він присутній
+            if phone.startswith('380') and len(phone) > 3:
+                phone = phone[3:]
+            # Додаємо код вибраної країни
             user.phone = phone_country + phone
         else:
-            user.phone = phone
+            user.phone = ''
         if commit:
             user.save()
         return user
@@ -358,16 +369,22 @@ class CarrierRegistrationForm(UserCreationForm):
             cleaned_data['vehicle_model_custom'] = ''
         
         # Обробка телефону
-        phone_country = cleaned_data.get('phone_country', '+380')
+        phone_country = cleaned_data.get('phone_country')
+        if not phone_country:
+            phone_country = '+380'
         phone = cleaned_data.get('phone', '')
         if phone:
             # Видаляємо всі нецифрові символи
             phone = ''.join(filter(str.isdigit, phone))
-            # Додаємо код країни
-            if not phone.startswith('+'):
-                cleaned_data['phone'] = phone_country + phone
-            else:
-                cleaned_data['phone'] = phone
+            # Видаляємо код країни, якщо він присутній на початку
+            country_code_digits = phone_country.replace('+', '')
+            if phone.startswith(country_code_digits) and len(phone) > len(country_code_digits):
+                phone = phone[len(country_code_digits):]
+            # Видаляємо код 380, якщо він присутній
+            if phone.startswith('380') and len(phone) > 3:
+                phone = phone[3:]
+            # Додаємо код вибраної країни
+            cleaned_data['phone'] = phone_country + phone
         
         return cleaned_data
     
@@ -375,13 +392,24 @@ class CarrierRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
         user.role = 'carrier'
         # Формуємо повний номер телефону
-        phone_country = self.cleaned_data.get('phone_country', '+380')
+        phone_country = self.cleaned_data.get('phone_country')
+        if not phone_country:
+            phone_country = '+380'
         phone = self.cleaned_data.get('phone', '')
-        if phone and not phone.startswith('+'):
+        if phone:
+            # Видаляємо всі нецифрові символи
             phone = ''.join(filter(str.isdigit, phone))
+            # Видаляємо код країни, якщо він присутній на початку
+            country_code_digits = phone_country.replace('+', '')
+            if phone.startswith(country_code_digits) and len(phone) > len(country_code_digits):
+                phone = phone[len(country_code_digits):]
+            # Видаляємо код 380, якщо він присутній
+            if phone.startswith('380') and len(phone) > 3:
+                phone = phone[3:]
+            # Додаємо код вибраної країни
             user.phone = phone_country + phone
         else:
-            user.phone = phone
+            user.phone = ''
         if commit:
             user.save()
             # Створюємо профіль перевізника
