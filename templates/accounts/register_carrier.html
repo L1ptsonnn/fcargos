@@ -52,7 +52,7 @@
     }
     
     .register-header {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2.5rem;
         text-align: center;
@@ -410,6 +410,67 @@
     .password-requirement i {
         font-size: 0.9rem;
         width: 16px;
+    }
+    
+    .logo-upload-wrapper {
+        position: relative;
+        margin: 20px 0;
+    }
+    .logo-upload-btn {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        cursor: pointer;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 18px 35px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: none;
+        width: 100%;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.05rem;
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    .logo-upload-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    .logo-upload-btn i {
+        margin-right: 10px;
+        font-size: 1.3rem;
+        animation: bounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    .logo-upload-btn input[type="file"] {
+        position: absolute;
+        left: -9999px;
+        opacity: 0;
+    }
+    .logo-preview-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .logo-preview {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border: 3px solid var(--primary-gradient-start);
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
     }
 </style>
 {% endblock %}
