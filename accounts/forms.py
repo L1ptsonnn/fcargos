@@ -130,7 +130,10 @@ class CompanyRegistrationForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
         # Обробка телефону - додаємо код країни до введених цифр
-        phone_country = cleaned_data.get('phone_country', '+380')
+        phone_country = cleaned_data.get('phone_country')
+        if not phone_country:
+            raise forms.ValidationError({'phone_country': 'Будь ласка, оберіть код країни'})
+        
         phone = cleaned_data.get('phone', '').strip()
         
         if phone:
@@ -355,7 +358,10 @@ class CarrierRegistrationForm(UserCreationForm):
             cleaned_data['vehicle_model_custom'] = ''
         
         # Обробка телефону - додаємо код країни до введених цифр
-        phone_country = cleaned_data.get('phone_country', '+380')
+        phone_country = cleaned_data.get('phone_country')
+        if not phone_country:
+            raise forms.ValidationError({'phone_country': 'Будь ласка, оберіть код країни'})
+        
         phone = cleaned_data.get('phone', '').strip()
         
         if phone:
