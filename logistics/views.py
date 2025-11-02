@@ -83,17 +83,33 @@ def routes_list(request):
     
     # Якщо це AJAX запит для отримання маршрутів у JSON форматі
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'format' in request.GET and request.GET.get('format') == 'json':
-        routes_data = [{
-            'id': route.id,
-            'origin_city': route.origin_city,
-            'destination_city': route.destination_city,
-            'cargo_type': route.cargo_type,
-            'weight': route.weight,
-            'price': route.price,
-            'status': route.status,
-            'pickup_date': route.pickup_date.strftime('%d.%m.%Y %H:%M') if route.pickup_date else None,
-            'delivery_date': route.delivery_date.strftime('%d.%m.%Y %H:%M') if route.delivery_date else None,
-        } for route in routes]
+        routes_data = []
+        for route in routes:
+            # Конвертуємо дати в локальний час (UTC+2 для України)
+            pickup_date_local = None
+            delivery_date_local = None
+            if route.pickup_date:
+                if timezone.is_aware(route.pickup_date):
+                    pickup_date_local = timezone.localtime(route.pickup_date)
+                else:
+                    pickup_date_local = route.pickup_date
+            if route.delivery_date:
+                if timezone.is_aware(route.delivery_date):
+                    delivery_date_local = timezone.localtime(route.delivery_date)
+                else:
+                    delivery_date_local = route.delivery_date
+            
+            routes_data.append({
+                'id': route.id,
+                'origin_city': route.origin_city,
+                'destination_city': route.destination_city,
+                'cargo_type': route.cargo_type,
+                'weight': str(route.weight),
+                'price': str(route.price),
+                'status': route.status,
+                'pickup_date': pickup_date_local.strftime('%d.%m.%Y %H:%M') if pickup_date_local else None,
+                'delivery_date': delivery_date_local.strftime('%d.%m.%Y %H:%M') if delivery_date_local else None,
+            })
         return JsonResponse({'routes': routes_data})
     
     return render(request, 'logistics/routes_list.html', {
