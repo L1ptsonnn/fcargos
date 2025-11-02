@@ -87,13 +87,46 @@ class CarrierProfile(models.Model):
         unique=True,
         verbose_name='Номер ліцензії'
     )
+    license_country = models.CharField(
+        max_length=10,
+        default='UA',
+        verbose_name='Країна номера',
+        help_text='Код країни для номерного знаку'
+    )
     vehicle_type = models.CharField(
         max_length=100,
         verbose_name='Тип транспорту'
     )
+    vehicle_model = models.CharField(
+        max_length=150,
+        verbose_name='Модель машини'
+    )
+    address = models.TextField(
+        blank=True,
+        verbose_name='Адреса'
+    )
+    address_lat = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        verbose_name='Широта адреси'
+    )
+    address_lng = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        verbose_name='Довгота адреси'
+    )
     experience_years = models.IntegerField(
         default=0,
         verbose_name='Досвід (років)'
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name='Опис',
+        help_text='Опис вашого досвіду та послуг'
     )
     rating = models.DecimalField(
         max_digits=3,

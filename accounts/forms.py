@@ -98,6 +98,49 @@ class CompanyRegistrationForm(UserCreationForm):
 
 
 class CarrierRegistrationForm(UserCreationForm):
+    # Популярні моделі вантажівок
+    POPULAR_VEHICLE_MODELS = [
+        ('', 'Оберіть модель або введіть свою'),
+        ('Mercedes-Benz Actros', 'Mercedes-Benz Actros'),
+        ('Volvo FH', 'Volvo FH'),
+        ('Scania R-series', 'Scania R-series'),
+        ('MAN TGX', 'MAN TGX'),
+        ('DAF XF', 'DAF XF'),
+        ('Iveco Stralis', 'Iveco Stralis'),
+        ('Renault T', 'Renault T'),
+        ('Mercedes-Benz Atego', 'Mercedes-Benz Atego'),
+        ('Volvo FL', 'Volvo FL'),
+        ('MAN TGL', 'MAN TGL'),
+        ('Ford Transit', 'Ford Transit'),
+        ('Mercedes Sprinter', 'Mercedes Sprinter'),
+        ('Fiat Ducato', 'Fiat Ducato'),
+        ('Renault Master', 'Renault Master'),
+        ('ГАЗель', 'ГАЗель'),
+        ('ЗІЛ', 'ЗІЛ'),
+        ('КрАЗ', 'КрАЗ'),
+        ('КАМАЗ', 'КАМАЗ'),
+        ('Інша модель', 'Інша модель'),
+    ]
+    
+    # Коди країн для номерів
+    LICENSE_COUNTRIES = [
+        ('UA', 'Україна (UA)'),
+        ('PL', 'Польща (PL)'),
+        ('DE', 'Німеччина (D)'),
+        ('FR', 'Франція (F)'),
+        ('IT', 'Італія (I)'),
+        ('ES', 'Іспанія (E)'),
+        ('NL', 'Нідерланди (NL)'),
+        ('BE', 'Бельгія (B)'),
+        ('AT', 'Австрія (A)'),
+        ('CZ', 'Чехія (CZ)'),
+        ('SK', 'Словаччина (SK)'),
+        ('HU', 'Угорщина (H)'),
+        ('RO', 'Румунія (RO)'),
+        ('BG', 'Болгарія (BG)'),
+        ('TR', 'Туреччина (TR)'),
+    ]
+    
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control'})
@@ -105,17 +148,67 @@ class CarrierRegistrationForm(UserCreationForm):
     phone = forms.CharField(
         label='Телефон',
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+380XXXXXXXXX'})
     )
     license_number = forms.CharField(
-        label='Номер ліцензії',
+        label='Номер ліцензії/номерний знак',
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введіть номер без коду країни'})
     )
-    vehicle_type = forms.CharField(
+    license_country = forms.ChoiceField(
+        label='Країна номера',
+        choices=LICENSE_COUNTRIES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    vehicle_type = forms.ChoiceField(
         label='Тип транспорту',
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        choices=[
+            ('', 'Оберіть тип'),
+            ('Вантажівка', 'Вантажівка'),
+            ('Фургон', 'Фургон'),
+            ('Рефрижератор', 'Рефрижератор'),
+            ('Цистерна', 'Цистерна'),
+            ('Автопоїзд', 'Автопоїзд'),
+            ('Тягач', 'Тягач'),
+            ('Інший', 'Інший'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    vehicle_model = forms.ChoiceField(
+        label='Модель машини',
+        choices=POPULAR_VEHICLE_MODELS,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'vehicle_model_select'})
+    )
+    vehicle_model_custom = forms.CharField(
+        label='Ваша модель',
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'id': 'vehicle_model_custom',
+            'style': 'display: none;',
+            'placeholder': 'Введіть модель вашого транспорту'
+        })
+    )
+    address = forms.CharField(
+        label='Адреса',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 2,
+            'id': 'address_field',
+            'placeholder': 'Вкажіть адресу на карті',
+            'readonly': True
+        })
+    )
+    address_lat = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'address_lat'})
+    )
+    address_lng = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput(attrs={'id': 'address_lng'})
     )
     experience_years = forms.IntegerField(
         label='Досвід (років)',
@@ -140,11 +233,35 @@ class CarrierRegistrationForm(UserCreationForm):
                 Column('password2', css_class='col-md-6'),
             ),
             'phone',
-            'license_number',
+            Row(
+                Column('license_country', css_class='col-md-4'),
+                Column('license_number', css_class='col-md-8'),
+            ),
             'vehicle_type',
+            'vehicle_model',
+            'vehicle_model_custom',
+            'address',
+            'address_lat',
+            'address_lng',
             'experience_years',
             Submit('submit', 'Зареєструватися', css_class='btn btn-success w-100 mt-3')
         )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        vehicle_model = cleaned_data.get('vehicle_model')
+        vehicle_model_custom = cleaned_data.get('vehicle_model_custom')
+        
+        # Якщо обрано "Інша модель" або порожньо, використовуємо кастомну
+        if vehicle_model == 'Інша модель' or not vehicle_model:
+            if not vehicle_model_custom:
+                raise forms.ValidationError('Будь ласка, введіть модель вашого транспорту.')
+            cleaned_data['vehicle_model'] = vehicle_model_custom
+        elif vehicle_model_custom and vehicle_model != 'Інша модель':
+            # Якщо обрано зі списку, ігноруємо кастомну
+            cleaned_data['vehicle_model_custom'] = ''
+        
+        return cleaned_data
     
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -152,5 +269,21 @@ class CarrierRegistrationForm(UserCreationForm):
         user.phone = self.cleaned_data['phone']
         if commit:
             user.save()
+            # Створюємо профіль перевізника
+            vehicle_model = self.cleaned_data['vehicle_model']
+            if not vehicle_model:
+                vehicle_model = self.cleaned_data.get('vehicle_model_custom', '')
+            
+            CarrierProfile.objects.create(
+                user=user,
+                license_number=self.cleaned_data['license_number'],
+                license_country=self.cleaned_data['license_country'],
+                vehicle_type=self.cleaned_data['vehicle_type'],
+                vehicle_model=vehicle_model,
+                address=self.cleaned_data.get('address', ''),
+                address_lat=self.cleaned_data.get('address_lat'),
+                address_lng=self.cleaned_data.get('address_lng'),
+                experience_years=self.cleaned_data['experience_years']
+            )
         return user
 

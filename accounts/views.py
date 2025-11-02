@@ -58,13 +58,7 @@ def register_carrier(request):
     if request.method == 'POST':
         form = CarrierRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            CarrierProfile.objects.create(
-                user=user,
-                license_number=form.cleaned_data['license_number'],
-                vehicle_type=form.cleaned_data['vehicle_type'],
-                experience_years=form.cleaned_data.get('experience_years', 0)
-            )
+            form.save()  # Форма вже створює профіль
             messages.success(request, 'Реєстрацію завершено! Будь ласка, увійдіть.')
             return redirect('login')
     else:

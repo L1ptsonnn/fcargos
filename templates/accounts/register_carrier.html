@@ -1,12 +1,53 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Реєстрація перевізника - FCargos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .map-container-small {
+        height: 250px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid var(--primary-gradient-start);
+        margin-bottom: 15px;
+    }
+    .logo-upload-btn {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+        color: white;
+        padding: 12px 24px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: none;
+        width: 100%;
+    }
+    .logo-upload-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    .logo-upload-btn input[type="file"] {
+        position: absolute;
+        left: -9999px;
+    }
+    .logo-preview {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 10px;
+        margin-top: 15px;
+        display: none;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">
                     <div class="text-center py-3">
@@ -15,11 +56,253 @@
                     </div>
                 </div>
                 <div class="card-body p-5">
-                    {% crispy form %}
+                    <form method="post" id="carrierForm">
+                        {% csrf_token %}
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                        
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                        
+                        {{ form.password1.label_tag }}
+                        {{ form.password1 }}
+                        {% if form.password1.help_text %}
+                            <small class="text-muted">{{ form.password1.help_text }}</small>
+                        {% endif %}
+                        
+                        {{ form.password2.label_tag }}
+                        {{ form.password2 }}
+                        {% if form.password2.help_text %}
+                            <small class="text-muted">{{ form.password2.help_text }}</small>
+                        {% endif %}
+                        
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.license_country.label_tag }}
+                                {{ form.license_country }}
+                            </div>
+                            <div class="col-md-8">
+                                {{ form.license_number.label_tag }}
+                                {{ form.license_number }}
+                            </div>
+                        </div>
+                        
+                        {{ form.vehicle_type.label_tag }}
+                        {{ form.vehicle_type }}
+                        
+                        {{ form.vehicle_model.label_tag }}
+                        {{ form.vehicle_model }}
+                        
+                        <div id="customModelContainer" style="display: none;">
+                            {{ form.vehicle_model_custom.label_tag }}
+                            {{ form.vehicle_model_custom }}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <label class="form-label">Вкажіть вашу адресу на карті:</label>
+                            <div id="address_map_container" class="map-container-small"></div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openMapModal()">
+                                <i class="bi bi-geo-alt"></i> Вказати адресу на карті
+                            </button>
+                        </div>
+                        
+                        {{ form.address }}
+                        {{ form.address_lat.as_hidden }}
+                        {{ form.address_lng.as_hidden }}
+                        
+                        {{ form.experience_years.label_tag }}
+                        {{ form.experience_years }}
+                        
+                        <button type="submit" class="btn btn-success w-100 mt-3">
+                            <i class="bi bi-check-circle"></i> Зареєструватися
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal для карти адреси -->
+<div class="modal fade" id="addressMapModal" tabindex="-1" aria-labelledby="addressMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)); color: white;">
+                <h5 class="modal-title" id="addressMapModalLabel">
+                    <i class="bi bi-geo-alt"></i> Вкажіть вашу адресу
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+            </div>
+            <div class="modal-body">
+                <div id="addressMapModalMap" style="height: 400px; border-radius: 8px;"></div>
+                <div class="mt-3">
+                    <input type="text" id="addressSearchInput" class="form-control" placeholder="Пошук адреси...">
+                    <button type="button" class="btn btn-primary mt-2" onclick="searchAddress()">
+                        <i class="bi bi-search"></i> Пошук
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAddress()">
+                    <i class="bi bi-check"></i> Підтвердити адресу
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let addressMap = null;
+    let addressMarker = null;
+    let selectedLat = null;
+    let selectedLng = null;
+    let selectedAddress = '';
+
+    // Обробка вибору моделі
+    document.getElementById('id_vehicle_model').addEventListener('change', function() {
+        const customContainer = document.getElementById('customModelContainer');
+        const customInput = document.getElementById('id_vehicle_model_custom');
+        
+        if (this.value === 'Інша модель' || !this.value) {
+            customContainer.style.display = 'block';
+            if (this.value === 'Інша модель') {
+                customInput.required = true;
+            }
+        } else {
+            customContainer.style.display = 'none';
+            customInput.required = false;
+            customInput.value = '';
+        }
+    });
+
+    function openMapModal() {
+        const modal = new bootstrap.Modal(document.getElementById('addressMapModal'));
+        modal.show();
+        
+        setTimeout(() => {
+            initAddressMap();
+        }, 300);
+    }
+
+    function initAddressMap() {
+        if (addressMap) {
+            addressMap.remove();
+        }
+
+        const existingLat = parseFloat(document.getElementById('id_address_lat').value) || 50.45;
+        const existingLng = parseFloat(document.getElementById('id_address_lng').value) || 30.52;
+
+        addressMap = L.map('addressMapModalMap').setView([existingLat, existingLng], 10);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(addressMap);
+
+        if (existingLat && existingLng) {
+            addressMarker = L.marker([existingLat, existingLng]).addTo(addressMap);
+            selectedLat = existingLat;
+            selectedLng = existingLng;
+        }
+
+        addressMap.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            if (addressMarker) {
+                addressMap.removeLayer(addressMarker);
+            }
+            
+            addressMarker = L.marker([lat, lng]).addTo(addressMap);
+            selectedLat = lat;
+            selectedLng = lng;
+            
+            // Отримуємо адресу через geocoding
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.address) {
+                        const parts = [];
+                        if (data.address.road) parts.push(data.address.road);
+                        if (data.address.house_number) parts.push(data.address.house_number);
+                        if (data.address.city || data.address.town) parts.push(data.address.city || data.address.town);
+                        if (data.address.country) parts.push(data.address.country);
+                        selectedAddress = parts.join(', ');
+                        document.getElementById('addressSearchInput').value = selectedAddress;
+                    }
+                })
+                .catch(err => console.error('Geocoding error:', err));
+        });
+    }
+
+    function searchAddress() {
+        const query = document.getElementById('addressSearchInput').value;
+        if (!query) return;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    
+                    addressMap.setView([lat, lng], 15);
+                    
+                    if (addressMarker) {
+                        addressMap.removeLayer(addressMarker);
+                    }
+                    
+                    addressMarker = L.marker([lat, lng]).addTo(addressMap);
+                    selectedLat = lat;
+                    selectedLng = lng;
+                    selectedAddress = data[0].display_name;
+                    document.getElementById('addressSearchInput').value = selectedAddress;
+                }
+            })
+            .catch(err => console.error('Search error:', err));
+    }
+
+    function confirmAddress() {
+        if (selectedLat && selectedLng) {
+            document.getElementById('id_address_lat').value = selectedLat;
+            document.getElementById('id_address_lng').value = selectedLng;
+            document.getElementById('id_address').value = selectedAddress || `${selectedLat}, ${selectedLng}`;
+            
+            // Оновлюємо превью карти
+            if (window.previewMap) {
+                window.previewMap.remove();
+            }
+            
+            const previewContainer = document.getElementById('address_map_container');
+            previewContainer.innerHTML = '';
+            window.previewMap = L.map(previewContainer).setView([selectedLat, selectedLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(window.previewMap);
+            L.marker([selectedLat, selectedLng]).addTo(window.previewMap);
+            
+            bootstrap.Modal.getInstance(document.getElementById('addressMapModal')).hide();
+        }
+    }
+
+    // Enter для пошуку адреси
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('addressSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchAddress();
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
 
