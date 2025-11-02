@@ -585,26 +585,6 @@
                             
                             <div class="form-group-enhanced">
                                 <label class="form-label-enhanced">
-                                    <i class="bi bi-telephone"></i> Номер телефону
-                                </label>
-                                <div class="phone-input-group">
-                                    <div class="phone-country-select">
-                                        {{ form.phone_country }}
-                                    </div>
-                                    <div class="phone-number-input">
-                                        {{ form.phone }}
-                                    </div>
-                                </div>
-                                {% if form.phone.errors %}
-                                    <ul class="error-list-custom">{{ form.phone.errors }}</ul>
-                                {% endif %}
-                                {% if form.phone_country.errors %}
-                                    <ul class="error-list-custom">{{ form.phone_country.errors }}</ul>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-group-enhanced">
-                                <label class="form-label-enhanced">
                                     <i class="bi bi-geo-alt"></i> {{ form.address.label }}
                                 </label>
                                 {{ form.address }}
@@ -658,23 +638,6 @@
             };
             reader.readAsDataURL(file);
         }
-    });
-    
-    // ========================================
-    // ПРОСТА ЛОГІКА ВВОДУ НОМЕРА ТЕЛЕФОНУ
-    // ========================================
-    document.addEventListener('DOMContentLoaded', function() {
-        const phoneInput = document.getElementById('phone_company');
-        
-        if (!phoneInput) return;
-        
-        // Прибираємо placeholder (якщо був встановлений)
-        phoneInput.placeholder = '';
-        
-        // Дозволяємо вводити тільки цифри
-        phoneInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
     });
     
     // Перевірка сили пароля

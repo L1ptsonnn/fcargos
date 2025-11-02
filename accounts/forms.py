@@ -37,48 +37,6 @@ class CompanyRegistrationForm(UserCreationForm):
         max_length=255,
         widget=forms.TextInput(attrs={'class': 'form-control form-control-enhanced'})
     )
-    phone_country = forms.ChoiceField(
-        label='Код країни',
-        choices=[
-            ('', 'Оберіть країну'),
-            ('+380', '🇺🇦 Україна (+380)'),
-            ('+48', '🇵🇱 Польща (+48)'),
-            ('+49', '🇩🇪 Німеччина (+49)'),
-            ('+33', '🇫🇷 Франція (+33)'),
-            ('+39', '🇮🇹 Італія (+39)'),
-            ('+34', '🇪🇸 Іспанія (+34)'),
-            ('+31', '🇳🇱 Нідерланди (+31)'),
-            ('+32', '🇧🇪 Бельгія (+32)'),
-            ('+43', '🇦🇹 Австрія (+43)'),
-            ('+420', '🇨🇿 Чехія (+420)'),
-            ('+421', '🇸🇰 Словаччина (+421)'),
-            ('+36', '🇭🇺 Угорщина (+36)'),
-            ('+40', '🇷🇴 Румунія (+40)'),
-            ('+359', '🇧🇬 Болгарія (+359)'),
-            ('+90', '🇹🇷 Туреччина (+90)'),
-            ('+44', '🇬🇧 Великобританія (+44)'),
-            ('+1', '🇺🇸 США (+1)'),
-            ('+7', '🇷🇺 Росія (+7)'),
-            ('+86', '🇨🇳 Китай (+86)'),
-            ('+81', '🇯🇵 Японія (+81)'),
-        ],
-        widget=forms.Select(attrs={
-            'class': 'form-select form-select-enhanced',
-            'id': 'phone_country_company'
-        })
-    )
-    phone = forms.CharField(
-        label='Номер телефону',
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control form-control-enhanced',
-            'id': 'phone_company',
-            'type': 'tel',
-            'autocomplete': 'tel',
-            'placeholder': ''
-        })
-    )
     address = forms.CharField(
         label='Адреса',
         widget=forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 3})
@@ -101,7 +59,7 @@ class CompanyRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'company_name', 'phone_country', 'phone', 'address', 'tax_id', 'description', 'logo')
+        fields = ('username', 'email', 'password1', 'password2', 'company_name', 'address', 'tax_id', 'description', 'logo')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
@@ -121,10 +79,6 @@ class CompanyRegistrationForm(UserCreationForm):
                 Column('password2', css_class='col-md-6'),
             ),
             'company_name',
-            Row(
-                Column('phone_country', css_class='col-md-4'),
-                Column('phone', css_class='col-md-8'),
-            ),
             'address',
             'tax_id',
             'description',
@@ -134,32 +88,12 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # Проста обробка телефону
-        phone_country = cleaned_data.get('phone_country', '')
-        phone = cleaned_data.get('phone', '').strip()
-        
-        if phone:
-            # Видаляємо всі нецифрові символи
-            phone_digits = ''.join(filter(str.isdigit, str(phone)))
-            
-            if phone_digits:
-                # Додаємо код країни тільки якщо він обраний
-                if phone_country:
-                    cleaned_data['phone'] = phone_country + phone_digits
-                else:
-                    cleaned_data['phone'] = phone_digits
-            else:
-                cleaned_data['phone'] = ''
-        else:
-            cleaned_data['phone'] = ''
-        
         return cleaned_data
     
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'company'
         user.company_name = self.cleaned_data['company_name']
-        user.phone = self.cleaned_data.get('phone', '')
         if commit:
             user.save()
         return user
@@ -212,48 +146,6 @@ class CarrierRegistrationForm(UserCreationForm):
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
-    )
-    phone_country = forms.ChoiceField(
-        label='Код країни',
-        choices=[
-            ('', 'Оберіть країну'),
-            ('+380', '🇺🇦 Україна (+380)'),
-            ('+48', '🇵🇱 Польща (+48)'),
-            ('+49', '🇩🇪 Німеччина (+49)'),
-            ('+33', '🇫🇷 Франція (+33)'),
-            ('+39', '🇮🇹 Італія (+39)'),
-            ('+34', '🇪🇸 Іспанія (+34)'),
-            ('+31', '🇳🇱 Нідерланди (+31)'),
-            ('+32', '🇧🇪 Бельгія (+32)'),
-            ('+43', '🇦🇹 Австрія (+43)'),
-            ('+420', '🇨🇿 Чехія (+420)'),
-            ('+421', '🇸🇰 Словаччина (+421)'),
-            ('+36', '🇭🇺 Угорщина (+36)'),
-            ('+40', '🇷🇴 Румунія (+40)'),
-            ('+359', '🇧🇬 Болгарія (+359)'),
-            ('+90', '🇹🇷 Туреччина (+90)'),
-            ('+44', '🇬🇧 Великобританія (+44)'),
-            ('+1', '🇺🇸 США (+1)'),
-            ('+7', '🇷🇺 Росія (+7)'),
-            ('+86', '🇨🇳 Китай (+86)'),
-            ('+81', '🇯🇵 Японія (+81)'),
-        ],
-        widget=forms.Select(attrs={
-            'class': 'form-select form-select-enhanced',
-            'id': 'phone_country_carrier'
-        })
-    )
-    phone = forms.CharField(
-        label='Номер телефону',
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control form-control-enhanced',
-            'id': 'phone_carrier',
-            'type': 'tel',
-            'autocomplete': 'tel',
-            'placeholder': ''
-        })
     )
     vehicle_type = forms.ChoiceField(
         label='Тип транспорту',
@@ -313,7 +205,7 @@ class CarrierRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'phone_country', 'phone', 'vehicle_type', 'vehicle_model', 'vehicle_model_custom', 'address', 'address_lat', 'address_lng', 'experience_years')
+        fields = ('username', 'email', 'password1', 'password2', 'vehicle_type', 'vehicle_model', 'vehicle_model_custom', 'address', 'address_lat', 'address_lng', 'experience_years')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
@@ -331,10 +223,6 @@ class CarrierRegistrationForm(UserCreationForm):
             Row(
                 Column('password1', css_class='col-md-6'),
                 Column('password2', css_class='col-md-6'),
-            ),
-            Row(
-                Column('phone_country', css_class='col-md-4'),
-                Column('phone', css_class='col-md-8'),
             ),
             'vehicle_type',
             'vehicle_model',
@@ -360,31 +248,11 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
-        # Проста обробка телефону
-        phone_country = cleaned_data.get('phone_country', '')
-        phone = cleaned_data.get('phone', '').strip()
-        
-        if phone:
-            # Видаляємо всі нецифрові символи
-            phone_digits = ''.join(filter(str.isdigit, str(phone)))
-            
-            if phone_digits:
-                # Додаємо код країни тільки якщо він обраний
-                if phone_country:
-                    cleaned_data['phone'] = phone_country + phone_digits
-                else:
-                    cleaned_data['phone'] = phone_digits
-            else:
-                cleaned_data['phone'] = ''
-        else:
-            cleaned_data['phone'] = ''
-        
         return cleaned_data
     
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'carrier'
-        user.phone = self.cleaned_data.get('phone', '')
         if commit:
             user.save()
             # Створюємо профіль перевізника
