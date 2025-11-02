@@ -28,25 +28,6 @@ class LoginForm(forms.Form):
 
 
 class CompanyRegistrationForm(UserCreationForm):
-    # Коди країн для телефонів
-    PHONE_COUNTRIES = [
-        ('+380', '🇺🇦 Україна (+380)'),
-        ('+48', '🇵🇱 Польща (+48)'),
-        ('+49', '🇩🇪 Німеччина (+49)'),
-        ('+33', '🇫🇷 Франція (+33)'),
-        ('+39', '🇮🇹 Італія (+39)'),
-        ('+34', '🇪🇸 Іспанія (+34)'),
-        ('+31', '🇳🇱 Нідерланди (+31)'),
-        ('+32', '🇧🇪 Бельгія (+32)'),
-        ('+43', '🇦🇹 Австрія (+43)'),
-        ('+420', '🇨🇿 Чехія (+420)'),
-        ('+421', '🇸🇰 Словаччина (+421)'),
-        ('+36', '🇭🇺 Угорщина (+36)'),
-        ('+40', '🇷🇴 Румунія (+40)'),
-        ('+359', '🇧🇬 Болгарія (+359)'),
-        ('+90', '🇹🇷 Туреччина (+90)'),
-    ]
-    
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
@@ -58,16 +39,38 @@ class CompanyRegistrationForm(UserCreationForm):
     )
     phone_country = forms.ChoiceField(
         label='Код країни',
-        choices=PHONE_COUNTRIES,
+        choices=[
+            ('+380', '🇺🇦 Україна (+380)'),
+            ('+48', '🇵🇱 Польща (+48)'),
+            ('+49', '🇩🇪 Німеччина (+49)'),
+            ('+33', '🇫🇷 Франція (+33)'),
+            ('+39', '🇮🇹 Італія (+39)'),
+            ('+34', '🇪🇸 Іспанія (+34)'),
+            ('+31', '🇳🇱 Нідерланди (+31)'),
+            ('+32', '🇧🇪 Бельгія (+32)'),
+            ('+43', '🇦🇹 Австрія (+43)'),
+            ('+420', '🇨🇿 Чехія (+420)'),
+            ('+421', '🇸🇰 Словаччина (+421)'),
+            ('+36', '🇭🇺 Угорщина (+36)'),
+            ('+40', '🇷🇴 Румунія (+40)'),
+            ('+359', '🇧🇬 Болгарія (+359)'),
+            ('+90', '🇹🇷 Туреччина (+90)'),
+            ('+44', '🇬🇧 Великобританія (+44)'),
+            ('+1', '🇺🇸 США (+1)'),
+            ('+7', '🇷🇺 Росія (+7)'),
+            ('+86', '🇨🇳 Китай (+86)'),
+            ('+81', '🇯🇵 Японія (+81)'),
+        ],
         initial='+380',
-        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select'})
+        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select', 'id': 'phone_country_company'})
     )
     phone = forms.CharField(
         label='Номер телефону',
         max_length=15,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-enhanced phone-number-input',
-            'placeholder': 'XXXXXXXXX'
+            'placeholder': 'XXXXXXXXX',
+            'id': 'phone_company'
         })
     )
     address = forms.CharField(
@@ -95,8 +98,8 @@ class CompanyRegistrationForm(UserCreationForm):
         fields = ('username', 'email', 'password1', 'password2', 'company_name', 'phone_country', 'phone')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
-            'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
-            'password2': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password2'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -125,6 +128,7 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        # Обробка телефону
         phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '')
         if phone:
@@ -141,9 +145,9 @@ class CompanyRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
         user.role = 'company'
         user.company_name = self.cleaned_data['company_name']
+        # Формуємо повний номер телефону
         phone_country = self.cleaned_data.get('phone_country', '+380')
         phone = self.cleaned_data.get('phone', '')
-        # Формуємо повний номер
         if phone and not phone.startswith('+'):
             phone = ''.join(filter(str.isdigit, phone))
             user.phone = phone_country + phone
@@ -202,37 +206,40 @@ class CarrierRegistrationForm(UserCreationForm):
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
     )
-    # Коди країн для телефонів
-    PHONE_COUNTRIES = [
-        ('+380', '🇺🇦 Україна (+380)'),
-        ('+48', '🇵🇱 Польща (+48)'),
-        ('+49', '🇩🇪 Німеччина (+49)'),
-        ('+33', '🇫🇷 Франція (+33)'),
-        ('+39', '🇮🇹 Італія (+39)'),
-        ('+34', '🇪🇸 Іспанія (+34)'),
-        ('+31', '🇳🇱 Нідерланди (+31)'),
-        ('+32', '🇧🇪 Бельгія (+32)'),
-        ('+43', '🇦🇹 Австрія (+43)'),
-        ('+420', '🇨🇿 Чехія (+420)'),
-        ('+421', '🇸🇰 Словаччина (+421)'),
-        ('+36', '🇭🇺 Угорщина (+36)'),
-        ('+40', '🇷🇴 Румунія (+40)'),
-        ('+359', '🇧🇬 Болгарія (+359)'),
-        ('+90', '🇹🇷 Туреччина (+90)'),
-    ]
-    
     phone_country = forms.ChoiceField(
         label='Код країни',
-        choices=PHONE_COUNTRIES,
+        choices=[
+            ('+380', '🇺🇦 Україна (+380)'),
+            ('+48', '🇵🇱 Польща (+48)'),
+            ('+49', '🇩🇪 Німеччина (+49)'),
+            ('+33', '🇫🇷 Франція (+33)'),
+            ('+39', '🇮🇹 Італія (+39)'),
+            ('+34', '🇪🇸 Іспанія (+34)'),
+            ('+31', '🇳🇱 Нідерланди (+31)'),
+            ('+32', '🇧🇪 Бельгія (+32)'),
+            ('+43', '🇦🇹 Австрія (+43)'),
+            ('+420', '🇨🇿 Чехія (+420)'),
+            ('+421', '🇸🇰 Словаччина (+421)'),
+            ('+36', '🇭🇺 Угорщина (+36)'),
+            ('+40', '🇷🇴 Румунія (+40)'),
+            ('+359', '🇧🇬 Болгарія (+359)'),
+            ('+90', '🇹🇷 Туреччина (+90)'),
+            ('+44', '🇬🇧 Великобританія (+44)'),
+            ('+1', '🇺🇸 США (+1)'),
+            ('+7', '🇷🇺 Росія (+7)'),
+            ('+86', '🇨🇳 Китай (+86)'),
+            ('+81', '🇯🇵 Японія (+81)'),
+        ],
         initial='+380',
-        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select'})
+        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select', 'id': 'phone_country_carrier'})
     )
     phone = forms.CharField(
         label='Номер телефону',
         max_length=15,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-enhanced phone-number-input',
-            'placeholder': 'XXXXXXXXX'
+            'placeholder': 'XXXXXXXXX',
+            'id': 'phone_carrier'
         })
     )
     vehicle_type = forms.ChoiceField(
@@ -357,9 +364,9 @@ class CarrierRegistrationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'carrier'
+        # Формуємо повний номер телефону
         phone_country = self.cleaned_data.get('phone_country', '+380')
         phone = self.cleaned_data.get('phone', '')
-        # Формуємо повний номер
         if phone and not phone.startswith('+'):
             phone = ''.join(filter(str.isdigit, phone))
             user.phone = phone_country + phone

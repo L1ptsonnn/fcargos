@@ -281,38 +281,47 @@
         animation-delay: 4s;
     }
     
-    /* Спеціальні стилі для полів паролів */
+    /* Поля паролів з покращеним дизайном */
     .password-field-wrapper {
         position: relative;
+        display: flex;
+        align-items: center;
     }
     
     .password-field-wrapper .form-control-enhanced {
-        padding-right: 45px;
+        padding-right: 50px;
+        flex: 1;
     }
     
     .password-toggle-btn {
         position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
+        right: 14px;
         background: none;
         border: none;
         color: #718096;
         cursor: pointer;
-        padding: 5px;
-        font-size: 1.1rem;
-        transition: color 0.3s ease;
+        padding: 8px;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
         z-index: 10;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
     }
     
     .password-toggle-btn:hover {
         color: var(--primary-gradient-start);
+        background: rgba(99, 102, 241, 0.1);
+        transform: scale(1.1);
     }
     
     .password-strength-indicator {
-        margin-top: 8px;
-        height: 4px;
-        border-radius: 2px;
+        margin-top: 10px;
+        height: 5px;
+        border-radius: 3px;
         background: #e2e8f0;
         overflow: hidden;
         position: relative;
@@ -321,37 +330,84 @@
     .password-strength-bar {
         height: 100%;
         width: 0%;
-        transition: all 0.3s ease;
-        border-radius: 2px;
+        transition: all 0.4s ease;
+        border-radius: 3px;
     }
     
     .password-strength-weak {
-        background: #ef4444;
+        background: linear-gradient(90deg, #ef4444, #f87171);
         width: 33%;
     }
     
     .password-strength-medium {
-        background: #f59e0b;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
         width: 66%;
     }
     
     .password-strength-strong {
-        background: #10b981;
+        background: linear-gradient(90deg, #10b981, #34d399);
         width: 100%;
+    }
+    
+    .password-requirements {
+        margin-top: 8px;
+        padding: 12px;
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary-gradient-start);
+    }
+    
+    .password-requirement {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.3s ease;
+    }
+    
+    .password-requirement.valid {
+        color: #10b981;
+    }
+    
+    .password-requirement.valid i {
+        color: #10b981;
+    }
+    
+    .password-requirement i {
+        font-size: 0.9rem;
+        width: 16px;
     }
     
     /* Телефон з країною */
     .phone-input-group {
         display: flex;
         gap: 10px;
+        align-items: flex-end;
     }
     
     .phone-country-select {
-        flex: 0 0 180px;
+        flex: 0 0 200px;
+    }
+    
+    .phone-country-select .form-select-enhanced {
+        font-weight: 600;
     }
     
     .phone-number-input {
         flex: 1;
+    }
+    
+    .phone-number-input .form-control-enhanced {
+        font-size: 1.05rem;
+        letter-spacing: 1px;
+        font-weight: 500;
+    }
+    
+    .form-group-enhanced {
+        margin-bottom: 1.5rem;
+        position: relative;
     }
     
     .form-label-enhanced {
@@ -385,9 +441,20 @@
         background: #fff;
     }
     
-    .form-group-enhanced {
-        margin-bottom: 1.5rem;
-        position: relative;
+    .form-select-enhanced {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+        cursor: pointer;
+    }
+    
+    .form-select-enhanced:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        transform: translateY(-2px);
     }
     
     .help-text-custom {
@@ -460,10 +527,29 @@
                                         <label class="form-label-enhanced">
                                             <i class="bi bi-lock"></i> {{ form.password1.label }}
                                         </label>
-                                        {{ form.password1 }}
-                                        {% if form.password1.help_text %}
-                                            <div class="help-text-custom">{{ form.password1.help_text }}</div>
-                                        {% endif %}
+                                        <div class="password-field-wrapper">
+                                            {{ form.password1 }}
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('id_password1', this)" title="Показати/приховати пароль">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="password-strength-indicator" id="password1Strength">
+                                            <div class="password-strength-bar" id="password1Bar"></div>
+                                        </div>
+                                        <div class="password-requirements" id="password1Requirements">
+                                            <div class="password-requirement" id="req-length">
+                                                <i class="bi bi-circle"></i>
+                                                <span>Мінімум 8 символів</span>
+                                            </div>
+                                            <div class="password-requirement" id="req-letters">
+                                                <i class="bi bi-circle"></i>
+                                                <span>Великі та малі літери</span>
+                                            </div>
+                                            <div class="password-requirement" id="req-numbers">
+                                                <i class="bi bi-circle"></i>
+                                                <span>Хоча б одна цифра</span>
+                                            </div>
+                                        </div>
                                         {% if form.password1.errors %}
                                             <ul class="error-list-custom">{{ form.password1.errors }}</ul>
                                         {% endif %}
@@ -474,7 +560,12 @@
                                         <label class="form-label-enhanced">
                                             <i class="bi bi-lock-fill"></i> {{ form.password2.label }}
                                         </label>
-                                        {{ form.password2 }}
+                                        <div class="password-field-wrapper">
+                                            {{ form.password2 }}
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('id_password2', this)" title="Показати/приховати пароль">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
                                         {% if form.password2.help_text %}
                                             <div class="help-text-custom">{{ form.password2.help_text }}</div>
                                         {% endif %}
@@ -494,9 +585,19 @@
                             
                             <div class="form-group-enhanced">
                                 <label class="form-label-enhanced">
-                                    <i class="bi bi-telephone"></i> {{ form.phone.label }}
+                                    <i class="bi bi-telephone"></i> Номер телефону
                                 </label>
-                                {{ form.phone }}
+                                <div class="phone-input-group">
+                                    <div class="phone-country-select">
+                                        {{ form.phone_country }}
+                                    </div>
+                                    <div class="phone-number-input">
+                                        {{ form.phone }}
+                                    </div>
+                                </div>
+                                {% if form.phone.errors %}
+                                    <ul class="error-list-custom">{{ form.phone.errors }}</ul>
+                                {% endif %}
                             </div>
                             
                             <div class="form-group-enhanced">
@@ -557,40 +658,40 @@
     });
     
     // Обробка телефону з країною
-    document.addEventListener('DOMContentLoaded', function() {
-        const phoneCountry = document.getElementById('id_phone_country');
-        const phoneInput = document.getElementById('id_phone');
-        
-        if (phoneCountry && phoneInput) {
-            // Встановлюємо за замовчуванням Україну
-            if (!phoneCountry.value) {
-                phoneCountry.value = '+380';
-            }
-            
-            // Додаємо обробник зміни країни
-            phoneCountry.addEventListener('change', function() {
-                updatePhonePlaceholder(this.value, phoneInput);
-            });
-            
-            // Обмежуємо введення тільки цифрами
-            phoneInput.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-            
-            // Оновлюємо placeholder при завантаженні
-            updatePhonePlaceholder(phoneCountry.value, phoneInput);
+    const phoneCountry = document.getElementById('phone_country_company');
+    const phoneInput = document.getElementById('phone_company');
+    
+    if (phoneCountry && phoneInput) {
+        // Встановлюємо за замовчуванням Україну
+        if (!phoneCountry.value) {
+            phoneCountry.value = '+380';
         }
         
-        // Перевірка сили пароля
-        const password1Input = document.getElementById('id_password1');
-        const password1Bar = document.getElementById('password1Bar');
+        // Додаємо обробник зміни країни
+        phoneCountry.addEventListener('change', function() {
+            updatePhonePlaceholder(this.value, phoneInput);
+        });
         
-        if (password1Input && password1Bar) {
-            password1Input.addEventListener('input', function() {
-                checkPasswordStrength(this.value, password1Bar);
-            });
-        }
-    });
+        // Обмежуємо введення тільки цифрами
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Оновлюємо placeholder при завантаженні
+        updatePhonePlaceholder(phoneCountry.value, phoneInput);
+    }
+    
+    // Перевірка сили пароля
+    const password1Input = document.getElementById('id_password1');
+    const password1Bar = document.getElementById('password1Bar');
+    const password1Strength = document.getElementById('password1Strength');
+    
+    if (password1Input && password1Bar) {
+        password1Input.addEventListener('input', function() {
+            checkPasswordStrength(this.value, password1Bar, password1Strength);
+            updatePasswordRequirements(this.value);
+        });
+    }
     
     function togglePassword(inputId, button) {
         const input = document.getElementById(inputId);
@@ -607,12 +708,15 @@
         }
     }
     
-    function checkPasswordStrength(password, barElement) {
+    function checkPasswordStrength(password, barElement, strengthElement) {
         if (!password) {
             barElement.className = 'password-strength-bar';
             barElement.style.width = '0%';
+            strengthElement.style.display = 'none';
             return;
         }
+        
+        strengthElement.style.display = 'block';
         
         let strength = 0;
         if (password.length >= 8) strength++;
@@ -628,6 +732,45 @@
             barElement.classList.add('password-strength-medium');
         } else {
             barElement.classList.add('password-strength-strong');
+        }
+    }
+    
+    function updatePasswordRequirements(password) {
+        const reqLength = document.getElementById('req-length');
+        const reqLetters = document.getElementById('req-letters');
+        const reqNumbers = document.getElementById('req-numbers');
+        
+        // Мінімум 8 символів
+        if (password.length >= 8) {
+            reqLength.classList.add('valid');
+            reqLength.querySelector('i').classList.remove('bi-circle');
+            reqLength.querySelector('i').classList.add('bi-check-circle-fill');
+        } else {
+            reqLength.classList.remove('valid');
+            reqLength.querySelector('i').classList.remove('bi-check-circle-fill');
+            reqLength.querySelector('i').classList.add('bi-circle');
+        }
+        
+        // Великі та малі літери
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
+            reqLetters.classList.add('valid');
+            reqLetters.querySelector('i').classList.remove('bi-circle');
+            reqLetters.querySelector('i').classList.add('bi-check-circle-fill');
+        } else {
+            reqLetters.classList.remove('valid');
+            reqLetters.querySelector('i').classList.remove('bi-check-circle-fill');
+            reqLetters.querySelector('i').classList.add('bi-circle');
+        }
+        
+        // Цифри
+        if (/\d/.test(password)) {
+            reqNumbers.classList.add('valid');
+            reqNumbers.querySelector('i').classList.remove('bi-circle');
+            reqNumbers.querySelector('i').classList.add('bi-check-circle-fill');
+        } else {
+            reqNumbers.classList.remove('valid');
+            reqNumbers.querySelector('i').classList.remove('bi-check-circle-fill');
+            reqNumbers.querySelector('i').classList.add('bi-circle');
         }
     }
     
@@ -648,6 +791,11 @@
             '+40': 'XXXXXXXXX',
             '+359': 'XXX XXX XXX',
             '+90': 'XXX XXX XXXX',
+            '+44': 'XXXX XXXXXX',
+            '+1': 'XXX XXX XXXX',
+            '+7': 'XXX XXX XX XX',
+            '+86': 'XXX XXXX XXXX',
+            '+81': 'XX XXXX XXXX',
         };
         phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
     }
