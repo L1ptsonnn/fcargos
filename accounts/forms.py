@@ -295,6 +295,17 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
+        # Обробка телефону
+        phone_country = cleaned_data.get('phone_country', '')
+        phone = cleaned_data.get('phone', '')
+        if phone:
+            # Додаємо код країни до номера, якщо його немає
+            if phone_country and not phone.startswith('+'):
+                cleaned_data['phone'] = phone_country + phone
+            elif not phone.startswith('+'):
+                # За замовчуванням Україна
+                cleaned_data['phone'] = '+380' + phone
+        
         return cleaned_data
     
     def save(self, commit=True):
