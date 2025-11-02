@@ -560,6 +560,9 @@
                                 {% if form.phone.errors %}
                                     <ul class="error-list-custom">{{ form.phone.errors }}</ul>
                                 {% endif %}
+                                {% if form.phone_country.errors %}
+                                    <ul class="error-list-custom">{{ form.phone_country.errors }}</ul>
+                                {% endif %}
                             </div>
                             
                             <div class="section-divider">
@@ -700,7 +703,7 @@
     });
     
     // ========================================
-    // НОВА ЛОГІКА ВВОДУ НОМЕРА ТЕЛЕФОНУ
+    // ПРОСТА ЛОГІКА ВВОДУ НОМЕРА ТЕЛЕФОНУ
     // ========================================
     document.addEventListener('DOMContentLoaded', function() {
         const phoneCountry = document.getElementById('phone_country_carrier');
@@ -708,149 +711,47 @@
         
         if (!phoneCountry || !phoneInput) return;
         
-        // Функція для оновлення placeholder
-        function setPlaceholder() {
-            const countryCode = phoneCountry.value || '+380'; // Якщо немає вибору, показуємо за замовчуванням
-            const placeholders = {
-                '+380': '(XX) XXX XX XX',
-                '+48': 'XXX XXX XXX',
-                '+49': 'XXXX XXXXXX',
-                '+33': 'X XX XX XX XX',
-                '+39': 'XXX XXX XXXX',
-                '+34': 'XXX XXX XXX',
-                '+31': 'X XXXXXXXX',
-                '+32': 'XXX XX XX XX',
-                '+43': 'XXXX XXXXXX',
-                '+420': 'XXX XXX XXX',
-                '+421': 'XXX XXX XXX',
-                '+36': 'XX XXX XXXX',
-                '+40': 'XXX XXX XXX',
-                '+359': 'XXX XXX XXX',
-                '+90': '(XXX) XXX XX XX',
-                '+44': 'XXXX XXXXXX',
-                '+1': '(XXX) XXX-XXXX',
-                '+7': '(XXX) XXX-XX-XX',
-                '+86': 'XXX XXXX XXXX',
-                '+81': 'XX XXXX XXXX',
-            };
-            phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
-        }
+        // Placeholders для різних країн
+        const placeholders = {
+            '+380': '(XX) XXX XX XX',
+            '+48': 'XXX XXX XXX',
+            '+49': 'XXXX XXXXXX',
+            '+33': 'X XX XX XX XX',
+            '+39': 'XXX XXX XXXX',
+            '+34': 'XXX XXX XXX',
+            '+31': 'X XXXXXXXX',
+            '+32': 'XXX XX XX XX',
+            '+43': 'XXXX XXXXXX',
+            '+420': 'XXX XXX XXX',
+            '+421': 'XXX XXX XXX',
+            '+36': 'XX XXX XXXX',
+            '+40': 'XXX XXX XXX',
+            '+359': 'XXX XXX XXX',
+            '+90': '(XXX) XXX XX XX',
+            '+44': 'XXXX XXXXXX',
+            '+1': '(XXX) XXX-XXXX',
+            '+7': '(XXX) XXX-XX-XX',
+            '+86': 'XXX XXXX XXXX',
+            '+81': 'XX XXXX XXXX',
+        };
         
-        // Функція для видалення тільки нецифрових символів (не коди країн!)
-        function removeNonDigits(value) {
-            if (!value) return '';
-            return String(value).replace(/[^0-9]/g, '');
-        }
-        
-        // Обробник зміни країни
+        // Оновлюємо placeholder при зміні країни
         phoneCountry.addEventListener('change', function() {
-            // Просто оновлюємо placeholder при зміні країни
-            setPlaceholder();
-        });
-        
-        // Обробник введення - дозволяємо тільки цифри
-        phoneInput.addEventListener('input', function(e) {
-            const cursorPosition = this.selectionStart;
-            const oldValue = this.value;
-            
-            // Просто видаляємо всі нецифрові символи (+, пробіли, дужки тощо)
-            let value = removeNonDigits(oldValue);
-            
-            // Встановлюємо очищене значення тільки якщо воно змінилося
-            if (oldValue !== value) {
-                this.value = value;
-                
-                // Відновлюємо позицію курсора (враховуючи видалені символи)
-                const deletedChars = oldValue.length - value.length;
-                const newPosition = Math.max(0, Math.min(cursorPosition - deletedChars, value.length));
-                this.setSelectionRange(newPosition, newPosition);
+            if (this.value && placeholders[this.value]) {
+                phoneInput.placeholder = placeholders[this.value];
+            } else {
+                phoneInput.placeholder = '';
             }
         });
         
-        // Обробник вставки (paste)
-        phoneInput.addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            
-            // Видаляємо тільки нецифрові символи
-            let cleaned = removeNonDigits(pastedText);
-            
-            // Вставляємо очищений текст
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-            const currentValue = this.value;
-            this.value = currentValue.substring(0, start) + cleaned + currentValue.substring(end);
-            
-            // Встановлюємо курсор
-            const newPos = start + cleaned.length;
-            this.setSelectionRange(newPos, newPos);
-            
-            // Тригеримо input event для подальшої обробки
-            this.dispatchEvent(new Event('input', { bubbles: true }));
+        // Дозволяємо вводити тільки цифри
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
         });
         
-        // Обробник фокусу - оновлюємо placeholder
-        phoneInput.addEventListener('focus', function() {
-            setPlaceholder();
-            // Видаляємо тільки нецифрові символи при фокусі
-            if (this.value) {
-                const cleaned = removeNonDigits(this.value);
-                if (this.value !== cleaned) {
-                    this.value = cleaned;
-                }
-            }
-        });
-        
-        // Обробник втрати фокусу - оновлюємо placeholder
-        phoneInput.addEventListener('blur', function() {
-            setPlaceholder();
-            // Видаляємо тільки нецифрові символи при втраті фокусу
-            if (this.value) {
-                const cleaned = removeNonDigits(this.value);
-                if (this.value !== cleaned) {
-                    this.value = cleaned;
-                }
-            }
-        });
-        
-        // Обробник натискання клавіш - блокуємо нецифрові символи
-        phoneInput.addEventListener('keydown', function(e) {
-            // Дозволяємо служебні клавіші
-            const allowedKeys = [
-                'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 
-                'ArrowDown', 'Tab', 'Home', 'End', 'Control', 'Meta', 'Alt'
-            ];
-            
-            // Дозволяємо комбінації Ctrl/Cmd + A, C, V, X
-            if (e.ctrlKey || e.metaKey) {
-                if (['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
-                    return;
-                }
-            }
-            
-            // Блокуємо всі інші нецифрові символи
-            if (allowedKeys.includes(e.key)) {
-                return;
-            }
-            
-            // Блокуємо всі символи, крім цифр
-            if (!/^\d$/.test(e.key)) {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Очищаємо поле від нецифрових символів при завантаженні сторінки
-        if (phoneInput.value) {
-            const cleaned = removeNonDigits(phoneInput.value);
-            if (phoneInput.value !== cleaned) {
-                phoneInput.value = cleaned;
-            }
-        }
-        
-        // Встановлюємо початковий placeholder (тільки якщо країна вибрана)
-        if (phoneCountry.value) {
-            setPlaceholder();
+        // Оновлюємо placeholder якщо країна вже обрана
+        if (phoneCountry.value && placeholders[phoneCountry.value]) {
+            phoneInput.placeholder = placeholders[phoneCountry.value];
         }
     });
     

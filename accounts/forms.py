@@ -40,6 +40,7 @@ class CompanyRegistrationForm(UserCreationForm):
     phone_country = forms.ChoiceField(
         label='Код країни',
         choices=[
+            ('', 'Оберіть країну'),
             ('+380', '🇺🇦 Україна (+380)'),
             ('+48', '🇵🇱 Польща (+48)'),
             ('+49', '🇩🇪 Німеччина (+49)'),
@@ -61,17 +62,19 @@ class CompanyRegistrationForm(UserCreationForm):
             ('+86', '🇨🇳 Китай (+86)'),
             ('+81', '🇯🇵 Японія (+81)'),
         ],
-        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select', 'id': 'phone_country_company'})
+        widget=forms.Select(attrs={
+            'class': 'form-select form-select-enhanced',
+            'id': 'phone_country_company'
+        })
     )
     phone = forms.CharField(
         label='Номер телефону',
-        max_length=15,
+        max_length=20,
         widget=forms.TextInput(attrs={
-            'class': 'form-control form-control-enhanced phone-number-input',
-            'placeholder': '',
+            'class': 'form-control form-control-enhanced',
             'id': 'phone_company',
-            'autocomplete': 'off',
-            'data-phone-input': 'true'
+            'type': 'tel',
+            'autocomplete': 'tel'
         })
     )
     address = forms.CharField(
@@ -96,7 +99,7 @@ class CompanyRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'company_name', 'phone_country', 'phone')
+        fields = ('username', 'email', 'password1', 'password2', 'company_name', 'phone_country', 'phone', 'address', 'tax_id', 'description', 'logo')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
@@ -129,26 +132,20 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # Обробка телефону - додаємо код країни до введених цифр
-        phone_country = cleaned_data.get('phone_country')
-        if not phone_country:
-            raise forms.ValidationError({'phone_country': 'Будь ласка, оберіть код країни'})
-        
+        # Проста обробка телефону
+        phone_country = cleaned_data.get('phone_country', '')
         phone = cleaned_data.get('phone', '').strip()
         
         if phone:
-            # Видаляємо всі нецифрові символи (залишаємо тільки цифри)
-            phone_digits = ''.join(filter(str.isdigit, phone))
+            # Видаляємо всі нецифрові символи
+            phone_digits = ''.join(filter(str.isdigit, str(phone)))
             
-            # Якщо номер починається з коду країни, який відповідає вибраній країні - видаляємо його
-            country_code_digits = phone_country.replace('+', '')
-            if phone_digits.startswith(country_code_digits) and len(phone_digits) > len(country_code_digits):
-                # Номер вже має код країни, який відповідає вибору - видаляємо його
-                phone_digits = phone_digits[len(country_code_digits):]
-            
-            # Додаємо код країни тільки якщо є цифри
             if phone_digits:
-                cleaned_data['phone'] = phone_country + phone_digits
+                # Додаємо код країни тільки якщо він обраний
+                if phone_country:
+                    cleaned_data['phone'] = phone_country + phone_digits
+                else:
+                    cleaned_data['phone'] = phone_digits
             else:
                 cleaned_data['phone'] = ''
         else:
@@ -160,7 +157,6 @@ class CompanyRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
         user.role = 'company'
         user.company_name = self.cleaned_data['company_name']
-        # Номер телефону вже оброблений в clean() методі
         user.phone = self.cleaned_data.get('phone', '')
         if commit:
             user.save()
@@ -218,6 +214,7 @@ class CarrierRegistrationForm(UserCreationForm):
     phone_country = forms.ChoiceField(
         label='Код країни',
         choices=[
+            ('', 'Оберіть країну'),
             ('+380', '🇺🇦 Україна (+380)'),
             ('+48', '🇵🇱 Польща (+48)'),
             ('+49', '🇩🇪 Німеччина (+49)'),
@@ -239,17 +236,19 @@ class CarrierRegistrationForm(UserCreationForm):
             ('+86', '🇨🇳 Китай (+86)'),
             ('+81', '🇯🇵 Японія (+81)'),
         ],
-        widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select', 'id': 'phone_country_carrier'})
+        widget=forms.Select(attrs={
+            'class': 'form-select form-select-enhanced',
+            'id': 'phone_country_carrier'
+        })
     )
     phone = forms.CharField(
         label='Номер телефону',
-        max_length=15,
+        max_length=20,
         widget=forms.TextInput(attrs={
-            'class': 'form-control form-control-enhanced phone-number-input',
-            'placeholder': '',
+            'class': 'form-control form-control-enhanced',
             'id': 'phone_carrier',
-            'autocomplete': 'off',
-            'data-phone-input': 'true'
+            'type': 'tel',
+            'autocomplete': 'tel'
         })
     )
     vehicle_type = forms.ChoiceField(
@@ -310,7 +309,7 @@ class CarrierRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'phone_country', 'phone')
+        fields = ('username', 'email', 'password1', 'password2', 'phone_country', 'phone', 'vehicle_type', 'vehicle_model', 'vehicle_model_custom', 'address', 'address_lat', 'address_lng', 'experience_years')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
@@ -357,26 +356,20 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
-        # Обробка телефону - додаємо код країни до введених цифр
-        phone_country = cleaned_data.get('phone_country')
-        if not phone_country:
-            raise forms.ValidationError({'phone_country': 'Будь ласка, оберіть код країни'})
-        
+        # Проста обробка телефону
+        phone_country = cleaned_data.get('phone_country', '')
         phone = cleaned_data.get('phone', '').strip()
         
         if phone:
-            # Видаляємо всі нецифрові символи (залишаємо тільки цифри)
-            phone_digits = ''.join(filter(str.isdigit, phone))
+            # Видаляємо всі нецифрові символи
+            phone_digits = ''.join(filter(str.isdigit, str(phone)))
             
-            # Якщо номер починається з коду країни, який відповідає вибраній країні - видаляємо його
-            country_code_digits = phone_country.replace('+', '')
-            if phone_digits.startswith(country_code_digits) and len(phone_digits) > len(country_code_digits):
-                # Номер вже має код країни, який відповідає вибору - видаляємо його
-                phone_digits = phone_digits[len(country_code_digits):]
-            
-            # Додаємо код країни тільки якщо є цифри
             if phone_digits:
-                cleaned_data['phone'] = phone_country + phone_digits
+                # Додаємо код країни тільки якщо він обраний
+                if phone_country:
+                    cleaned_data['phone'] = phone_country + phone_digits
+                else:
+                    cleaned_data['phone'] = phone_digits
             else:
                 cleaned_data['phone'] = ''
         else:
@@ -387,7 +380,6 @@ class CarrierRegistrationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'carrier'
-        # Номер телефону вже оброблений в clean() методі
         user.phone = self.cleaned_data.get('phone', '')
         if commit:
             user.save()
