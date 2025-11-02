@@ -194,8 +194,9 @@
                                 <tr>
                                     <th><i class="bi bi-route"></i> Маршрут</th>
                                     <th><i class="bi bi-box"></i> Тип вантажу</th>
+                                    <th><i class="bi bi-truck"></i> Перевізник</th>
                                     <th><i class="bi bi-cash-coin"></i> Ціна</th>
-                                    <th><i class="bi bi-calendar"></i> Дата створення</th>
+                                    <th><i class="bi bi-calendar"></i> Дати</th>
                                     <th><i class="bi bi-info-circle"></i> Статус</th>
                                     <th><i class="bi bi-gear"></i> Дії</th>
                                 </tr>
@@ -204,27 +205,61 @@
                                 {% for route in routes %}
                                 <tr class="route-row" data-status="{{ route.status }}">
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge bg-success me-2">
+                                        <div class="d-flex align-items-center flex-wrap">
+                                            <span class="badge bg-success me-2 mb-1">
                                                 <i class="bi bi-geo-alt-fill"></i> {{ route.origin_city }}
                                             </span>
-                                            <i class="bi bi-arrow-right mx-2 text-primary"></i>
-                                            <span class="badge bg-danger">
+                                            <i class="bi bi-arrow-right mx-2 text-primary mb-1"></i>
+                                            <span class="badge bg-danger mb-1">
                                                 <i class="bi bi-geo-alt"></i> {{ route.destination_city }}
                                             </span>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ route.cargo_type }}</span>
+                                        <span class="badge bg-secondary">{{ route.cargo_type }}</span><br>
+                                        <small class="text-muted"><i class="bi bi-speedometer2"></i> {{ route.weight }} кг</small>
                                     </td>
                                     <td>
-                                        <strong style="color: var(--success-gradient-start);">{{ route.price }} грн</strong>
+                                        {% if route.carrier %}
+                                            <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none d-block mb-1">
+                                                <strong style="color: var(--primary-gradient-start);">
+                                                    <i class="bi bi-truck"></i> {{ route.carrier.username }}
+                                                </strong>
+                                            </a>
+                                            {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                                                <small class="text-muted">
+                                                    <i class="bi bi-star-fill text-warning"></i> Рейтинг: {{ route.carrier.carrier_profile.rating|floatformat:1 }}/5.0
+                                                </small>
+                                            {% else %}
+                                                <small class="text-muted">Без рейтингу</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted"><i class="bi bi-hourglass-split"></i> Очікує перевізника</span>
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        <small>{{ route.created_at|date:"d.m.Y" }}<br>{{ route.created_at|date:"H:i" }}</small>
+                                        <strong style="color: var(--success-gradient-start); font-size: 1.1rem;">{{ route.price }} грн</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% elif route.status == 'delivered' %}success{% else %}secondary{% endif %}">
+                                        <small class="d-block mb-1">
+                                            <i class="bi bi-calendar-plus"></i> <strong>Створено:</strong><br>
+                                            {{ route.created_at|date:"d.m.Y H:i" }}
+                                        </small>
+                                        {% if route.pickup_date %}
+                                        <small class="d-block mb-1">
+                                            <i class="bi bi-calendar3"></i> <strong>Відправка:</strong><br>
+                                            {{ route.pickup_date|date:"d.m.Y H:i" }}
+                                        </small>
+                                        {% endif %}
+                                        {% if route.delivery_date %}
+                                        <small class="d-block">
+                                            <i class="bi bi-calendar-check"></i> <strong>Доставка:</strong><br>
+                                            {{ route.delivery_date|date:"d.m.Y H:i" }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% elif route.status == 'delivered' %}success{% elif route.status == 'expired' %}danger{% elif route.status == 'cancelled' %}secondary{% endif %} px-3 py-2" style="font-weight: 600;">
                                             {{ route.get_status_display }}
                                         </span>
                                     </td>

@@ -16,41 +16,6 @@
         overflow: hidden;
     }
     
-    .company-hero-section {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
-        background-size: 200% 200%;
-        animation: gradientShift 10s ease infinite;
-        padding: 5rem 0 4rem;
-        margin: -2rem -15px 0 -15px;
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .company-hero-section::before {
-        content: '';
-        position: absolute;
-        top: -30%;
-        right: -10%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-        border-radius: 50%;
-        animation: float 8s ease-in-out infinite;
-    }
-    
-    .company-hero-section::after {
-        content: '';
-        position: absolute;
-        bottom: -20%;
-        left: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        border-radius: 50%;
-        animation: float 6s ease-in-out infinite reverse;
-    }
-    
     .profile-header-section::before {
         content: '';
         position: absolute;
@@ -85,42 +50,6 @@
         background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
     }
     
-    .company-logo-display {
-        width: 180px;
-        height: 180px;
-        border-radius: 25px;
-        background: rgba(255,255,255,0.25);
-        backdrop-filter: blur(15px);
-        border: 4px solid rgba(255,255,255,0.4);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 2rem;
-        position: relative;
-        z-index: 2;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-    }
-    
-    .company-logo-display:hover {
-        transform: translateY(-8px) scale(1.05);
-        box-shadow: 0 25px 70px rgba(0,0,0,0.4);
-        border-color: rgba(255,255,255,0.6);
-    }
-    
-    .company-logo-display img {
-        width: 100%;
-        height: 100%;
-        border-radius: 20px;
-        object-fit: cover;
-    }
-    
-    .company-logo-display i {
-        font-size: 5rem;
-        color: rgba(255,255,255,0.95);
-    }
-    
     .profile-avatar-large img {
         width: 100%;
         height: 100%;
@@ -136,32 +65,6 @@
         margin-top: 1rem;
     }
     
-    .company-badge-container {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 1.5rem;
-    }
-    
-    .company-badge {
-        background: rgba(255,255,255,0.25);
-        backdrop-filter: blur(15px);
-        border: 2px solid rgba(255,255,255,0.4);
-        padding: 0.875rem 1.75rem;
-        border-radius: 30px;
-        font-weight: 700;
-        font-size: 1.05rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    
-    .company-badge:hover {
-        background: rgba(255,255,255,0.35);
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-    
     .stat-card-modern {
         background: white;
         border-radius: 15px;
@@ -172,45 +75,6 @@
         height: 100%;
         position: relative;
         overflow: hidden;
-    }
-    
-    .stat-card-company {
-        background: white;
-        border-radius: 20px;
-        padding: 2.5rem 2rem;
-        box-shadow: 0 8px 35px rgba(0,0,0,0.12);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(226,232,240,0.8);
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-        border-top: 5px solid;
-    }
-    
-    .stat-card-company:nth-child(1) { border-top-color: #3b82f6; }
-    .stat-card-company:nth-child(2) { border-top-color: #f59e0b; }
-    .stat-card-company:nth-child(3) { border-top-color: #10b981; }
-    .stat-card-company:nth-child(4) { border-top-color: #8b5cf6; }
-    
-    .stat-card-company::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), transparent);
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-    
-    .stat-card-company:hover::before {
-        opacity: 1;
-    }
-    
-    .stat-card-company:hover {
-        transform: translateY(-12px) scale(1.03);
-        box-shadow: 0 18px 50px rgba(0,0,0,0.2);
     }
     
     .stat-card-modern::before {
@@ -242,13 +106,72 @@
         line-height: 1.2;
     }
     
+    .company-hero-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 10s ease infinite;
+        padding: 4.5rem 0 3.5rem;
+        margin: -2rem -15px 0 -15px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .company-hero-header::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 8s ease-in-out infinite;
+    }
+    
+    .company-logo-display {
+        width: 160px;
+        height: 160px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.25);
+        backdrop-filter: blur(15px);
+        border: 4px solid rgba(255,255,255,0.4);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        position: relative;
+        z-index: 2;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    
+    .company-logo-display:hover {
+        transform: translateY(-8px) scale(1.05);
+        box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+        border-color: rgba(255,255,255,0.6);
+    }
+    
+    .company-logo-display img {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+    }
+    
+    .company-logo-display i {
+        font-size: 4.5rem;
+        color: rgba(255,255,255,0.95);
+    }
+    
     .total-spent-card {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
-        border-radius: 22px;
-        padding: 3rem 2rem;
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
         box-shadow: 0 12px 40px rgba(16, 185, 129, 0.35);
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
         text-align: center;
         position: relative;
         overflow: hidden;
@@ -267,7 +190,7 @@
     
     .total-spent-card .stat-number {
         color: white;
-        font-size: 3.5rem;
+        font-size: 3rem;
         font-weight: 800;
         position: relative;
         z-index: 1;
@@ -275,17 +198,35 @@
     
     .total-spent-card .stat-icon {
         color: rgba(255,255,255,0.95);
-        font-size: 3.5rem;
+        font-size: 3rem;
         position: relative;
         z-index: 1;
     }
     
-    .total-spent-card p {
-        position: relative;
-        z-index: 1;
-        font-size: 1.1rem;
-        font-weight: 600;
-        opacity: 0.95;
+    .company-map-container {
+        background: white;
+        border-radius: 18px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(226,232,240,0.8);
+    }
+    
+    .company-map-container h5 {
+        color: var(--primary-gradient-start);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .company-map-container #company-map {
+        border-radius: 15px;
+        height: 350px;
+        width: 100%;
+        overflow: hidden;
+        border: 2px solid #f1f5f9;
     }
     
     .info-section {
@@ -297,28 +238,6 @@
         border: 1px solid rgba(226,232,240,0.8);
     }
     
-    .company-info-card {
-        background: white;
-        border-radius: 22px;
-        padding: 3rem 2.5rem;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-        margin-bottom: 2.5rem;
-        border: 1px solid rgba(226,232,240,0.8);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .company-info-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 6px;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-        border-radius: 22px 22px 0 0;
-    }
-    
     .info-item {
         padding: 1rem 0;
         border-bottom: 1px solid #f1f5f9;
@@ -326,24 +245,7 @@
         align-items: flex-start;
     }
     
-    .info-item-enhanced {
-        padding: 1.5rem 0;
-        border-bottom: 1px solid #f1f5f9;
-        display: flex;
-        align-items: flex-start;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .info-item-enhanced:hover {
-        background: linear-gradient(90deg, rgba(59, 130, 246, 0.04), transparent);
-        padding-left: 1rem;
-        padding-right: 1rem;
-        border-radius: 12px;
-        margin: 0 -1rem;
-    }
-    
-    .info-item:last-child,
-    .info-item-enhanced:last-child {
+    .info-item:last-child {
         border-bottom: none;
     }
     
@@ -352,26 +254,6 @@
         color: var(--primary-gradient-start);
         margin-right: 1rem;
         min-width: 30px;
-    }
-    
-    .info-icon-enhanced {
-        font-size: 2rem;
-        color: #3b82f6;
-        margin-right: 1.5rem;
-        min-width: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.08));
-        border-radius: 15px;
-        transition: all 0.3s ease;
-    }
-    
-    .info-item-enhanced:hover .info-icon-enhanced {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.15));
-        transform: scale(1.1);
     }
     
     .info-content {
@@ -393,39 +275,6 @@
         font-weight: 500;
     }
     
-    .info-value-enhanced {
-        font-size: 1.25rem;
-        color: #1e293b;
-        font-weight: 600;
-        line-height: 1.5;
-    }
-    
-    .company-map-container {
-        background: white;
-        border-radius: 22px;
-        padding: 2rem;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-        margin-bottom: 2.5rem;
-        border: 1px solid rgba(226,232,240,0.8);
-    }
-    
-    .company-map-container h5 {
-        color: #1e293b;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .company-map-container #company-map {
-        border-radius: 18px;
-        height: 350px;
-        width: 100%;
-        overflow: hidden;
-        border: 2px solid #f1f5f9;
-    }
-    
     .rating-section {
         background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
         border-radius: 15px;
@@ -444,40 +293,6 @@
         margin-bottom: 0.5rem;
     }
     
-    .route-card-enhanced {
-        background: white;
-        border-radius: 18px;
-        padding: 2rem;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.1);
-        margin-bottom: 1.5rem;
-        border-left: 6px solid;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .route-card-enhanced::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 120px;
-        height: 120px;
-        background: radial-gradient(circle, rgba(59, 130, 246, 0.06), transparent);
-        border-radius: 0 0 0 120px;
-    }
-    
-    .route-card-enhanced:hover {
-        transform: translateX(8px);
-        box-shadow: 0 12px 35px rgba(59, 130, 246, 0.25);
-    }
-    
-    .route-card-enhanced.pending { border-left-color: #f59e0b; }
-    .route-card-enhanced.in_transit { border-left-color: #3b82f6; }
-    .route-card-enhanced.delivered { border-left-color: #10b981; }
-    .route-card-enhanced.expired { border-left-color: #ef4444; }
-    .route-card-enhanced.cancelled { border-left-color: #6b7280; }
-    
     @keyframes float {
         0%, 100% { transform: translateY(0px); }
         50% { transform: translateY(-20px); }
@@ -487,7 +302,7 @@
 
 {% block content %}
 {% if profile_user.role == 'company' %}
-<div class="company-hero-section">
+<div class="company-hero-header">
     <div class="container text-center position-relative" style="z-index: 1;">
         <div class="profile-avatar-container">
             {% if company_profile and company_profile.logo %}
@@ -505,25 +320,23 @@
             {{ profile_user.company_name|default:profile_user.username }}
         </h1>
         
-        <p class="mb-0" style="font-size: 1.25rem; opacity: 0.95; font-weight: 500;">
-            {% if company_profile and company_profile.description %}
-                {{ company_profile.description|truncatewords:15 }}
-            {% else %}
-                Професійна логістична компанія
-            {% endif %}
+        {% if company_profile and company_profile.description %}
+        <p class="mb-4" style="font-size: 1.25rem; opacity: 0.95; font-weight: 500; max-width: 700px; margin: 0 auto;">
+            {{ company_profile.description|truncatewords:20 }}
         </p>
+        {% endif %}
         
-        <div class="company-badge-container">
-            <span class="company-badge">
+        <div class="profile-badges">
+            <span class="badge bg-light text-dark px-3 py-2" style="font-size: 1rem; background: rgba(255,255,255,0.25) !important; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.4);">
                 <i class="bi bi-shield-check"></i> {{ profile_user.get_role_display }}
             </span>
             {% if profile_user.is_staff %}
-                <span class="company-badge" style="background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.5);">
+                <span class="badge bg-danger px-3 py-2" style="font-size: 1rem; background: rgba(239, 68, 68, 0.3) !important; border: 2px solid rgba(239, 68, 68, 0.5);">
                     <i class="bi bi-star-fill"></i> Адміністратор
                 </span>
             {% endif %}
             {% if company_profile and company_profile.tax_id %}
-                <span class="company-badge">
+                <span class="badge bg-light text-dark px-3 py-2" style="font-size: 1rem; background: rgba(255,255,255,0.25) !important; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.4);">
                     <i class="bi bi-receipt"></i> {{ company_profile.tax_id }}
                 </span>
             {% endif %}
@@ -591,57 +404,45 @@
 
 <div class="container mt-5">
     <!-- Статистика -->
-    {% if profile_user.role == 'company' %}
-    <div class="row mb-5">
+    <div class="row mb-4">
+        {% if profile_user.role == 'company' %}
         <div class="col-md-3 mb-4">
-            <div class="stat-card-company text-center">
-                <div class="stat-icon" style="color: #3b82f6;">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon" style="color: var(--primary-gradient-start);">
                     <i class="bi bi-map"></i>
                 </div>
-                <div class="stat-number" style="color: #3b82f6;">{{ routes_created }}</div>
-                <p class="text-muted mb-0" style="font-size: 1rem; font-weight: 600;">Створено маршрутів</p>
+                <div class="stat-number">{{ routes_created }}</div>
+                <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">Створено маршрутів</p>
             </div>
         </div>
         <div class="col-md-3 mb-4">
-            <div class="stat-card-company text-center">
-                <div class="stat-icon" style="color: #f59e0b;">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon" style="color: var(--warning-gradient-start);">
                     <i class="bi bi-clock-history"></i>
                 </div>
-                <div class="stat-number" style="color: #f59e0b;">{{ routes_pending }}</div>
-                <p class="text-muted mb-0" style="font-size: 1rem; font-weight: 600;">Очікує</p>
+                <div class="stat-number">{{ routes_pending }}</div>
+                <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">Очікує</p>
             </div>
         </div>
         <div class="col-md-3 mb-4">
-            <div class="stat-card-company text-center">
-                <div class="stat-icon" style="color: #10b981;">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon" style="color: var(--accent-gradient-start);">
                     <i class="bi bi-truck"></i>
                 </div>
-                <div class="stat-number" style="color: #10b981;">{{ routes_in_transit }}</div>
-                <p class="text-muted mb-0" style="font-size: 1rem; font-weight: 600;">В дорозі</p>
+                <div class="stat-number">{{ routes_in_transit }}</div>
+                <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">В дорозі</p>
             </div>
         </div>
         <div class="col-md-3 mb-4">
-            <div class="stat-card-company text-center">
-                <div class="stat-icon" style="color: #8b5cf6;">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon" style="color: var(--success-gradient-start);">
                     <i class="bi bi-check-circle"></i>
                 </div>
-                <div class="stat-number" style="color: #8b5cf6;">{{ routes_completed }}</div>
-                <p class="text-muted mb-0" style="font-size: 1rem; font-weight: 600;">Завершено</p>
+                <div class="stat-number">{{ routes_completed }}</div>
+                <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">Завершено</p>
             </div>
         </div>
-    </div>
-    
-    {% if total_spent > 0 %}
-    <div class="total-spent-card">
-        <div class="stat-icon">
-            <i class="bi bi-cash-stack"></i>
-        </div>
-        <div class="stat-number">{{ total_spent|floatformat:0 }}</div>
-        <p class="mb-0">Всього витрачено на доставки</p>
-    </div>
-    {% endif %}
-    {% else %}
-    <div class="row mb-4">
+        {% else %}
         <div class="col-md-3 mb-4">
             <div class="stat-card-modern text-center">
                 <div class="stat-icon" style="color: var(--primary-gradient-start);">
@@ -678,6 +479,17 @@
                 <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">Зароблено (грн)</p>
             </div>
         </div>
+        {% endif %}
+    </div>
+    
+    <!-- Загальні витрати для компанії -->
+    {% if profile_user.role == 'company' and total_spent > 0 %}
+    <div class="total-spent-card">
+        <div class="stat-icon">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="stat-number">{{ total_spent|floatformat:0 }}</div>
+        <p class="mb-0" style="position: relative; z-index: 1; font-size: 1.1rem; font-weight: 600; opacity: 0.95;">Всього витрачено на доставки (грн)</p>
     </div>
     {% endif %}
     
@@ -714,90 +526,6 @@
     <!-- Інформація про профіль -->
     <div class="row">
         <div class="col-lg-8">
-            {% if profile_user.role == 'company' %}
-            <div class="company-info-card">
-                <h4 class="mb-4" style="color: #1e293b; font-weight: 700; font-size: 1.75rem;">
-                    <i class="bi bi-info-circle" style="color: #3b82f6;"></i> Інформація про компанію
-                </h4>
-                
-                <div class="info-item-enhanced">
-                    <div class="info-icon-enhanced">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="info-content">
-                        <div class="info-label">Ім'я користувача</div>
-                        <div class="info-value-enhanced">{{ profile_user.username }}</div>
-                    </div>
-                </div>
-                
-                {% if profile_user.company_name %}
-                <div class="info-item-enhanced">
-                    <div class="info-icon-enhanced">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div class="info-content">
-                        <div class="info-label">Назва компанії</div>
-                        <div class="info-value-enhanced">{{ profile_user.company_name }}</div>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if company_profile %}
-                    {% if company_profile.tax_id %}
-                    <div class="info-item-enhanced">
-                        <div class="info-icon-enhanced">
-                            <i class="bi bi-receipt"></i>
-                        </div>
-                        <div class="info-content">
-                            <div class="info-label">Податковий номер</div>
-                            <div class="info-value-enhanced">{{ company_profile.tax_id }}</div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if company_profile.address %}
-                    <div class="info-item-enhanced">
-                        <div class="info-icon-enhanced">
-                            <i class="bi bi-geo-alt"></i>
-                        </div>
-                        <div class="info-content">
-                            <div class="info-label">Адреса</div>
-                            <div class="info-value-enhanced">{{ company_profile.address }}</div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if company_profile.description %}
-                    <div class="info-item-enhanced">
-                        <div class="info-icon-enhanced">
-                            <i class="bi bi-file-text"></i>
-                        </div>
-                        <div class="info-content">
-                            <div class="info-label">Опис компанії</div>
-                            <div class="info-value-enhanced" style="line-height: 1.7;">{{ company_profile.description }}</div>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endif %}
-                
-                <div class="info-item-enhanced">
-                    <div class="info-icon-enhanced">
-                        <i class="bi bi-calendar"></i>
-                    </div>
-                    <div class="info-content">
-                        <div class="info-label">Дата реєстрації</div>
-                        <div class="info-value-enhanced">{{ profile_user.date_joined|date:"d.m.Y" }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            {% if company_profile and company_profile.address_lat and company_profile.address_lng %}
-            <div class="company-map-container">
-                <h5><i class="bi bi-map" style="color: #3b82f6;"></i> Розташування компанії</h5>
-                <div id="company-map"></div>
-            </div>
-            {% endif %}
-            {% else %}
             <div class="info-section">
                 <h4 class="mb-4" style="color: var(--primary-gradient-start); font-weight: 600;">
                     <i class="bi bi-info-circle"></i> Інформація про профіль
@@ -822,6 +550,56 @@
                         <div class="info-value">{{ profile_user.get_role_display }}</div>
                     </div>
                 </div>
+                
+                {% if profile_user.company_name %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Назва компанії</div>
+                        <div class="info-value">{{ profile_user.company_name }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if company_profile %}
+                    {% if company_profile.tax_id %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Податковий номер</div>
+                            <div class="info-value">{{ company_profile.tax_id }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if company_profile.address %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Адреса</div>
+                            <div class="info-value">{{ company_profile.address }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if company_profile.description %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Опис</div>
+                            <div class="info-value">{{ company_profile.description }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
                 
                 {% if carrier_profile %}
                     {% if carrier_profile.vehicle_type %}
@@ -895,7 +673,6 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
             
             <!-- Останні маршрути -->
             {% if recent_routes %}
@@ -904,46 +681,63 @@
                     <i class="bi bi-map"></i> Останні маршрути
                 </h4>
                 {% for route in recent_routes %}
-                <div class="route-card-enhanced {{ route.status }}">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div style="flex: 1;">
-                            <h6 class="mb-2" style="font-weight: 700; font-size: 1.15rem;">
-                                <i class="bi bi-geo-alt-fill text-success"></i> {{ route.origin_city }}
-                                <i class="bi bi-arrow-right mx-2 text-muted"></i>
-                                <i class="bi bi-geo-alt-fill text-danger"></i> {{ route.destination_city }}
-                            </h6>
-                            <p class="mb-2 text-muted" style="font-size: 0.95rem;">
-                                {% if profile_user.role == 'company' and route.carrier %}
-                                    <i class="bi bi-truck"></i> 
-                                    <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none fw-bold" style="color: #3b82f6;">Перевізник: {{ route.carrier.username }}</a>
-                                    {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
-                                        <i class="bi bi-star-fill text-warning ms-1"></i> {{ route.carrier.carrier_profile.rating|floatformat:1 }}
+                <div class="card mb-3" style="border-left: 4px solid var(--primary-gradient-start); transition: all 0.3s ease;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <h6 class="mb-2" style="font-weight: 600;">
+                                    <i class="bi bi-geo-alt-fill text-success"></i> {{ route.origin_city }}
+                                    <i class="bi bi-arrow-right mx-2"></i>
+                                    <i class="bi bi-geo-alt-fill text-danger"></i> {{ route.destination_city }}
+                                </h6>
+                                <p class="mb-2 text-muted" style="font-size: 0.95rem;">
+                                    {% if profile_user.role == 'company' and route.carrier %}
+                                        <i class="bi bi-truck"></i> 
+                                        <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none fw-bold" style="color: var(--primary-gradient-start);">Перевізник: {{ route.carrier.username }}</a>
+                                        {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                                            <i class="bi bi-star-fill text-warning ms-1"></i> {{ route.carrier.carrier_profile.rating|floatformat:1 }}
+                                        {% endif %}
+                                        <br>
+                                    {% elif profile_user.role == 'carrier' and route.company %}
+                                        <i class="bi bi-building"></i> 
+                                        <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none fw-bold" style="color: var(--primary-gradient-start);">Компанія: {{ route.company.company_name|default:route.company.username }}</a>
+                                        <br>
                                     {% endif %}
-                                    <br>
-                                {% elif profile_user.role == 'carrier' and route.company %}
-                                    <i class="bi bi-building"></i> 
-                                    <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none fw-bold" style="color: #3b82f6;">Компанія: {{ route.company.company_name|default:route.company.username }}</a>
-                                    <br>
-                                {% endif %}
-                                <i class="bi bi-box-seam"></i> {{ route.cargo_type }} | 
-                                <i class="bi bi-speedometer2"></i> {{ route.weight }} кг | 
-                                <i class="bi bi-cash-stack"></i> {{ route.price }} грн
-                            </p>
-                            <small class="text-muted">
-                                <i class="bi bi-calendar3"></i> {{ route.pickup_date|date:"d.m.Y H:i" }}
-                            </small>
-                        </div>
-                        <div class="text-end ms-3">
-                            <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% elif route.status == 'delivered' %}success{% else %}secondary{% endif %} px-3 py-2 mb-2 d-block" style="font-size: 0.9rem; font-weight: 600;">
-                                {{ route.get_status_display }}
-                            </span>
-                            <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary">
-                                <i class="bi bi-arrow-right-circle"></i> Переглянути
-                            </a>
+                                    <i class="bi bi-box-seam"></i> {{ route.cargo_type }} | 
+                                    <i class="bi bi-speedometer2"></i> {{ route.weight }} кг | 
+                                    <i class="bi bi-cash-stack"></i> <strong style="color: var(--success-gradient-start);">{{ route.price }} грн</strong>
+                                </p>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3"></i> Відправка: {{ route.pickup_date|date:"d.m.Y H:i" }}
+                                    </small>
+                                    {% if route.delivery_date %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-check"></i> Доставка: {{ route.delivery_date|date:"d.m.Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end ms-3">
+                                <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% elif route.status == 'delivered' %}success{% elif route.status == 'expired' %}danger{% else %}secondary{% endif %} mb-2 d-block px-3 py-2" style="font-size: 0.9rem; font-weight: 600;">
+                                    {{ route.get_status_display }}
+                                </span>
+                                <a href="{% url 'route_detail' route.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-arrow-right-circle"></i> Переглянути
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Карта розташування для компанії -->
+            {% if profile_user.role == 'company' and company_profile and company_profile.address_lat and company_profile.address_lng %}
+            <div class="company-map-container">
+                <h5><i class="bi bi-map" style="color: var(--primary-gradient-start);"></i> Розташування компанії</h5>
+                <div id="company-map"></div>
             </div>
             {% endif %}
         </div>
@@ -1008,7 +802,7 @@
     </div>
 </div>
 
-{% if company_profile and company_profile.address_lat and company_profile.address_lng %}
+{% if profile_user.role == 'company' and company_profile and company_profile.address_lat and company_profile.address_lng %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script>
@@ -1044,5 +838,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
-
 {% endblock %}
