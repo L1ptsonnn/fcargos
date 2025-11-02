@@ -351,6 +351,18 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
+        # Обробка телефону
+        phone_country = cleaned_data.get('phone_country', '+380')
+        phone = cleaned_data.get('phone', '')
+        if phone:
+            # Видаляємо всі нецифрові символи
+            phone = ''.join(filter(str.isdigit, phone))
+            # Додаємо код країни
+            if not phone.startswith('+'):
+                cleaned_data['phone'] = phone_country + phone
+            else:
+                cleaned_data['phone'] = phone
+        
         return cleaned_data
     
     def save(self, commit=True):
