@@ -130,27 +130,32 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # Обробка телефону - тільки додаємо код країни до чистого номера
+        # Обробка телефону - просто додаємо код країни до введених цифр
         phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '').strip()
+        
         if phone:
-            # Видаляємо всі нецифрові символи (номер має бути вже очищений JS)
-            phone = ''.join(filter(str.isdigit, phone))
+            # Видаляємо всі нецифрові символи (залишаємо тільки цифри)
+            phone_digits = ''.join(filter(str.isdigit, phone))
             
-            # Список кодів країн для видалення (якщо щось залишилося)
-            country_codes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81']
+            # Список кодів країн без + для видалення (на випадок якщо щось залишилося)
+            country_codes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', 
+                           '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81']
             
-            # Видаляємо будь-який код країни з початку
+            # Видаляємо код країни з початку якщо він там є
             for code in country_codes:
-                if phone.startswith(code) and len(phone) > len(code):
-                    phone = phone[len(code):]
+                if phone_digits.startswith(code) and len(phone_digits) > len(code):
+                    phone_digits = phone_digits[len(code):]
                     break
             
-            # Додаємо вибраний код країни
-            if phone:
-                cleaned_data['phone'] = phone_country + phone
+            # Додаємо код країни тільки якщо є цифри
+            if phone_digits:
+                cleaned_data['phone'] = phone_country + phone_digits
             else:
                 cleaned_data['phone'] = ''
+        else:
+            cleaned_data['phone'] = ''
+        
         return cleaned_data
     
     def save(self, commit=True):
@@ -355,27 +360,31 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
-        # Обробка телефону - тільки додаємо код країни до чистого номера
+        # Обробка телефону - просто додаємо код країни до введених цифр
         phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '').strip()
+        
         if phone:
-            # Видаляємо всі нецифрові символи (номер має бути вже очищений JS)
-            phone = ''.join(filter(str.isdigit, phone))
+            # Видаляємо всі нецифрові символи (залишаємо тільки цифри)
+            phone_digits = ''.join(filter(str.isdigit, phone))
             
-            # Список кодів країн для видалення (якщо щось залишилося)
-            country_codes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81']
+            # Список кодів країн без + для видалення (на випадок якщо щось залишилося)
+            country_codes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', 
+                           '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81']
             
-            # Видаляємо будь-який код країни з початку
+            # Видаляємо код країни з початку якщо він там є
             for code in country_codes:
-                if phone.startswith(code) and len(phone) > len(code):
-                    phone = phone[len(code):]
+                if phone_digits.startswith(code) and len(phone_digits) > len(code):
+                    phone_digits = phone_digits[len(code):]
                     break
             
-            # Додаємо вибраний код країни
-            if phone:
-                cleaned_data['phone'] = phone_country + phone
+            # Додаємо код країни тільки якщо є цифри
+            if phone_digits:
+                cleaned_data['phone'] = phone_country + phone_digits
             else:
                 cleaned_data['phone'] = ''
+        else:
+            cleaned_data['phone'] = ''
         
         return cleaned_data
     
