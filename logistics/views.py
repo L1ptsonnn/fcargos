@@ -36,11 +36,13 @@ def check_expired_routes():
         
         # Створюємо сповіщення тільки якщо його ще немає
         if not existing_notification:
+            # Конвертуємо дату в локальний час
+            pickup_date_local = timezone.localtime(route.pickup_date) if timezone.is_aware(route.pickup_date) else route.pickup_date
             Notification.objects.create(
                 user=route.company,
                 notification_type='route_expired',
                 title='Маршрут просрочений',
-                message=f'Маршрут {route.origin_city} → {route.destination_city} просрочений. Ніхто не прийняв ставку до часу забору ({route.pickup_date.strftime("%d.%m.%Y %H:%M")}).',
+                message=f'Маршрут {route.origin_city} → {route.destination_city} просрочений. Ніхто не прийняв ставку до часу забору ({pickup_date_local.strftime("%d.%m.%Y %H:%M")}).',
                 route=route
             )
             expired_count += 1

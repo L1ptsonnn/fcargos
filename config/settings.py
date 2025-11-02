@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Kyiv'
 
 USE_I18N = True
 
@@ -140,7 +140,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Language and Timezone
 LANGUAGE_CODE = 'uk'
-TIME_ZONE = 'Europe/Kyiv'
 
 # Authentication URLs
 LOGIN_URL = 'login'
