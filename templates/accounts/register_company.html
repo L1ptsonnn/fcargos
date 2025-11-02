@@ -666,18 +666,9 @@
         
         if (!phoneCountry || !phoneInput) return;
         
-        // НЕ встановлюємо значення за замовчуванням - користувач має сам обрати країну
-        
         // Функція для оновлення placeholder
         function setPlaceholder() {
             const countryCode = phoneCountry.value;
-            
-            // Якщо країна не обрана, показуємо порожній placeholder
-            if (!countryCode) {
-                phoneInput.placeholder = 'Оберіть країну спочатку';
-                return;
-            }
-            
             const placeholders = {
                 '+380': '(XX) XXX XX XX',
                 '+48': 'XXX XXX XXX',
@@ -700,21 +691,12 @@
                 '+86': 'XXX XXXX XXXX',
                 '+81': 'XX XXXX XXXX',
             };
-            phoneInput.placeholder = placeholders[countryCode] || 'Введіть номер';
+            phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
         }
         
         // Обробник зміни країни
         phoneCountry.addEventListener('change', function() {
-            const selectedCountryCode = this.value.replace('+', '');
-            const currentValue = phoneInput.value;
-            
-            // Якщо поле порожнє або містить тільки цифри без коду країни на початку
-            if (!currentValue || (!currentValue.startsWith(selectedCountryCode) && /^\d+$/.test(currentValue))) {
-                // Не підставляємо автоматично - користувач має ввести сам
-                // Тільки оновлюємо placeholder
-            }
-            
-            // Оновлюємо placeholder
+            // Просто оновлюємо placeholder при зміні країни
             setPlaceholder();
         });
         
