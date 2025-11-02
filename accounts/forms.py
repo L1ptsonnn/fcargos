@@ -43,18 +43,18 @@ class CompanyRegistrationForm(UserCreationForm):
         widget=forms.Textarea(attrs={
             'class': 'form-control form-control-enhanced',
             'rows': 2,
-            'id': 'address_field_company',
+            'id': 'address_field',
             'placeholder': 'Вкажіть адресу на карті',
             'readonly': True
         })
     )
     address_lat = forms.DecimalField(
         required=False,
-        widget=forms.HiddenInput(attrs={'id': 'address_lat_company'})
+        widget=forms.HiddenInput(attrs={'id': 'address_lat'})
     )
     address_lng = forms.DecimalField(
         required=False,
-        widget=forms.HiddenInput(attrs={'id': 'address_lng_company'})
+        widget=forms.HiddenInput(attrs={'id': 'address_lng'})
     )
     tax_id = forms.CharField(
         label='Податковий номер',
@@ -94,9 +94,9 @@ class CompanyRegistrationForm(UserCreationForm):
                 Column('password2', css_class='col-md-6'),
             ),
             'company_name',
-            Field('address'),
-            Field('address_lat'),
-            Field('address_lng'),
+            'address',
+            'address_lat',
+            'address_lng',
             'tax_id',
             'description',
             'logo',

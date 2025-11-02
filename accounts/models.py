@@ -49,20 +49,20 @@ class CompanyProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='company_profile'
     )
-    address = models.TextField(blank=True, verbose_name='Адреса')
+    address = models.TextField(verbose_name='Адреса')
     address_lat = models.DecimalField(
         max_digits=9,
         decimal_places=6,
         null=True,
         blank=True,
-        verbose_name='Широта адреси'
+        verbose_name='Широта'
     )
     address_lng = models.DecimalField(
         max_digits=9,
         decimal_places=6,
         null=True,
         blank=True,
-        verbose_name='Довгота адреси'
+        verbose_name='Довгота'
     )
     tax_id = models.CharField(
         max_length=50,
