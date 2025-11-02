@@ -977,14 +977,31 @@
     }
 
     function initAddressMap() {
+        const mapContainer = document.getElementById('addressMapModalMap');
+        if (!mapContainer) {
+            console.warn('Map container not found');
+            return;
+        }
+        
         if (addressMap) {
             addressMap.remove();
+            addressMap = null;
         }
 
-        const existingLat = parseFloat(document.getElementById('id_address_lat').value) || 50.45;
-        const existingLng = parseFloat(document.getElementById('id_address_lng').value) || 30.52;
+        const existingLat = parseFloat(document.getElementById('id_address_lat')?.value) || 50.45;
+        const existingLng = parseFloat(document.getElementById('id_address_lng')?.value) || 30.52;
 
-        addressMap = L.map('addressMapModalMap').setView([existingLat, existingLng], 10);
+        try {
+            addressMap = L.map('addressMapModalMap').setView([existingLat, existingLng], 10);
+        } catch (e) {
+            console.warn('Error initializing map:', e);
+            return;
+        }
+        
+        if (!addressMap) {
+            console.warn('Map not initialized');
+            return;
+        }
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'

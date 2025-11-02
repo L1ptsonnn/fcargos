@@ -284,13 +284,27 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const currentUserId = {% if user.is_authenticated %}{{ user.id }}{% else %}0{% endif %};
+            const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
             const notificationBadge = document.getElementById('notificationBadge');
             const notificationsList = document.getElementById('notificationsList');
             const markAllReadBtn = document.getElementById('markAllReadBtn');
             
             function loadNotifications() {
-                fetch('{% url "notifications_api" %}')
+                // Не завантажуємо сповіщення якщо користувач не авторизований
+                if (!isAuthenticated) {
+                    return;
+                }
+                
+                fetch('{% url "notifications_api" %}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                     .then(response => {
+                        // Перевіряємо чи це редирект (302/301)
+                        if (response.redirected || response.status === 302 || response.status === 301) {
+                            throw new Error('Redirected - user not authenticated');
+                        }
                         const contentType = response.headers.get('content-type');
                         if (!contentType || !contentType.includes('application/json')) {
                             throw new Error('Expected JSON but got ' + contentType);
@@ -375,8 +389,11 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Помилка завантаження сповіщень:', error);
-                        // Не показуємо помилку якщо це не JSON - можливо користувач не авторизований
+                        // Тихо ігноруємо помилки - можливо користувач не авторизований
+                        // Тільки логуємо для дебагу в режимі розробки
+                        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            console.debug('Notifications loading error:', error.message);
+                        }
                     });
             }
             
@@ -418,6 +435,11 @@
             
             // Завантаження чатів
             function loadChats() {
+                // Не завантажуємо чати якщо користувач не авторизований
+                if (!isAuthenticated) {
+                    return;
+                }
+                
                 const chatsList = document.getElementById('chatsList');
                 if (chatsList) {
                     chatsList.innerHTML = `
@@ -428,8 +450,16 @@
                     `;
                 }
                 
-                fetch('{% url "chats_api" %}')
+                fetch('{% url "chats_api" %}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                     .then(response => {
+                        // Перевіряємо чи це редирект (302/301)
+                        if (response.redirected || response.status === 302 || response.status === 301) {
+                            throw new Error('Redirected - user not authenticated');
+                        }
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         }
@@ -519,7 +549,11 @@
                         }
                     })
                     .catch(error => {
-                        // Не показуємо помилку якщо це не JSON - можливо користувач не авторизований
+                        // Тихо ігноруємо помилки - можливо користувач не авторизований
+                        // Тільки логуємо для дебагу в режимі розробки
+                        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            console.debug('Chats loading error:', error.message);
+                        }
                         const chatsList = document.getElementById('chatsList');
                         if (chatsList) {
                             chatsList.innerHTML = `
