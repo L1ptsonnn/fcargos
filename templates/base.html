@@ -290,7 +290,13 @@
             
             function loadNotifications() {
                 fetch('{% url "notifications_api" %}')
-                    .then(response => response.json())
+                    .then(response => {
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Expected JSON but got ' + contentType);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         // Оновлюємо бейдж
                         if (data.unread_count > 0) {
@@ -370,6 +376,7 @@
                     })
                     .catch(error => {
                         console.error('Помилка завантаження сповіщень:', error);
+                        // Не показуємо помилку якщо це не JSON - можливо користувач не авторизований
                     });
             }
             
@@ -425,6 +432,10 @@
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
+                        }
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Expected JSON but got ' + contentType);
                         }
                         return response.json();
                     })

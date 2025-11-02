@@ -702,7 +702,7 @@
     // ========================================
     // НОВА ЛОГІКА ВВОДУ НОМЕРА ТЕЛЕФОНУ
     // ========================================
-    (function initPhoneInput() {
+    document.addEventListener('DOMContentLoaded', function() {
         const phoneCountry = document.getElementById('phone_country_carrier');
         const phoneInput = document.getElementById('phone_carrier');
         
@@ -871,7 +871,7 @@
         
         // Встановлюємо початковий placeholder
         setPlaceholder();
-    })();
+    });
     
     // Перевірка сили пароля
     const password1Input = document.getElementById('id_password1');

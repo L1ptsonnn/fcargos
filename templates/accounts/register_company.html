@@ -483,7 +483,7 @@
     </div>
     
     <div class="container">
-        <div class="row justify-content-center">
+    <div class="row justify-content-center">
             <div class="col-lg-10 col-xl-8">
                 <div class="register-card">
                     <div class="register-header">
@@ -625,8 +625,8 @@
                                 </label>
                                 <div class="logo-preview-container">
                                     <img id="logoPreview" class="logo-preview" alt="Превью логотипу">
-                                </div>
-                            </div>
+                    </div>
+                </div>
                             
                             <button type="submit" class="btn btn-submit-enhanced">
                                 <i class="bi bi-check-circle-fill"></i> Зареєструватися
@@ -660,7 +660,7 @@
     // ========================================
     // НОВА ЛОГІКА ВВОДУ НОМЕРА ТЕЛЕФОНУ
     // ========================================
-    (function initPhoneInput() {
+    document.addEventListener('DOMContentLoaded', function() {
         const phoneCountry = document.getElementById('phone_country_company');
         const phoneInput = document.getElementById('phone_company');
         
@@ -829,7 +829,7 @@
         
         // Встановлюємо початковий placeholder
         setPlaceholder();
-    })();
+    });
     
     // Перевірка сили пароля
     const password1Input = document.getElementById('id_password1');
