@@ -10,6 +10,7 @@ class Route(models.Model):
         ('in_transit', 'В дорозі'),
         ('delivered', 'Доставлено'),
         ('cancelled', 'Скасовано'),
+        ('expired', 'Просрочений'),
     ]
 
     company = models.ForeignKey(
@@ -264,6 +265,7 @@ class Notification(models.Model):
         ('route_assigned', 'Вам призначено маршрут'),
         ('route_completed', 'Маршрут завершено'),
         ('tracking_updated', 'Оновлено відстеження'),
+        ('route_expired', 'Маршрут просрочений'),
     ]
     
     user = models.ForeignKey(

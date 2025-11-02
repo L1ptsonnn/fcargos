@@ -2,16 +2,62 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 from .models import Route, Bid, Tracking, Message, Notification, Rating
 from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm, RatingForm
+
+
+def check_expired_routes():
+    """Перевіряє та позначає просрочені маршрути"""
+    now = timezone.now()
+    
+    # Знаходимо маршрути, які:
+    # 1. Мають статус 'pending' (не прийняті)
+    # 2. Не мають перевізника (carrier = None)
+    # 3. Дата забору (pickup_date) вже пройшла
+    expired_routes = Route.objects.filter(
+        status='pending',
+        carrier__isnull=True,
+        pickup_date__lt=now
+    )
+    
+    expired_count = 0
+    for route in expired_routes:
+        # Оновлюємо статус на 'expired'
+        route.status = 'expired'
+        route.save()
+        
+        # Перевіряємо чи вже є сповіщення про просрочення для цього маршруту
+        existing_notification = Notification.objects.filter(
+            user=route.company,
+            notification_type='route_expired',
+            route=route
+        ).exists()
+        
+        # Створюємо сповіщення тільки якщо його ще немає
+        if not existing_notification:
+            Notification.objects.create(
+                user=route.company,
+                notification_type='route_expired',
+                title='Маршрут просрочений',
+                message=f'Маршрут {route.origin_city} → {route.destination_city} просрочений. Ніхто не прийняв ставку до часу забору ({route.pickup_date.strftime("%d.%m.%Y %H:%M")}).',
+                route=route
+            )
+            expired_count += 1
+    
+    return expired_count
 
 
 @login_required
 def routes_list(request):
     """Список маршрутів"""
+    # Перевіряємо просрочені маршрути
+    check_expired_routes()
+    
     if request.user.role == 'company':
         routes = Route.objects.filter(company=request.user).order_by('-created_at')
     elif request.user.role == 'carrier':
+        # Перевізники бачать тільки pending маршрути (не просрочені)
         routes = Route.objects.filter(status='pending').order_by('-created_at')
     else:
         routes = Route.objects.none()
