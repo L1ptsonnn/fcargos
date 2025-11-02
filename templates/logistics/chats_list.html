@@ -68,7 +68,11 @@
     <div class="row">
         {% for chat in chats_data %}
         <div class="col-12 mb-3">
-             <div class="card shadow-lg border-0 chat-item fade-in-up" onclick="window.location.href='{% url 'route_messages' chat.route.pk %}'" style="animation-delay: {% widthratio forloop.counter0 1 100 %}ms;">
+            {% widthratio forloop.counter0 1 100 as animation_delay %}
+            <div class="card shadow-lg border-0 chat-item fade-in-up"
+                data-route-id="{{ chat.route.pk }}"
+                data-animation-delay="{{ animation_delay }}"
+                style="cursor: pointer;">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="position-relative me-3">
@@ -124,5 +128,27 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.chat-item[data-route-id]').forEach(function(item) {
+            // Встановлюємо затримку анімації
+            const delay = item.getAttribute('data-animation-delay');
+            if (delay) {
+                item.style.animationDelay = delay + 'ms';
+            }
+            
+            // Обробка кліку
+            item.addEventListener('click', function() {
+                const routeId = this.getAttribute('data-route-id');
+                if (routeId) {
+                    window.location.href = '/logistics/routes/' + routeId + '/messages/';
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
 
