@@ -93,11 +93,33 @@ class CompanyRegistrationForm(UserCreationForm):
             Submit('submit', 'Зареєструватися', css_class='btn btn-success w-100 mt-3')
         )
     
+    def clean(self):
+        cleaned_data = super().clean()
+        # Обробка телефону
+        phone_country = cleaned_data.get('phone_country', '')
+        phone = cleaned_data.get('phone', '')
+        if phone:
+            # Додаємо код країни до номера, якщо його немає
+            if phone_country and not phone.startswith('+'):
+                cleaned_data['phone'] = phone_country + phone
+            elif not phone.startswith('+'):
+                # За замовчуванням Україна
+                cleaned_data['phone'] = '+380' + phone
+        return cleaned_data
+    
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'company'
         user.company_name = self.cleaned_data['company_name']
-        user.phone = self.cleaned_data['phone']
+        phone = self.cleaned_data.get('phone', '')
+        phone_country = self.cleaned_data.get('phone_country', '+380')
+        
+        # Формуємо повний номер телефону
+        if phone and not phone.startswith('+'):
+            user.phone = phone_country + phone
+        else:
+            user.phone = phone or phone_country
+        
         if commit:
             user.save()
         return user
@@ -224,7 +246,7 @@ class CarrierRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'phone')
+        fields = ('username', 'email', 'password1', 'password2', 'phone_country', 'phone')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
@@ -278,7 +300,15 @@ class CarrierRegistrationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'carrier'
-        user.phone = self.cleaned_data['phone']
+        phone = self.cleaned_data.get('phone', '')
+        phone_country = self.cleaned_data.get('phone_country', '+380')
+        
+        # Формуємо повний номер телефону
+        if phone and not phone.startswith('+'):
+            user.phone = phone_country + phone
+        else:
+            user.phone = phone or phone_country
+        
         if commit:
             user.save()
             # Створюємо профіль перевізника
