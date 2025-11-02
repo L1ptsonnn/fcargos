@@ -69,8 +69,9 @@ class CompanyRegistrationForm(UserCreationForm):
         max_length=15,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-enhanced phone-number-input',
-            'placeholder': 'XXXXXXXXX',
-            'id': 'phone_company'
+            'placeholder': '',
+            'id': 'phone_company',
+            'autocomplete': 'tel-national'
         })
     )
     address = forms.CharField(
@@ -238,8 +239,9 @@ class CarrierRegistrationForm(UserCreationForm):
         max_length=15,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-enhanced phone-number-input',
-            'placeholder': 'XXXXXXXXX',
-            'id': 'phone_carrier'
+            'placeholder': '',
+            'id': 'phone_carrier',
+            'autocomplete': 'tel-national'
         })
     )
     vehicle_type = forms.ChoiceField(

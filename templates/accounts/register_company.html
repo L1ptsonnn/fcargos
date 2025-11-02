@@ -677,11 +677,29 @@
             phoneInput.setAttribute('data-old-value', phoneInput.value);
         });
         
-        // Обмежуємо введення тільки цифрами
+        // Обмежуємо введення тільки цифрами та перевіряємо, щоб не було +380 на початку
         phoneInput.addEventListener('input', function(e) {
-            // Дозволяємо тільки цифри
-            this.value = this.value.replace(/[^0-9]/g, '');
+            let value = this.value;
+            // Видаляємо всі нецифрові символи (включаючи +, пробіли, дужки)
+            value = value.replace(/[^0-9]/g, '');
+            
+            // Перевіряємо, чи не починається значення з 380 (якщо так, видаляємо його)
+            if (value.startsWith('380') && value.length > 3) {
+                value = value.substring(3);
+            }
+            
+            this.value = value;
         });
+        
+        // Перевіряємо при завантаженні сторінки, чи немає +380 в полі
+        if (phoneInput.value && (phoneInput.value.includes('+380') || phoneInput.value.startsWith('380'))) {
+            let value = phoneInput.value.replace(/[^0-9]/g, '');
+            if (value.startsWith('380') && value.length > 3) {
+                phoneInput.value = value.substring(3);
+            } else {
+                phoneInput.value = value;
+            }
+        }
         
         // Оновлюємо placeholder при завантаженні
         updatePhonePlaceholder(phoneCountry.value, phoneInput);
