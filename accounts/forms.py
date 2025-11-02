@@ -71,7 +71,8 @@ class CompanyRegistrationForm(UserCreationForm):
             'class': 'form-control form-control-enhanced phone-number-input',
             'placeholder': '',
             'id': 'phone_company',
-            'autocomplete': 'tel-national'
+            'autocomplete': 'off',
+            'data-phone-input': 'true'
         })
     )
     address = forms.CharField(
@@ -241,7 +242,8 @@ class CarrierRegistrationForm(UserCreationForm):
             'class': 'form-control form-control-enhanced phone-number-input',
             'placeholder': '',
             'id': 'phone_carrier',
-            'autocomplete': 'tel-national'
+            'autocomplete': 'off',
+            'data-phone-input': 'true'
         })
     )
     vehicle_type = forms.ChoiceField(

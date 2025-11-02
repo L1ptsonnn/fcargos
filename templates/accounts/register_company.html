@@ -691,6 +691,16 @@
             this.value = value;
         });
         
+        // Оновлюємо placeholder при фокусі на поле, щоб він завжди відповідав вибраній країні
+        phoneInput.addEventListener('focus', function() {
+            updatePhonePlaceholder(phoneCountry.value, phoneInput);
+        });
+        
+        // Оновлюємо placeholder при втраті фокусу
+        phoneInput.addEventListener('blur', function() {
+            updatePhonePlaceholder(phoneCountry.value, phoneInput);
+        });
+        
         // Перевіряємо при завантаженні сторінки, чи немає +380 в полі
         if (phoneInput.value && (phoneInput.value.includes('+380') || phoneInput.value.startsWith('380'))) {
             let value = phoneInput.value.replace(/[^0-9]/g, '');
