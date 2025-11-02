@@ -708,14 +708,18 @@
         
         if (!phoneCountry || !phoneInput) return;
         
-        // Встановлюємо значення за замовчуванням тільки для вибору країни
-        if (!phoneCountry.value) {
-            phoneCountry.value = '+380';
-        }
+        // НЕ встановлюємо значення за замовчуванням - користувач має сам обрати країну
         
         // Функція для оновлення placeholder
         function setPlaceholder() {
             const countryCode = phoneCountry.value;
+            
+            // Якщо країна не обрана, показуємо порожній placeholder
+            if (!countryCode) {
+                phoneInput.placeholder = 'Оберіть країну спочатку';
+                return;
+            }
+            
             const placeholders = {
                 '+380': '(XX) XXX XX XX',
                 '+48': 'XXX XXX XXX',
@@ -738,7 +742,7 @@
                 '+86': 'XXX XXXX XXXX',
                 '+81': 'XX XXXX XXXX',
             };
-            phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
+            phoneInput.placeholder = placeholders[countryCode] || 'Введіть номер';
         }
         
         // Функція для видалення тільки нецифрових символів (не коди країн!)

@@ -40,6 +40,7 @@ class CompanyRegistrationForm(UserCreationForm):
     phone_country = forms.ChoiceField(
         label='Код країни',
         choices=[
+            ('', 'Оберіть країну'),
             ('+380', '🇺🇦 Україна (+380)'),
             ('+48', '🇵🇱 Польща (+48)'),
             ('+49', '🇩🇪 Німеччина (+49)'),
@@ -61,7 +62,7 @@ class CompanyRegistrationForm(UserCreationForm):
             ('+86', '🇨🇳 Китай (+86)'),
             ('+81', '🇯🇵 Японія (+81)'),
         ],
-        initial='+380',
+        required=True,
         widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select', 'id': 'phone_country_company'})
     )
     phone = forms.CharField(
@@ -130,8 +131,12 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        # Перевірка вибору країни
+        phone_country = cleaned_data.get('phone_country')
+        if not phone_country:
+            raise forms.ValidationError('Будь ласка, оберіть країну для номера телефону.')
+        
         # Обробка телефону - додаємо код країни до введених цифр
-        phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '').strip()
         
         if phone:
@@ -148,9 +153,9 @@ class CompanyRegistrationForm(UserCreationForm):
             if phone_digits:
                 cleaned_data['phone'] = phone_country + phone_digits
             else:
-                cleaned_data['phone'] = ''
+                raise forms.ValidationError('Будь ласка, введіть номер телефону.')
         else:
-            cleaned_data['phone'] = ''
+            raise forms.ValidationError('Будь ласка, введіть номер телефону.')
         
         return cleaned_data
     
@@ -216,6 +221,7 @@ class CarrierRegistrationForm(UserCreationForm):
     phone_country = forms.ChoiceField(
         label='Код країни',
         choices=[
+            ('', 'Оберіть країну'),
             ('+380', '🇺🇦 Україна (+380)'),
             ('+48', '🇵🇱 Польща (+48)'),
             ('+49', '🇩🇪 Німеччина (+49)'),
@@ -237,7 +243,7 @@ class CarrierRegistrationForm(UserCreationForm):
             ('+86', '🇨🇳 Китай (+86)'),
             ('+81', '🇯🇵 Японія (+81)'),
         ],
-        initial='+380',
+        required=True,
         widget=forms.Select(attrs={'class': 'form-select form-select-enhanced phone-country-select', 'id': 'phone_country_carrier'})
     )
     phone = forms.CharField(
@@ -356,8 +362,12 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
+        # Перевірка вибору країни
+        phone_country = cleaned_data.get('phone_country')
+        if not phone_country:
+            raise forms.ValidationError('Будь ласка, оберіть країну для номера телефону.')
+        
         # Обробка телефону - додаємо код країни до введених цифр
-        phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '').strip()
         
         if phone:
@@ -374,9 +384,9 @@ class CarrierRegistrationForm(UserCreationForm):
             if phone_digits:
                 cleaned_data['phone'] = phone_country + phone_digits
             else:
-                cleaned_data['phone'] = ''
+                raise forms.ValidationError('Будь ласка, введіть номер телефону.')
         else:
-            cleaned_data['phone'] = ''
+            raise forms.ValidationError('Будь ласка, введіть номер телефону.')
         
         return cleaned_data
     
