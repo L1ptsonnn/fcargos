@@ -130,7 +130,7 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # Обробка телефону - просто додаємо код країни до введених цифр
+        # Обробка телефону - додаємо код країни до введених цифр
         phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '').strip()
         
@@ -138,15 +138,11 @@ class CompanyRegistrationForm(UserCreationForm):
             # Видаляємо всі нецифрові символи (залишаємо тільки цифри)
             phone_digits = ''.join(filter(str.isdigit, phone))
             
-            # Список кодів країн без + для видалення (на випадок якщо щось залишилося)
-            country_codes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', 
-                           '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81']
-            
-            # Видаляємо код країни з початку якщо він там є
-            for code in country_codes:
-                if phone_digits.startswith(code) and len(phone_digits) > len(code):
-                    phone_digits = phone_digits[len(code):]
-                    break
+            # Якщо номер починається з коду країни, який відповідає вибраній країні - видаляємо його
+            country_code_digits = phone_country.replace('+', '')
+            if phone_digits.startswith(country_code_digits) and len(phone_digits) > len(country_code_digits):
+                # Номер вже має код країни, який відповідає вибору - видаляємо його
+                phone_digits = phone_digits[len(country_code_digits):]
             
             # Додаємо код країни тільки якщо є цифри
             if phone_digits:
@@ -360,7 +356,7 @@ class CarrierRegistrationForm(UserCreationForm):
             # Якщо обрано зі списку, ігноруємо кастомну
             cleaned_data['vehicle_model_custom'] = ''
         
-        # Обробка телефону - просто додаємо код країни до введених цифр
+        # Обробка телефону - додаємо код країни до введених цифр
         phone_country = cleaned_data.get('phone_country', '+380')
         phone = cleaned_data.get('phone', '').strip()
         
@@ -368,15 +364,11 @@ class CarrierRegistrationForm(UserCreationForm):
             # Видаляємо всі нецифрові символи (залишаємо тільки цифри)
             phone_digits = ''.join(filter(str.isdigit, phone))
             
-            # Список кодів країн без + для видалення (на випадок якщо щось залишилося)
-            country_codes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', 
-                           '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81']
-            
-            # Видаляємо код країни з початку якщо він там є
-            for code in country_codes:
-                if phone_digits.startswith(code) and len(phone_digits) > len(code):
-                    phone_digits = phone_digits[len(code):]
-                    break
+            # Якщо номер починається з коду країни, який відповідає вибраній країні - видаляємо його
+            country_code_digits = phone_country.replace('+', '')
+            if phone_digits.startswith(country_code_digits) and len(phone_digits) > len(country_code_digits):
+                # Номер вже має код країни, який відповідає вибору - видаляємо його
+                phone_digits = phone_digits[len(country_code_digits):]
             
             # Додаємо код країни тільки якщо є цифри
             if phone_digits:
