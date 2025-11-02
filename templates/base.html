@@ -593,13 +593,13 @@
                 // Завантажуємо повідомлення
                 loadChatMessages(routeId);
                 
-                // Оновлюємо повідомлення кожні 5 секунд
+                // Оновлюємо повідомлення кожні 5 секунд (без перезапису форми)
                 if (window.chatInterval) {
                     clearInterval(window.chatInterval);
                 }
                 window.chatInterval = setInterval(() => {
                     if (currentRouteId) {
-                        loadChatMessages(currentRouteId);
+                        loadChatMessages(currentRouteId, true);
                     }
                 }, 5000);
             }
@@ -662,7 +662,7 @@
             }
             
             // Завантаження повідомлень
-            function loadChatMessages(routeId) {
+            function loadChatMessages(routeId, preserveForm = false) {
                 const messagesContainer = document.getElementById('messagesContainer');
                 const messageFormContainer = document.getElementById('messageFormContainer');
                 
@@ -727,11 +727,15 @@
                         }
                         
                         // Форма відправки повідомлення
-                        if (messageFormContainer) {
+                        if (messageFormContainer && !preserveForm) {
+                            // Зберігаємо поточне значення інпута, якщо форма вже існує
+                            const existingInput = document.getElementById('messageInput');
+                            const savedValue = existingInput ? existingInput.value : '';
+                            
                             messageFormContainer.innerHTML = `
                                 <form id="sendMessageForm">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="messageInput" placeholder="Введіть повідомлення..." required autocomplete="off">
+                                        <input type="text" class="form-control" id="messageInput" placeholder="Введіть повідомлення..." required autocomplete="off" value="${escapeHtml(savedValue)}">
                                         <button class="btn btn-primary" type="submit" id="sendMessageBtn">
                                             <i class="bi bi-send"></i>
                                         </button>
@@ -820,8 +824,12 @@
                 })
                 .then(data => {
                     if (data.success) {
-                        messageInput.value = '';
-                        loadChatMessages(routeId);
+                        // Очищаємо поле тільки після успішної відправки
+                        if (messageInput) {
+                            messageInput.value = '';
+                        }
+                        // Оновлюємо повідомлення без перезапису форми
+                        loadChatMessages(routeId, true);
                         // Оновлюємо список чатів
                         loadChats();
                     } else {
