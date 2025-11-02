@@ -923,33 +923,6 @@
             reqNumbers.querySelector('i').classList.add('bi-circle');
         }
     }
-    
-    function updatePhonePlaceholder(countryCode, phoneInput) {
-        const placeholders = {
-            '+380': '(XX) XXX XX XX',
-            '+48': 'XXX XXX XXX',
-            '+49': 'XXXX XXXXXX',
-            '+33': 'X XX XX XX XX',
-            '+39': 'XXX XXX XXXX',
-            '+34': 'XXX XXX XXX',
-            '+31': 'X XXXXXXXX',
-            '+32': 'XXX XX XX XX',
-            '+43': 'XXXX XXXXXX',
-            '+420': 'XXX XXX XXX',
-            '+421': 'XXX XXX XXX',
-            '+36': 'XX XXX XXXX',
-            '+40': 'XXX XXX XXX',
-            '+359': 'XXX XXX XXX',
-            '+90': '(XXX) XXX XX XX',
-            '+44': 'XXXX XXXXXX',
-            '+1': '(XXX) XXX-XXXX',
-            '+7': '(XXX) XXX-XX-XX',
-            '+86': 'XXX XXXX XXXX',
-            '+81': 'XX XXXX XXXX',
-        };
-        const placeholder = placeholders[countryCode] || 'XXXXXXXXX';
-        phoneInput.placeholder = placeholder;
-    }
 </script>
 {% endblock %}
 
