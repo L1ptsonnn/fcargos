@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# BASE_DIR is the project root directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -20,40 +21,53 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Secret key is used for cryptographic signing - NEVER share this in production!
 SECRET_KEY = 'django-insecure-pmeube#7m+19!8(gh2xd)o(0hn+@q-%tdtg^hu@g77rt-dx&*o'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG=True shows detailed error pages - set to False in production!
 DEBUG = True
 
+# ALLOWED_HOSTS: List of host/domain names that this Django site can serve
+# Empty list = any host can access (only for development!)
 ALLOWED_HOSTS = []
 
 
 # Application definition
-
+# INSTALLED_APPS: List of all Django applications that are enabled
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'crispy_forms',
-    'crispy_bootstrap5',
-    'accounts',
-    'logistics',
-    'dashboard',
+    # Django built-in apps
+    'django.contrib.admin',          # Admin interface
+    'django.contrib.auth',           # Authentication system
+    'django.contrib.contenttypes',   # Content type framework
+    'django.contrib.sessions',       # Session framework
+    'django.contrib.messages',       # Messaging framework
+    'django.contrib.staticfiles',   # Static file handling
+    
+    # Third-party apps
+    'crispy_forms',                  # Beautiful Django forms
+    'crispy_bootstrap5',             # Bootstrap 5 theme for crispy forms
+    
+    # Our custom apps
+    'accounts',                       # User accounts, registration, profiles
+    'logistics',                     # Routes, bids, tracking, messages, ratings
+    'dashboard',                     # Home page, statistics, history
 ]
 
+# MIDDLEWARE: List of middleware classes that process requests/responses
+# Order matters! They execute top-to-bottom on request, bottom-to-top on response
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',           # Security enhancements
+    'django.contrib.sessions.middleware.SessionMiddleware',   # Session management
+    'django.middleware.common.CommonMiddleware',               # Common processing
+    'django.middleware.csrf.CsrfViewMiddleware',              # CSRF protection
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # User authentication
+    'django.contrib.messages.middleware.MessageMiddleware',   # Message framework
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection
 ]
 
+# ROOT_URLCONF: Python path to main URL configuration
+# This file contains all URL patterns for the project
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -74,13 +88,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
+# Database configuration
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Currently using SQLite (good for development)
+# For production, use PostgreSQL or MySQL
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3',  # SQLite database engine
+        'NAME': BASE_DIR / 'db.sqlite3',          # Path to database file
     }
 }
 
@@ -119,18 +135,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+# URL prefix for static files (when accessed via browser)
 STATIC_URL = 'static/'
+# Directory where static files are located (for development)
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Directory where collectstatic will put all static files (for production)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files (user-uploaded files like logos, images)
+# URL prefix for media files
 MEDIA_URL = 'media/'
+# Directory where uploaded files are stored
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Crispy Forms
+# Crispy Forms configuration
+# Use Bootstrap 5 styling for all forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # Custom User Model
+# Tell Django to use our custom User model instead of default one
 AUTH_USER_MODEL = 'accounts.User'
 
 # Default primary key field type

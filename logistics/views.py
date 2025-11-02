@@ -7,14 +7,16 @@ from .models import Route, Bid, Tracking, Message, Notification, Rating
 from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm, RatingForm
 
 
+# Function to check and mark expired routes
+# Routes expire if no bid was accepted before pickup_date
 def check_expired_routes():
-    """Перевіряє та позначає просрочені маршрути"""
+    """Check and mark expired routes"""
     now = timezone.now()
     
-    # Знаходимо маршрути, які:
-    # 1. Мають статус 'pending' (не прийняті)
-    # 2. Не мають перевізника (carrier = None)
-    # 3. Дата забору (pickup_date) вже пройшла
+    # Find routes that meet all these conditions:
+    # 1. Status is 'pending' (not yet accepted)
+    # 2. No carrier assigned (carrier = None)
+    # 3. Pickup date has passed (pickup_date < now)
     expired_routes = Route.objects.filter(
         status='pending',
         carrier__isnull=True,
@@ -23,20 +25,20 @@ def check_expired_routes():
     
     expired_count = 0
     for route in expired_routes:
-        # Оновлюємо статус на 'expired'
+        # Update route status to 'expired'
         route.status = 'expired'
         route.save()
         
-        # Перевіряємо чи вже є сповіщення про просрочення для цього маршруту
+        # Check if notification about expiration already exists (to avoid duplicates)
         existing_notification = Notification.objects.filter(
             user=route.company,
             notification_type='route_expired',
             route=route
         ).exists()
         
-        # Створюємо сповіщення тільки якщо його ще немає
+        # Create notification only if it doesn't exist yet
         if not existing_notification:
-            # Конвертуємо дату в локальний час
+            # Convert date to local timezone (Europe/Kyiv)
             pickup_date_local = timezone.localtime(route.pickup_date) if timezone.is_aware(route.pickup_date) else route.pickup_date
             Notification.objects.create(
                 user=route.company,
@@ -50,50 +52,59 @@ def check_expired_routes():
     return expired_count
 
 
+# Routes list view - displays routes based on user role
+# Companies see their own routes, carriers see available routes
 @login_required
 def routes_list(request):
-    """Список маршрутів"""
-    # Перевіряємо просрочені маршрути
+    """Routes list view"""
+    # Check for expired routes before displaying list
     check_expired_routes()
     
+    # Get routes based on user role
     if request.user.role == 'company':
+        # Companies see all their own routes (all statuses)
         routes = Route.objects.filter(company=request.user).order_by('-created_at')
     elif request.user.role == 'carrier':
-        # Перевізники бачать тільки pending маршрути (не просрочені)
+        # Carriers see only pending routes (not expired, not assigned)
         routes = Route.objects.filter(status='pending').order_by('-created_at')
     else:
+        # Anonymous or other roles - no routes
         routes = Route.objects.none()
     
-    # Фільтрація по місту старту (може бути з пошуку або з фільтра)
+    # Filter by origin city (can be from search or filter dropdown)
     origin_city_filter = request.GET.get('origin_city', '')
     search_city = request.GET.get('search_city', '')
     city_filter = origin_city_filter or search_city
     if city_filter:
+        # Case-insensitive search for city name
         routes = routes.filter(origin_city__icontains=city_filter)
     
-    # Фільтрація по статусу
+    # Filter by status (can select multiple statuses)
     status_filter = request.GET.getlist('status')
     if status_filter:
         routes = routes.filter(status__in=status_filter)
     
-    # Отримуємо список унікальних міст для фільтра
+    # Get list of unique cities for filter dropdown
     origin_cities = Route.objects.values_list('origin_city', flat=True).distinct().order_by('origin_city')
     
-    # Якщо це AJAX запит для отримання міст
+    # AJAX request to get cities list (for autocomplete)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'get_cities' in request.GET:
         return JsonResponse({'cities': list(origin_cities)})
     
-    # Якщо це AJAX запит для отримання маршрутів у JSON форматі
+    # AJAX request to get routes in JSON format (for dynamic loading)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'format' in request.GET and request.GET.get('format') == 'json':
         routes_data = []
         for route in routes:
-            # Конвертуємо дати в локальний час (UTC+2 для України)
+            # Convert dates to local timezone (UTC+2 for Ukraine/Europe/Kyiv)
             pickup_date_local = None
             delivery_date_local = None
             if route.pickup_date:
+                # Check if date is timezone-aware (has timezone info)
                 if timezone.is_aware(route.pickup_date):
+                    # Convert from UTC to local time (Europe/Kyiv)
                     pickup_date_local = timezone.localtime(route.pickup_date)
                 else:
+                    # Date is naive (no timezone) - use as is
                     pickup_date_local = route.pickup_date
             if route.delivery_date:
                 if timezone.is_aware(route.delivery_date):
@@ -101,13 +112,14 @@ def routes_list(request):
                 else:
                     delivery_date_local = route.delivery_date
             
+            # Build route data dictionary for JSON response
             route_data = {
                 'id': route.id,
                 'origin_city': route.origin_city,
                 'destination_city': route.destination_city,
                 'cargo_type': route.cargo_type,
-                'weight': str(route.weight),
-                'price': str(route.price),
+                'weight': str(route.weight),  # Convert to string for JSON
+                'price': str(route.price),    # Convert to string for JSON
                 'status': route.status,
                 'pickup_date': pickup_date_local.strftime('%d.%m.%Y %H:%M') if pickup_date_local else None,
                 'delivery_date': delivery_date_local.strftime('%d.%m.%Y %H:%M') if delivery_date_local else None,
@@ -115,16 +127,16 @@ def routes_list(request):
                 'company_name': route.company.company_name if route.company and route.company.company_name else route.company.username if route.company else None,
             }
             
-            # Додаємо інформацію про перевізника, якщо він призначений
+            # Add carrier information if route has assigned carrier
             if route.carrier:
                 route_data['carrier_id'] = route.carrier.pk
                 route_data['carrier_name'] = route.carrier.username
-                # Додаємо рейтинг перевізника, якщо він є
+                # Add carrier rating if available
                 try:
                     if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0:
                         route_data['carrier_rating'] = float(route.carrier.carrier_profile.rating)
                 except:
-                    pass
+                    pass  # If error, just skip rating
             
             routes_data.append(route_data)
         return JsonResponse({'routes': routes_data})
@@ -136,62 +148,81 @@ def routes_list(request):
     })
 
 
+# Create route view - allows companies to create new delivery routes
+# Only company users can access this view
 @login_required
 def create_route(request):
-    """Створення нового маршруту (тільки для компаній)"""
+    """Create new route (only for companies)"""
+    # Check if user is a company
     if request.user.role != 'company':
         messages.error(request, 'Тільки компанії можуть створювати маршрути')
         return redirect('home')
     
+    # If form was submitted (POST request)
     if request.method == 'POST':
         form = RouteForm(request.POST)
         if form.is_valid():
+            # Save route but don't commit yet (commit=False)
+            # This allows us to set company field before saving
             route = form.save(commit=False)
-            route.company = request.user
+            route.company = request.user  # Set route owner to current user
             route.save()
-            # Створюємо Tracking з початковими значеннями
+            
+            # Create Tracking object with initial values (cargo starts at origin)
             Tracking.objects.create(
                 route=route,
                 current_location=route.origin_city,
                 current_lat=route.origin_lat,
                 current_lng=route.origin_lng,
-                progress_percent=0
+                progress_percent=0  # Progress starts at 0%
             )
             messages.success(request, 'Маршрут успішно створено!')
             return redirect('route_detail', pk=route.pk)
     else:
+        # GET request - show empty form
         form = RouteForm()
     
     return render(request, 'logistics/create_route.html', {'form': form})
 
 
+# Route detail view - shows detailed information about a route
+# Displays route info, bids, map, and allows actions (bid, accept, complete)
 @login_required
 def route_detail(request, pk):
-    """Деталі маршруту"""
+    """Route details view"""
+    # Get route by ID, return 404 if not found
     route = get_object_or_404(Route, pk=pk)
+    
+    # Get all bids for this route, ordered by creation date (newest first)
+    # select_related('carrier') optimizes database query (joins carrier data)
     bids = Bid.objects.filter(route=route).select_related('carrier').order_by('-created_at')
+    
+    # Check if current user (carrier) can make a bid on this route
+    # Conditions: user is carrier, route is pending, user hasn't bid yet
     can_bid = (request.user.role == 'carrier' and 
                route.status == 'pending' and
                not Bid.objects.filter(route=route, carrier=request.user).exists())
     
-    # Перевірка можливості прийняти ставку (для компанії)
+    # Check if company can accept bids (company owns route and route is pending)
     can_accept_bids = (request.user.role == 'company' and 
                        route.company == request.user and 
                        route.status == 'pending')
     
-    # Перевірка можливості завершити маршрут
+    # Check if user can complete the route (carrier or company, route is in_transit)
     can_complete = ((request.user.role == 'carrier' and route.carrier == request.user) or
                    (request.user.role == 'company' and route.company == request.user)) and \
                    route.status == 'in_transit'
     
-    # Обчислюємо різниці цін для ставок
+    # Calculate price differences for bids (how much cheaper/expensive compared to route price)
     bids_with_diff = []
     for bid in bids:
         if route.price:
             if bid.proposed_price < route.price:
+                # Carrier offers discount
                 diff = float(route.price) - float(bid.proposed_price)
                 diff_type = 'discount'
             else:
+                # Carrier asks for surcharge
                 diff = float(bid.proposed_price) - float(route.price)
                 diff_type = 'surcharge'
         else:
@@ -200,26 +231,28 @@ def route_detail(request, pk):
         bids_with_diff.append({
             'bid': bid,
             'price_diff': diff,
-            'diff_type': diff_type
+            'diff_type': diff_type  # 'discount' or 'surcharge'
         })
     
-    # Перевірка та валідація координат
+    # Validate and convert coordinates for map display
+    # Default coordinates are Kyiv (50.45, 30.52) and Lviv (49.84, 24.03)
     try:
         origin_lat = float(route.origin_lat) if route.origin_lat else 50.45
         origin_lng = float(route.origin_lng) if route.origin_lng else 30.52
         dest_lat = float(route.destination_lat) if route.destination_lat else 49.84
         dest_lng = float(route.destination_lng) if route.destination_lng else 24.03
     except (ValueError, TypeError):
-        origin_lat, origin_lng = 50.45, 30.52
-        dest_lat, dest_lng = 49.84, 24.03
+        # If conversion fails, use default coordinates
+        origin_lat, origin_lng = 50.45, 30.52  # Kyiv
+        dest_lat, dest_lng = 49.84, 24.03      # Lviv
     
-    # Рахуємо непрочитані повідомлення
+    # Count unread messages for current user related to this route
     unread_messages_count = 0
     if route.carrier:
         unread_messages_count = Message.objects.filter(
             route=route, 
-            recipient=request.user, 
-            is_read=False
+            recipient=request.user,  # Messages received by current user
+            is_read=False  # Only unread messages
         ).count()
     
     context = {
@@ -243,10 +276,15 @@ def route_detail(request, pk):
     return render(request, 'logistics/route_detail.html', context)
 
 
+# Create bid view - allows carriers to make bids on routes
+# Only carrier users can access this view
+# Supports both regular POST and AJAX requests
 @login_required
 def create_bid(request, pk):
-    """Створення ставки на маршрут"""
+    """Create bid on route"""
+    # Check if user is a carrier
     if request.user.role != 'carrier':
+        # Handle AJAX request differently (return JSON)
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'error': 'Тільки перевізники можуть робити ставки'}, status=403)
         messages.error(request, 'Тільки перевізники можуть робити ставки')
@@ -254,27 +292,31 @@ def create_bid(request, pk):
     
     route = get_object_or_404(Route, pk=pk)
     
+    # Check if route is still available for bidding
     if route.status != 'pending':
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'error': 'На цей маршрут неможливо зробити ставку'}, status=400)
         messages.error(request, 'На цей маршрут неможливо зробити ставку')
         return redirect('route_detail', pk=pk)
     
+    # Check if carrier already made a bid on this route
     if Bid.objects.filter(route=route, carrier=request.user).exists():
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'error': 'Ви вже зробили ставку на цей маршрут'}, status=400)
         messages.error(request, 'Ви вже зробили ставку на цей маршрут')
         return redirect('route_detail', pk=pk)
     
+    # If form was submitted (POST request)
     if request.method == 'POST':
         form = BidForm(request.POST)
         if form.is_valid():
+            # Save bid but don't commit yet
             bid = form.save(commit=False)
             bid.route = route
-            bid.carrier = request.user
+            bid.carrier = request.user  # Set bid owner to current user
             bid.save()
             
-            # Створюємо сповіщення для компанії
+            # Create notification for company about new bid
             Notification.objects.create(
                 user=route.company,
                 notification_type='new_bid',
@@ -283,14 +325,16 @@ def create_bid(request, pk):
                 route=route
             )
             
+            # Return JSON response for AJAX requests
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': 'Ставку успішно створено!'})
             messages.success(request, 'Ставку успішно створено!')
             return redirect('route_detail', pk=pk)
     else:
+        # GET request - show empty form
         form = BidForm()
     
-    # Для AJAX запитів повертаємо тільки форму
+    # For AJAX requests, return only the form HTML (for modal)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         from django.template.loader import render_to_string
         html = render_to_string('logistics/create_bid.html', {
@@ -299,40 +343,47 @@ def create_bid(request, pk):
         }, request=request)
         return JsonResponse({'html': html})
     
+    # Regular request - render full page
     return render(request, 'logistics/create_bid.html', {'form': form, 'route': route})
 
 
+# Accept bid view - allows companies to accept a carrier's bid
+# Only company users can access this view
 @login_required
 def accept_bid(request, bid_id):
-    """Прийняття ставки (тільки для компаній)"""
+    """Accept bid (only for companies)"""
+    # Check if user is a company
     if request.user.role != 'company':
         messages.error(request, 'Тільки компанії можуть приймати ставки')
         return redirect('home')
     
+    # Get bid, ensuring it belongs to a route owned by current company
     bid = get_object_or_404(Bid, pk=bid_id, route__company=request.user)
     
+    # Check if route is still available for accepting bids
     if bid.route.status != 'pending':
         messages.error(request, 'Цей маршрут вже не доступний')
         return redirect('route_detail', pk=bid.route.pk)
     
-    # Відмічаємо ставку як прийняту
+    # Mark bid as accepted
     bid.is_accepted = True
     bid.save()
     
-    # Призначаємо перевізника маршруту
-    bid.route.carrier = bid.carrier
-    bid.route.status = 'in_transit'
-    bid.route.price = bid.proposed_price
+    # Assign carrier to route and update route status
+    bid.route.carrier = bid.carrier  # Set carrier to bid owner
+    bid.route.status = 'in_transit'  # Change status to "in transit"
+    bid.route.price = bid.proposed_price  # Update price to bid price
     bid.route.save()
     
-    # Створюємо відстеження якщо його немає
+    # Create tracking object if it doesn't exist (for route monitoring)
     Tracking.objects.get_or_create(route=bid.route, defaults={
         'current_location': bid.route.origin_city,
         'current_lat': bid.route.origin_lat,
         'current_lng': bid.route.origin_lng,
+        'progress_percent': 0
     })
     
-    # Створюємо сповіщення для перевізника
+    # Create notification for carrier about accepted bid
     Notification.objects.create(
         user=bid.carrier,
         notification_type='bid_accepted',
@@ -341,7 +392,7 @@ def accept_bid(request, bid_id):
         route=bid.route
     )
     
-    # Створюємо сповіщення про призначення маршруту
+    # Create notification for carrier about route assignment
     Notification.objects.create(
         user=bid.carrier,
         notification_type='route_assigned',
@@ -354,23 +405,28 @@ def accept_bid(request, bid_id):
     return redirect('route_detail', pk=bid.route.pk)
 
 
+# Complete route view - marks route as delivered/completed
+# Can be called by either carrier or company
 @login_required
 def complete_route(request, pk):
-    """Завершення маршруту"""
+    """Complete route"""
     route = get_object_or_404(Route, pk=pk)
     
+    # Check access - only route carrier or company owner can complete
     if route.carrier != request.user and route.company != request.user:
         messages.error(request, 'У вас немає доступу до цього маршруту')
         return redirect('home')
     
+    # Check if route is in correct status for completion
     if route.status != 'in_transit':
         messages.error(request, 'Маршрут не може бути завершеним')
         return redirect('route_detail', pk=route.pk)
     
+    # Update route status to delivered
     route.status = 'delivered'
     route.save()
     
-    # Створюємо сповіщення про завершення маршруту
+    # Create notifications about route completion
     if route.carrier:
         Notification.objects.create(
             user=route.carrier,
@@ -387,7 +443,7 @@ def complete_route(request, pk):
         route=route
     )
     
-    # Оновлюємо відстеження до 100%
+    # Update tracking to 100% completion (cargo reached destination)
     try:
         tracking = route.tracking
         tracking.current_location = route.destination_city
@@ -396,6 +452,7 @@ def complete_route(request, pk):
         tracking.progress_percent = 100
         tracking.save()
     except Tracking.DoesNotExist:
+        # If tracking doesn't exist, create it with 100% progress
         Tracking.objects.create(
             route=route,
             current_location=route.destination_city,

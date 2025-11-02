@@ -6,19 +6,22 @@ from logistics.models import Route
 from logistics.views import check_expired_routes
 
 
+# Home page view - displays main dashboard with world map and recent routes carousel
+# Shows all active routes on map, but only 3 latest routes in carousel
 def home(request):
-    """Головна сторінка з динамічною картою світу"""
-    # Перевіряємо просрочені маршрути при завантаженні сторінки
+    """Home page with dynamic world map"""
+    # Check for expired routes when page loads (if user is authenticated)
     if request.user.is_authenticated:
         check_expired_routes()
     
-    # Для каруселі - тільки 3 останні маршрути
+    # For carousel - only 3 most recent routes (for better UX)
+    # select_related optimizes database queries (joins company and carrier data)
     routes_carousel = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier').order_by('-created_at')[:3]
     
-    # Для карти - ВСІ маршрути
+    # For map - ALL active routes (pending or in_transit)
     routes_all = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')
     
-    # Формуємо дані для карти з валідацією (ВСІ маршрути)
+    # Build route data for map display with validation (ALL routes)
     routes_data = []
     for route in routes_all:
         try:
