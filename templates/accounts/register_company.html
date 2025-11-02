@@ -483,7 +483,7 @@
     </div>
     
     <div class="container">
-        <div class="row justify-content-center">
+    <div class="row justify-content-center">
             <div class="col-lg-10 col-xl-8">
                 <div class="register-card">
                     <div class="register-header">
@@ -625,8 +625,8 @@
                                 </label>
                                 <div class="logo-preview-container">
                                     <img id="logoPreview" class="logo-preview" alt="Превью логотипу">
-                                </div>
-                            </div>
+                    </div>
+                </div>
                             
                             <button type="submit" class="btn btn-submit-enhanced">
                                 <i class="bi bi-check-circle-fill"></i> Зареєструватися
@@ -657,107 +657,165 @@
         }
     });
     
-    // Обробка телефону з країною
-    const phoneCountry = document.getElementById('phone_country_company');
-    const phoneInput = document.getElementById('phone_company');
-    
-    if (phoneCountry && phoneInput) {
+    // Повністю нова логіка обробки телефону
+    (function() {
+        const phoneCountry = document.getElementById('phone_country_company');
+        const phoneInput = document.getElementById('phone_company');
+        
+        if (!phoneCountry || !phoneInput) return;
+        
+        // Список всіх можливих кодів країн (без +)
+        const countryCodes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81'];
+        
+        // Функція для видалення коду країни з номера
+        function removeCountryCode(value) {
+            if (!value) return '';
+            
+            // Видаляємо всі нецифрові символи
+            let cleaned = value.replace(/[^0-9]/g, '');
+            
+            // Видаляємо будь-який код країни з початку
+            for (let code of countryCodes) {
+                if (cleaned.startsWith(code) && cleaned.length > code.length) {
+                    cleaned = cleaned.substring(code.length);
+                    break;
+                }
+            }
+            
+            return cleaned;
+        }
+        
+        // Функція для очищення введеного значення
+        function cleanPhoneValue(value) {
+            if (!value) return '';
+            
+            // Видаляємо всі нецифрові символи
+            let cleaned = value.replace(/[^0-9]/g, '');
+            
+            // Видаляємо код країни
+            cleaned = removeCountryCode(cleaned);
+            
+            return cleaned;
+        }
+        
         // Встановлюємо за замовчуванням Україну
         if (!phoneCountry.value) {
             phoneCountry.value = '+380';
         }
         
-        // Додаємо обробник зміни країни
-        phoneCountry.addEventListener('change', function() {
-            updatePhonePlaceholder(this.value, phoneInput);
-            // Очищаємо поле при зміні країни, якщо воно порожнє або містить старі дані
-            if (!phoneInput.value || phoneInput.value === phoneInput.getAttribute('data-old-value')) {
-                phoneInput.value = '';
-            }
-            phoneInput.setAttribute('data-old-value', phoneInput.value);
-        });
-        
-        // Функція для очищення значення від коду країни та нецифрових символів
-        function cleanPhoneInput(input) {
-            let value = input.value;
-            // Видаляємо всі нецифрові символи (включаючи +, пробіли, дужки)
-            value = value.replace(/[^0-9]/g, '');
-            
-            // Перевіряємо, чи не починається значення з 380 (якщо так, видаляємо його)
-            if (value.startsWith('380') && value.length > 3) {
-                value = value.substring(3);
-            }
-            
-            // Видаляємо код вибраної країни, якщо він присутній
-            const currentCountryCode = phoneCountry.value.replace(/[^0-9]/g, '');
-            if (value.startsWith(currentCountryCode) && value.length > currentCountryCode.length) {
-                value = value.substring(currentCountryCode.length);
-            }
-            
-            // Видаляємо будь-які інші коди країн з початку
-            const countryCodes = ['380', '48', '49', '33', '39', '34', '31', '32', '43', '420', '421', '36', '40', '359', '90', '44', '1', '7', '86', '81'];
-            for (let code of countryCodes) {
-                if (value.startsWith(code) && value.length > code.length) {
-                    value = value.substring(code.length);
-                    break;
-                }
-            }
-            
-            input.value = value;
-            return value;
+        // Очищаємо поле при завантаженні, якщо там є код країни
+        if (phoneInput.value) {
+            phoneInput.value = cleanPhoneValue(phoneInput.value);
         }
         
-        // Обмежуємо введення тільки цифрами та перевіряємо, щоб не було коду країни на початку
-        phoneInput.addEventListener('input', function(e) {
-            cleanPhoneInput(this);
+        // Обробник зміни країни
+        phoneCountry.addEventListener('change', function() {
+            const currentValue = phoneInput.value;
+            // Очищаємо поле, якщо в ньому є код країни
+            phoneInput.value = cleanPhoneValue(currentValue);
+            updatePhonePlaceholder(this.value, phoneInput);
         });
         
-        // Перехоплюємо вставку тексту (paste)
-        phoneInput.addEventListener('paste', function(e) {
-            e.preventDefault();
-            let pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            // Видаляємо всі нецифрові символи
-            pastedText = pastedText.replace(/[^0-9]/g, '');
-            // Видаляємо код країни, якщо він присутній
-            if (pastedText.startsWith('380') && pastedText.length > 3) {
-                pastedText = pastedText.substring(3);
-            }
-            // Вставляємо очищений текст
-            this.value = pastedText;
-            cleanPhoneInput(this);
-        });
-        
-        // Перехоплюємо події клавіатури для запобігання введенню +
-        phoneInput.addEventListener('keydown', function(e) {
-            // Блокуємо введення символів +, пробілів та інших нецифрових символів
-            if (e.key === '+' || e.key === ' ' || (e.key.length === 1 && !/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key))) {
+        // Обробник введення - забороняємо все, крім цифр
+        phoneInput.addEventListener('beforeinput', function(e) {
+            // Якщо це не цифра і не служебна клавіша - блокуємо
+            if (e.data && !/^\d$/.test(e.data)) {
                 e.preventDefault();
             }
         });
         
-        // Оновлюємо placeholder при фокусі на поле, щоб він завжди відповідав вибраній країні
+        // Обробник input - очищаємо від коду країни
+        phoneInput.addEventListener('input', function(e) {
+            const currentValue = this.value;
+            const cleaned = cleanPhoneValue(currentValue);
+            
+            // Оновлюємо значення тільки якщо воно змінилося
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+            }
+        });
+        
+        // Обробник paste - очищаємо від коду країни
+        phoneInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const cleaned = cleanPhoneValue(pasted);
+            
+            // Вставляємо очищене значення
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            const currentValue = this.value;
+            this.value = currentValue.substring(0, start) + cleaned + currentValue.substring(end);
+            
+            // Встановлюємо курсор
+            this.setSelectionRange(start + cleaned.length, start + cleaned.length);
+        });
+        
+        // Обробник keydown - блокуємо введення + та інших нецифрових символів
+        phoneInput.addEventListener('keydown', function(e) {
+            // Блокуємо +, пробіли та інші нецифрові символи (крім служебних клавіш)
+            if (e.key === '+' || 
+                (e.key.length === 1 && !/^\d$/.test(e.key) && 
+                 !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'].includes(e.key))) {
+                e.preventDefault();
+            }
+        });
+        
+        // Обробники focus/blur для оновлення placeholder
         phoneInput.addEventListener('focus', function() {
             updatePhonePlaceholder(phoneCountry.value, phoneInput);
         });
         
-        // Оновлюємо placeholder при втраті фокусу
         phoneInput.addEventListener('blur', function() {
             updatePhonePlaceholder(phoneCountry.value, phoneInput);
         });
         
-        // Перевіряємо при завантаженні сторінки, чи немає +380 в полі
-        if (phoneInput.value && (phoneInput.value.includes('+380') || phoneInput.value.startsWith('380'))) {
-            let value = phoneInput.value.replace(/[^0-9]/g, '');
-            if (value.startsWith('380') && value.length > 3) {
-                phoneInput.value = value.substring(3);
-            } else {
-                phoneInput.value = value;
-            }
-        }
-        
-        // Оновлюємо placeholder при завантаженні
+        // Початкове оновлення placeholder
         updatePhonePlaceholder(phoneCountry.value, phoneInput);
-    }
+        
+        // Додаткова перевірка через невелику затримку (на випадок автозаповнення браузера)
+        setTimeout(function() {
+            if (phoneInput.value) {
+                const cleaned = cleanPhoneValue(phoneInput.value);
+                if (phoneInput.value !== cleaned) {
+                    phoneInput.value = cleaned;
+                }
+            }
+        }, 100);
+        
+        // Спостереження за змінами значення (MutationObserver для автозаповнення)
+        const observer = new MutationObserver(function(mutations) {
+            if (phoneInput.value) {
+                const cleaned = cleanPhoneValue(phoneInput.value);
+                if (phoneInput.value !== cleaned) {
+                    phoneInput.value = cleaned;
+                }
+            }
+        });
+        
+        // Спостереження за атрибутом value
+        observer.observe(phoneInput, {
+            attributes: true,
+            attributeFilter: ['value']
+        });
+        
+        // Інтервальна перевірка (на випадок автозаповнення браузера)
+        let checkInterval = setInterval(function() {
+            if (document.activeElement !== phoneInput) {
+                if (phoneInput.value) {
+                    const cleaned = cleanPhoneValue(phoneInput.value);
+                    if (phoneInput.value !== cleaned) {
+                        phoneInput.value = cleaned;
+                    }
+                }
+            }
+        }, 200);
+        
+        // Зупиняємо перевірку при видаленні елемента
+        phoneInput.addEventListener('blur', function() {
+            clearInterval(checkInterval);
+        });
+    })();
     
     // Перевірка сили пароля
     const password1Input = document.getElementById('id_password1');
