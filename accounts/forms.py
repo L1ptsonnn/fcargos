@@ -246,7 +246,7 @@ class CarrierRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'phone_country', 'phone')
+        fields = ('username', 'email', 'password1', 'password2', 'phone')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control form-control-enhanced'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced'}),
