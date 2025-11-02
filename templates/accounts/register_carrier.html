@@ -741,18 +741,10 @@
             phoneInput.placeholder = placeholders[countryCode] || 'XXXXXXXXX';
         }
         
-        // Функція для очищення поля від будь-яких кодів країн та символів
-        function cleanPhoneInput(currentValue) {
-            // Якщо не передано значення, беремо з поля
-            let value = currentValue !== undefined ? String(currentValue) : (phoneInput.value || '');
-            
-            // Видаляємо всі нецифрові символи (+, пробіли, дужки тощо)
-            value = value.replace(/[^0-9]/g, '');
-            
-            // НЕ видаляємо коди країн автоматично - користувач може вводити свій номер
-            // Код країни буде додано на сервері
-            
-            return value;
+        // Функція для видалення тільки нецифрових символів (не коди країн!)
+        function removeNonDigits(value) {
+            if (!value) return '';
+            return String(value).replace(/[^0-9]/g, '');
         }
         
         // Обробник зміни країни
@@ -767,18 +759,16 @@
             const cursorPosition = this.selectionStart;
             const oldValue = this.value;
             
-            // Видаляємо всі нецифрові символи
-            let value = oldValue.replace(/[^0-9]/g, '');
-            
-            // НЕ видаляємо коди країн - дозволяємо користувачу вводити що завгодно
-            // Сервер сам обробить і додасть правильний код
+            // Просто видаляємо всі нецифрові символи (+, пробіли, дужки тощо)
+            let value = removeNonDigits(oldValue);
             
             // Встановлюємо очищене значення тільки якщо воно змінилося
-            if (this.value !== value) {
+            if (oldValue !== value) {
                 this.value = value;
                 
-                // Відновлюємо позицію курсора
-                const newPosition = Math.min(cursorPosition, value.length);
+                // Відновлюємо позицію курсора (враховуючи видалені символи)
+                const deletedChars = oldValue.length - value.length;
+                const newPosition = Math.max(0, Math.min(cursorPosition - deletedChars, value.length));
                 this.setSelectionRange(newPosition, newPosition);
             }
         });
@@ -788,11 +778,8 @@
             e.preventDefault();
             const pastedText = (e.clipboardData || window.clipboardData).getData('text');
             
-            // Просто видаляємо всі нецифрові символи
-            let cleaned = pastedText.replace(/[^0-9]/g, '');
-            
-            // НЕ видаляємо коди країн - дозволяємо вставити що завгодно
-            // Сервер обробить правильно
+            // Видаляємо тільки нецифрові символи
+            let cleaned = removeNonDigits(pastedText);
             
             // Вставляємо очищений текст
             const start = this.selectionStart;
@@ -803,14 +790,17 @@
             // Встановлюємо курсор
             const newPos = start + cleaned.length;
             this.setSelectionRange(newPos, newPos);
+            
+            // Тригеримо input event для подальшої обробки
+            this.dispatchEvent(new Event('input', { bubbles: true }));
         });
         
         // Обробник фокусу - оновлюємо placeholder
         phoneInput.addEventListener('focus', function() {
             setPlaceholder();
-            // Видаляємо тільки нецифрові символи (не коди країн)
+            // Видаляємо тільки нецифрові символи при фокусі
             if (this.value) {
-                const cleaned = this.value.replace(/[^0-9]/g, '');
+                const cleaned = removeNonDigits(this.value);
                 if (this.value !== cleaned) {
                     this.value = cleaned;
                 }
@@ -820,9 +810,9 @@
         // Обробник втрати фокусу - оновлюємо placeholder
         phoneInput.addEventListener('blur', function() {
             setPlaceholder();
-            // Видаляємо тільки нецифрові символи (не коди країн)
+            // Видаляємо тільки нецифрові символи при втраті фокусу
             if (this.value) {
-                const cleaned = this.value.replace(/[^0-9]/g, '');
+                const cleaned = removeNonDigits(this.value);
                 if (this.value !== cleaned) {
                     this.value = cleaned;
                 }
@@ -858,7 +848,7 @@
         
         // Очищаємо поле від нецифрових символів при завантаженні сторінки
         if (phoneInput.value) {
-            const cleaned = phoneInput.value.replace(/[^0-9]/g, '');
+            const cleaned = removeNonDigits(phoneInput.value);
             if (phoneInput.value !== cleaned) {
                 phoneInput.value = cleaned;
             }
