@@ -519,7 +519,7 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Помилка завантаження чатів:', error);
+                        // Не показуємо помилку якщо це не JSON - можливо користувач не авторизований
                         const chatsList = document.getElementById('chatsList');
                         if (chatsList) {
                             chatsList.innerHTML = `
