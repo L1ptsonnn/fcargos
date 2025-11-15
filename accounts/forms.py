@@ -4,7 +4,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Field
 from .models import User, CompanyProfile, CarrierProfile
 
-
+# Login form, allows to login to the system
 class LoginForm(forms.Form):
     username = forms.CharField(
         label='Логін',
@@ -26,7 +26,7 @@ class LoginForm(forms.Form):
             Submit('submit', 'Увійти', css_class='btn btn-primary w-100')
         )
 
-
+# Company registration form, allows to register a new company
 class CompanyRegistrationForm(UserCreationForm):
     email = forms.EmailField(
         label='Email',
@@ -105,6 +105,15 @@ class CompanyRegistrationForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        tax_id = cleaned_data.get('tax_id')
+        
+        # Перевірка унікальності податкового номера
+        if tax_id:
+            if CompanyProfile.objects.filter(tax_id=tax_id).exists():
+                raise forms.ValidationError({
+                    'tax_id': 'Компанія з таким податковим номером вже зареєстрована.'
+                })
+        
         return cleaned_data
     
     def save(self, commit=True):
@@ -115,7 +124,7 @@ class CompanyRegistrationForm(UserCreationForm):
             user.save()
         return user
 
-
+# Company profile edit form, allows to edit company profile information
 class CompanyProfileEditForm(forms.ModelForm):
     """Форма редагування профілю компанії"""
     email = forms.EmailField(
@@ -154,6 +163,23 @@ class CompanyProfileEditForm(forms.ModelForm):
             self.fields['email'].initial = self.user.email
             self.fields['company_name'].initial = self.user.company_name
     
+    def clean(self):
+        cleaned_data = super().clean()
+        tax_id = cleaned_data.get('tax_id')
+        
+        # Перевірка унікальності податкового номера (виключаючи поточний профіль)
+        if tax_id:
+            existing_profiles = CompanyProfile.objects.filter(tax_id=tax_id)
+            # Якщо редагуємо існуючий профіль, виключаємо його з перевірки
+            if self.instance and self.instance.pk:
+                existing_profiles = existing_profiles.exclude(pk=self.instance.pk)
+            if existing_profiles.exists():
+                raise forms.ValidationError({
+                    'tax_id': 'Компанія з таким податковим номером вже зареєстрована.'
+                })
+        
+        return cleaned_data
+    
     def save(self, commit=True):
         profile = super().save(commit=False)
         if self.user:
@@ -166,7 +192,7 @@ class CompanyProfileEditForm(forms.ModelForm):
 
 
 class CarrierRegistrationForm(UserCreationForm):
-    # Популярні моделі вантажівок
+    # Popular vehicle models
     POPULAR_VEHICLE_MODELS = [
         ('', 'Оберіть модель або введіть свою'),
         ('Mercedes-Benz Actros', 'Mercedes-Benz Actros'),
@@ -189,8 +215,8 @@ class CarrierRegistrationForm(UserCreationForm):
         ('КАМАЗ', 'КАМАЗ'),
         ('Інша модель', 'Інша модель'),
     ]
-    
-    # Коди країн для номерів
+
+    # Popular countries for license plate
     LICENSE_COUNTRIES = [
         ('UA', 'Україна (UA)'),
         ('PL', 'Польща (PL)'),
@@ -208,7 +234,7 @@ class CarrierRegistrationForm(UserCreationForm):
         ('BG', 'Болгарія (BG)'),
         ('TR', 'Туреччина (TR)'),
     ]
-    
+    # Email field and other fields for carrier registration
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
@@ -277,7 +303,7 @@ class CarrierRegistrationForm(UserCreationForm):
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
             'password2': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password2'}),
         }
-    
+    # Carrier registration form layout
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -299,29 +325,29 @@ class CarrierRegistrationForm(UserCreationForm):
             Field('experience_years'),
             Submit('submit', 'Зареєструватися', css_class='btn btn-success w-100 mt-3')
         )
-    
+    # Carrier registration form validation, checks if the vehicle model is valid
     def clean(self):
         cleaned_data = super().clean()
         vehicle_model = cleaned_data.get('vehicle_model')
         vehicle_model_custom = cleaned_data.get('vehicle_model_custom')
         
-        # Якщо обрано "Інша модель" або порожньо, використовуємо кастомну
+        # If the vehicle model is "Інша модель" or empty, use the custom model
         if vehicle_model == 'Інша модель' or not vehicle_model:
             if not vehicle_model_custom:
                 raise forms.ValidationError('Будь ласка, введіть модель вашого транспорту.')
             cleaned_data['vehicle_model'] = vehicle_model_custom
         elif vehicle_model_custom and vehicle_model != 'Інша модель':
-            # Якщо обрано зі списку, ігноруємо кастомну
+            # If the vehicle model is selected from the list, ignore the custom model
             cleaned_data['vehicle_model_custom'] = ''
         
         return cleaned_data
-    
+    # Carrier registration form saving, creates a new carrier profile
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'carrier'
         if commit:
             user.save()
-            # Створюємо профіль перевізника
+            # Create a new carrier profile
             vehicle_model = self.cleaned_data['vehicle_model']
             if not vehicle_model:
                 vehicle_model = self.cleaned_data.get('vehicle_model_custom', '')
@@ -339,7 +365,7 @@ class CarrierRegistrationForm(UserCreationForm):
             )
         return user
 
-
+# Carrier profile edit form, allows to edit carrier profile information
 class CarrierProfileEditForm(forms.ModelForm):
     """Форма редагування профілю перевізника"""
     POPULAR_VEHICLE_MODELS = [
@@ -364,7 +390,7 @@ class CarrierProfileEditForm(forms.ModelForm):
         ('КАМАЗ', 'КАМАЗ'),
         ('Інша модель', 'Інша модель'),
     ]
-    
+    # Popular countries for license plate
     LICENSE_COUNTRIES = [
         ('UA', 'Україна (UA)'),
         ('PL', 'Польща (PL)'),
@@ -382,7 +408,7 @@ class CarrierProfileEditForm(forms.ModelForm):
         ('BG', 'Болгарія (BG)'),
         ('TR', 'Туреччина (TR)'),
     ]
-    
+    # Email field and other fields for carrier profile edit
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
@@ -398,7 +424,7 @@ class CarrierProfileEditForm(forms.ModelForm):
             'placeholder': 'Введіть модель вашого транспорту'
         })
     )
-    
+    # Carrier profile edit form layout
     class Meta:
         model = CarrierProfile
         fields = ('vehicle_type', 'vehicle_model', 'address', 'address_lat', 'address_lng', 'experience_years', 'description')
@@ -420,7 +446,7 @@ class CarrierProfileEditForm(forms.ModelForm):
             'experience_years': forms.NumberInput(attrs={'class': 'form-control form-control-enhanced'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 5}),
         }
-    
+    # Carrier profile edit form initialization, sets the initial values for the fields
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
@@ -439,10 +465,10 @@ class CarrierProfileEditForm(forms.ModelForm):
             ('Інший', 'Інший'),
         ]
         
-        # Налаштування vehicle_model choices
+        # Setting the vehicle_model choices
         model_choices = list(self.POPULAR_VEHICLE_MODELS)
         
-        # Додаємо вибір моделі якщо вона не в списку
+        # Add the vehicle model if it is not in the list
         if self.instance and self.instance.vehicle_model:
             current_model = self.instance.vehicle_model
             if current_model not in [choice[0] for choice in self.POPULAR_VEHICLE_MODELS]:
