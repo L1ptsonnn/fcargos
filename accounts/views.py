@@ -53,21 +53,33 @@ def register_company(request):
         # request.FILES is needed for file uploads (logo)
         form = CompanyRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            # Save user (form.save() creates User with role='company')
-            user = form.save()
-            
-            # Create company profile with additional information
-            CompanyProfile.objects.create(
-                user=user,
-                address=form.cleaned_data.get('address', ''),
-                address_lat=form.cleaned_data.get('address_lat'),  # Latitude from map
-                address_lng=form.cleaned_data.get('address_lng'),  # Longitude from map
-                tax_id=form.cleaned_data['tax_id'],  # Tax identification number
-                description=form.cleaned_data.get('description', ''),  # Optional description
-                logo=form.cleaned_data.get('logo')  # Optional logo image
-            )
-            messages.success(request, 'Реєстрацію завершено! Будь ласка, увійдіть.')
-            return redirect('login')
+            user = None
+            try:
+                # Save user (form.save() creates User with role='company')
+                user = form.save()
+                
+                # Create company profile with additional information
+                CompanyProfile.objects.create(
+                    user=user,
+                    address=form.cleaned_data.get('address', ''),
+                    address_lat=form.cleaned_data.get('address_lat'),  # Latitude from map
+                    address_lng=form.cleaned_data.get('address_lng'),  # Longitude from map
+                    tax_id=form.cleaned_data['tax_id'],  # Tax identification number
+                    description=form.cleaned_data.get('description', ''),  # Optional description
+                    logo=form.cleaned_data.get('logo')  # Optional logo image
+                )
+                messages.success(request, 'Реєстрацію завершено! Будь ласка, увійдіть.')
+                return redirect('login')
+            except Exception as e:
+                # Якщо виникла помилка при створенні профілю (наприклад, дублікат tax_id)
+                # Видаляємо створеного користувача, щоб уникнути "сирого" запису
+                if user and user.pk:
+                    user.delete()
+                # Повторно перевіряємо tax_id і додаємо помилку до форми
+                if 'tax_id' in str(e).lower() or 'unique' in str(e).lower():
+                    form.add_error('tax_id', 'Компанія з таким податковим номером вже зареєстрована.')
+                else:
+                    messages.error(request, f'Помилка при реєстрації: {str(e)}')
     else:
         # GET request - show empty form
         form = CompanyRegistrationForm()
