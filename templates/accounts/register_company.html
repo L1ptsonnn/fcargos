@@ -494,7 +494,11 @@
                     </div>
                     
                     <div class="register-body">
-                        <form method="post" enctype="multipart/form-data" id="companyForm">
+                        <form method="post" enctype="multipart/form-data" id="companyForm" 
+                              hx-post="{% url 'register_company' %}" 
+                              hx-target="#main-content" 
+                              hx-swap="innerHTML"
+                              hx-encoding="multipart/form-data">
                             {% csrf_token %}
                             
                             <div class="section-divider">

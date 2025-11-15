@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.template.loader import render_to_string
 from .models import Route, Bid, Tracking, Message, Notification, Rating
 from .forms import RouteForm, BidForm, TrackingUpdateForm, MessageForm, RatingForm
 
@@ -158,6 +159,10 @@ def create_route(request):
         messages.error(request, 'Тільки компанії можуть створювати маршрути')
         return redirect('home')
     
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    template = 'logistics/create_route_partial.html' if is_htmx else 'logistics/create_route.html'
+    
     # If form was submitted (POST request)
     if request.method == 'POST':
         form = RouteForm(request.POST)
@@ -177,12 +182,14 @@ def create_route(request):
                 progress_percent=0  # Progress starts at 0%
             )
             messages.success(request, 'Маршрут успішно створено!')
+            if is_htmx:
+                return HttpResponse(f'<script>window.location.href = "/logistics/routes/{route.pk}/";</script>')
             return redirect('route_detail', pk=route.pk)
     else:
         # GET request - show empty form
         form = RouteForm()
     
-    return render(request, 'logistics/create_route.html', {'form': form})
+    return render(request, template, {'form': form})
 
 
 # Route detail view - shows detailed information about a route
@@ -306,6 +313,10 @@ def create_bid(request, pk):
         messages.error(request, 'Ви вже зробили ставку на цей маршрут')
         return redirect('route_detail', pk=pk)
     
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     # If form was submitted (POST request)
     if request.method == 'POST':
         form = BidForm(request.POST)
@@ -325,8 +336,10 @@ def create_bid(request, pk):
                 route=route
             )
             
-            # Return JSON response for AJAX requests
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Return appropriate response based on request type
+            if is_htmx:
+                return HttpResponse('<div class="alert alert-success">Ставку успішно створено!</div><script>setTimeout(() => window.location.reload(), 1500);</script>')
+            if is_ajax:
                 return JsonResponse({'success': True, 'message': 'Ставку успішно створено!'})
             messages.success(request, 'Ставку успішно створено!')
             return redirect('route_detail', pk=pk)
@@ -334,13 +347,15 @@ def create_bid(request, pk):
         # GET request - show empty form
         form = BidForm()
     
-    # For AJAX requests, return only the form HTML (for modal)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        from django.template.loader import render_to_string
-        html = render_to_string('logistics/create_bid.html', {
+    # For HTMX/AJAX requests, return only the form HTML (for modal)
+    if is_htmx or is_ajax:
+        template = 'logistics/create_bid_partial.html' if is_htmx else 'logistics/create_bid.html'
+        html = render_to_string(template, {
             'route': route,
             'form': form
         }, request=request)
+        if is_htmx:
+            return HttpResponse(html)
         return JsonResponse({'html': html})
     
     # Regular request - render full page
@@ -402,6 +417,9 @@ def accept_bid(request, bid_id):
     )
     
     messages.success(request, f'Ставку від {bid.carrier.username} прийнято!')
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    if is_htmx:
+        return HttpResponse(f'<script>window.location.href = "/logistics/routes/{bid.route.pk}/";</script>')
     return redirect('route_detail', pk=bid.route.pk)
 
 
@@ -462,6 +480,9 @@ def complete_route(request, pk):
         )
     
     messages.success(request, 'Маршрут успішно завершено!')
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    if is_htmx:
+        return HttpResponse(f'<script>window.location.href = "/logistics/routes/{route.pk}/";</script>')
     return redirect('route_detail', pk=route.pk)
 
 
@@ -738,11 +759,13 @@ def route_messages(request, pk):
 
 @login_required
 def route_messages_api(request, pk):
-    """API для отримання повідомлень маршруту (AJAX)"""
+    """API для отримання повідомлень маршруту (AJAX/HTMX)"""
     route = get_object_or_404(Route, pk=pk)
     
     # Перевірка доступу
     if route.company != request.user and (not route.carrier or route.carrier != request.user):
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<div class="alert alert-danger">Access denied</div>', status=403)
         return JsonResponse({'error': 'Access denied'}, status=403)
     
     # Визначаємо співрозмовника
@@ -751,9 +774,13 @@ def route_messages_api(request, pk):
     elif request.user == route.carrier:
         other_user = route.company
     else:
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<div class="alert alert-danger">Invalid user</div>', status=403)
         return JsonResponse({'error': 'Invalid user'}, status=403)
     
     if not route.carrier or not other_user:
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<div class="alert alert-danger">Invalid route</div>', status=404)
         return JsonResponse({'error': 'Invalid route'}, status=404)
     
     # Отримуємо повідомлення
@@ -762,6 +789,20 @@ def route_messages_api(request, pk):
     # Позначаємо як прочитані
     Message.objects.filter(route=route, recipient=request.user, is_read=False).update(is_read=True)
     
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    
+    if is_htmx:
+        # Return HTML for HTMX
+        html = render_to_string('logistics/messages_partial.html', {
+            'messages': messages_list,
+            'other_user': other_user,
+            'route': route,
+            'current_user_id': request.user.id,
+        }, request=request)
+        return HttpResponse(html)
+    
+    # Return JSON for AJAX
     messages_data = [{
         'id': msg.id,
         'sender': msg.sender.username,
@@ -857,13 +898,16 @@ def chats_list(request):
 
 @login_required
 def chats_api(request):
-    """API для отримання чатів (AJAX)"""
+    """API для отримання чатів (AJAX/HTMX)"""
     if request.user.role == 'company':
         routes = Route.objects.filter(company=request.user, carrier__isnull=False).order_by('-created_at')
     elif request.user.role == 'carrier':
         routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
     else:
         routes = Route.objects.none()
+    
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
     
     chats_data = []
     total_unread = 0
@@ -886,6 +930,15 @@ def chats_api(request):
             'unread_count': unread_count,
         })
     
+    if is_htmx:
+        # Return HTML for HTMX
+        html = render_to_string('logistics/chats_partial.html', {
+            'chats': chats_data,
+            'total_unread': total_unread,
+        }, request=request)
+        return HttpResponse(html)
+    
+    # Return JSON for AJAX
     return JsonResponse({
         'chats': chats_data,
         'total_unread': total_unread,
@@ -1037,9 +1090,21 @@ def user_profile(request, user_id):
 
 @login_required
 def notifications_api(request):
-    """API для отримання сповіщень (AJAX)"""
+    """API для отримання сповіщень (AJAX/HTMX)"""
     notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:10]
     
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    
+    if is_htmx:
+        # Return HTML for HTMX
+        html = render_to_string('logistics/notifications_partial.html', {
+            'notifications': notifications,
+            'unread_count': Notification.objects.filter(user=request.user, is_read=False).count(),
+        }, request=request)
+        return HttpResponse(html)
+    
+    # Return JSON for AJAX
     notifications_data = [{
         'id': n.id,
         'type': n.notification_type,

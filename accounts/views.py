@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse
 from .models import User, CompanyProfile, CarrierProfile
 from .forms import LoginForm, CompanyRegistrationForm, CarrierRegistrationForm, CompanyProfileEditForm, CarrierProfileEditForm
 
@@ -12,7 +13,13 @@ from .forms import LoginForm, CompanyRegistrationForm, CarrierRegistrationForm, 
 def login_view(request):
     # If user is already logged in, redirect to home page
     if request.user.is_authenticated:
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<script>window.location.href = "/";</script>')
         return redirect('home')
+    
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    template = 'accounts/login_partial.html' if is_htmx else 'accounts/login.html'
     
     # If form was submitted (POST request)
     if request.method == 'POST':
@@ -28,6 +35,8 @@ def login_view(request):
                 # Log user in (create session)
                 login(request, user)
                 messages.success(request, f'Ласкаво просимо, {user.username}!')
+                if is_htmx:
+                    return HttpResponse('<script>window.location.href = "/";</script>')
                 return redirect('home')
             else:
                 # Invalid credentials
@@ -37,7 +46,7 @@ def login_view(request):
         form = LoginForm()
     
     # Render login template with form
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, template, {'form': form})
 
 
 # Company registration view - handles company user registration
@@ -46,7 +55,13 @@ def login_view(request):
 def register_company(request):
     # If user is already logged in, redirect to home
     if request.user.is_authenticated:
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<script>window.location.href = "/";</script>')
         return redirect('home')
+    
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    template = 'accounts/register_company_partial.html' if is_htmx else 'accounts/register_company.html'
     
     # If form was submitted (POST request)
     if request.method == 'POST':
@@ -69,6 +84,8 @@ def register_company(request):
                     logo=form.cleaned_data.get('logo')  # Optional logo image
                 )
                 messages.success(request, 'Реєстрацію завершено! Будь ласка, увійдіть.')
+                if is_htmx:
+                    return HttpResponse('<script>window.location.href = "/accounts/login/";</script>')
                 return redirect('login')
             except Exception as e:
                 # Якщо виникла помилка при створенні профілю (наприклад, дублікат tax_id)
@@ -85,7 +102,7 @@ def register_company(request):
         form = CompanyRegistrationForm()
     
     # Render registration template with form
-    return render(request, 'accounts/register_company.html', {'form': form})
+    return render(request, template, {'form': form})
 
 
 # Carrier registration view - handles carrier user registration
@@ -94,7 +111,13 @@ def register_company(request):
 def register_carrier(request):
     # If user is already logged in, redirect to home
     if request.user.is_authenticated:
+        if request.headers.get('HX-Request'):
+            return HttpResponse('<script>window.location.href = "/";</script>')
         return redirect('home')
+    
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    template = 'accounts/register_carrier_partial.html' if is_htmx else 'accounts/register_carrier.html'
     
     # If form was submitted (POST request)
     if request.method == 'POST':
@@ -104,13 +127,15 @@ def register_carrier(request):
             # (see CarrierRegistrationForm.save() method)
             form.save()
             messages.success(request, 'Реєстрацію завершено! Будь ласка, увійдіть.')
+            if is_htmx:
+                return HttpResponse('<script>window.location.href = "/accounts/login/";</script>')
             return redirect('login')
     else:
         # GET request - show empty form
         form = CarrierRegistrationForm()
     
     # Render registration template with form
-    return render(request, 'accounts/register_carrier.html', {'form': form})
+    return render(request, template, {'form': form})
 
 
 # Registration view - shows registration type selection page
@@ -145,6 +170,10 @@ def profile_view(request):
             if edit_form.is_valid():
                 edit_form.save()
                 messages.success(request, 'Профіль успішно оновлено!')
+                is_htmx = request.headers.get('HX-Request') == 'true'
+                if is_htmx:
+                    # Reload the page to show updated profile
+                    return HttpResponse('<script>window.location.reload();</script>')
                 return redirect('profile')
         else:
             # GET request - initialize form with existing profile data (if exists)
@@ -182,6 +211,10 @@ def profile_view(request):
             if edit_form.is_valid():
                 edit_form.save()
                 messages.success(request, 'Профіль успішно оновлено!')
+                is_htmx = request.headers.get('HX-Request') == 'true'
+                if is_htmx:
+                    # Reload the page to show updated profile
+                    return HttpResponse('<script>window.location.reload();</script>')
                 return redirect('profile')
         else:
             # GET request - initialize form with existing profile data (if exists)

@@ -497,7 +497,11 @@
             </div>
             <div class="modal-body" style="padding: 1.25rem; background: #fafbfc;">
                 {% if edit_form %}
-                    <form method="post" enctype="multipart/form-data" id="editProfileForm">
+                    <form method="post" enctype="multipart/form-data" id="editProfileForm"
+                          hx-post="{% url 'profile' %}" 
+                          hx-target="#main-content" 
+                          hx-swap="innerHTML"
+                          hx-encoding="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="edit_profile" value="1">
                         

@@ -1,0 +1,161 @@
+{% load crispy_forms_tags %}
+{% load static %}
+<div class="register-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="register-card">
+                    <div class="register-header">
+                        <i class="bi bi-building"></i>
+                        <h3>Реєстрація компанії</h3>
+                        <p class="mb-0 mt-2 opacity-75">Створіть профіль компанії та почніть шукати перевізників</p>
+                    </div>
+                    
+                    <div class="register-body">
+                        <form method="post" enctype="multipart/form-data" id="companyForm" 
+                              hx-post="{% url 'register_company' %}" 
+                              hx-target="#main-content" 
+                              hx-swap="innerHTML"
+                              hx-encoding="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-person-circle"></i> Особисті дані</span>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-person"></i> {{ form.username.label }}
+                                        </label>
+                                        {{ form.username }}
+                                        {% if form.username.errors %}
+                                            <ul class="error-list-custom">{{ form.username.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-envelope"></i> {{ form.email.label }}
+                                        </label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <ul class="error-list-custom">{{ form.email.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-lock"></i> {{ form.password1.label }}
+                                        </label>
+                                        <div class="password-field-wrapper">
+                                            {{ form.password1 }}
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('id_password1', this)" title="Показати/приховати пароль">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        {% if form.password1.errors %}
+                                            <ul class="error-list-custom">{{ form.password1.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-enhanced">
+                                        <label class="form-label-enhanced">
+                                            <i class="bi bi-lock-fill"></i> {{ form.password2.label }}
+                                        </label>
+                                        <div class="password-field-wrapper">
+                                            {{ form.password2 }}
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('id_password2', this)" title="Показати/приховати пароль">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        {% if form.password2.errors %}
+                                            <ul class="error-list-custom">{{ form.password2.errors }}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-building"></i> Інформація про компанію</span>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-building"></i> {{ form.company_name.label }}
+                                </label>
+                                {{ form.company_name }}
+                                {% if form.company_name.errors %}
+                                    <ul class="error-list-custom">{{ form.company_name.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-geo-alt"></i> Адреса</span>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-map"></i> Вкажіть вашу адресу на карті
+                                </label>
+                                <div id="address_map_container" class="map-container-small"></div>
+                                <button type="button" class="btn btn-map btn-outline-primary" onclick="openMapModal()">
+                                    <i class="bi bi-geo-alt-fill"></i> Вказати адресу на карті
+                                </button>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <ul class="error-list-custom">{{ form.address.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            {{ form.address_lat.as_hidden }}
+                            {{ form.address_lng.as_hidden }}
+                            
+                            <div class="form-group-enhanced">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-receipt"></i> {{ form.tax_id.label }}
+                                </label>
+                                {{ form.tax_id }}
+                                {% if form.tax_id.errors %}
+                                    <ul class="error-list-custom">{{ form.tax_id.errors }}</ul>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="section-divider">
+                                <span><i class="bi bi-image"></i> Логотип</span>
+                            </div>
+                            
+                            <div class="logo-upload-wrapper">
+                                <label class="form-label-enhanced">
+                                    <i class="bi bi-image"></i> Логотип компанії (необов'язково)
+                                </label>
+                                <label class="logo-upload-btn">
+                                    <i class="bi bi-cloud-upload"></i>
+                                    <span id="logoUploadText">Натисніть для завантаження логотипу</span>
+                                    {{ form.logo }}
+                                </label>
+                                <div class="logo-preview-container">
+                                    <img id="logoPreview" class="logo-preview" alt="Превью логотипу">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-submit-enhanced">
+                                <i class="bi bi-check-circle-fill"></i> Зареєструватися
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

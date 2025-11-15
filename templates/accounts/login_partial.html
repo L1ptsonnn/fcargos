@@ -1,37 +1,4 @@
-{% extends 'base.html' %}
 {% load crispy_forms_tags %}
-
-{% block title %}Увійти - FCargos{% endblock %}
-
-{% block extra_css %}
-<style>
-    .login-container {
-        min-height: calc(100vh - 200px);
-        display: flex;
-        align-items: center;
-        padding: 3rem 0;
-    }
-    .login-header {
-        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
-        background-size: 200% 200%;
-        animation: gradientShift 5s ease infinite;
-        padding: 2.5rem;
-        border-radius: 20px 20px 0 0;
-        color: white;
-        text-align: center;
-    }
-    .login-header i {
-        font-size: 64px;
-        margin-bottom: 1rem;
-        animation: float 3s ease-in-out infinite;
-    }
-    .login-card {
-        animation: scaleIn 0.6s ease-out;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
 <div class="login-container">
     <div class="container">
         <div class="row justify-content-center">
@@ -61,5 +28,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
 

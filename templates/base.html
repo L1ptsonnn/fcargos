@@ -62,18 +62,36 @@
                             </a>
                         </li>
                         <li class="nav-item d-flex align-items-center">
-                            <a class="nav-link position-relative p-2" href="#" id="chatsTrigger" data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" title="Чати">
+                            <a class="nav-link position-relative p-2" href="#" id="chatsTrigger" 
+                               data-bs-toggle="offcanvas" data-bs-target="#chatsOffcanvas" 
+                               hx-get="{% url 'chats_api' %}" 
+                               hx-target="#chatsList" 
+                               hx-swap="innerHTML"
+                               hx-trigger="click"
+                               title="Чати">
                                 <i class="bi bi-chat-dots fs-5"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="chatsBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
                         </li>
                         <li class="nav-item d-flex align-items-center">
-                            <a class="nav-link position-relative p-2" href="#" id="historyTrigger" data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" title="Історія маршрутів">
+                            <a class="nav-link position-relative p-2" href="#" id="historyTrigger" 
+                               data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" 
+                               hx-get="{% url 'history_api' %}" 
+                               hx-target="#historyContent" 
+                               hx-swap="innerHTML"
+                               hx-trigger="click"
+                               title="Історія маршрутів">
                                 <i class="bi bi-clock-history fs-5"></i>
                             </a>
                         </li>
                         <li class="nav-item d-flex align-items-center">
-                            <a class="nav-link position-relative p-2" href="#" id="notificationsTrigger" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" title="Сповіщення">
+                            <a class="nav-link position-relative p-2" href="#" id="notificationsTrigger" 
+                               data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas" 
+                               hx-get="{% url 'notifications_api' %}" 
+                               hx-target="#notificationsList" 
+                               hx-swap="innerHTML"
+                               hx-trigger="click"
+                               title="Сповіщення">
                                 <i class="bi bi-bell fs-5"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notificationBadge" style="display: none; font-size: 0.6rem; padding: 2px 5px;">0</span>
                             </a>
@@ -106,19 +124,19 @@
     </nav>
 
     <!-- Messages -->
-    {% if messages %}
-        <div class="container mt-5 pt-4">
+    <div id="messages-container" class="container mt-5 pt-4">
+        {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 
     <!-- Main Content -->
-    <main>
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
@@ -140,6 +158,8 @@
         </div>
     </footer>
 
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Leaflet JS -->
