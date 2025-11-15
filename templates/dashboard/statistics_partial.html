@@ -1,0 +1,174 @@
+{% load static %}
+<div>
+    {% if user.role == 'company' %}
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <i class="bi bi-map" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ total_routes }}</h2>
+                    <p class="mb-0">Всього маршрутів</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card success">
+                    <i class="bi bi-cash-stack" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ total_spent|floatformat:0 }} грн</h2>
+                    <p class="mb-0">Всього витрачено</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card info">
+                    <i class="bi bi-currency-exchange" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ average_price|floatformat:0 }} грн</h2>
+                    <p class="mb-0">Середня ціна</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <i class="bi bi-pie-chart" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ by_status.delivered }}</h2>
+                    <p class="mb-0">Завершено</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Статистика по статусах</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Маршрути по місяцях</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif user.role == 'carrier' %}
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <i class="bi bi-cash-stack" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ total_bids }}</h2>
+                    <p class="mb-0">Всього ставок</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card success">
+                    <i class="bi bi-percent" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ accepted_rate|floatformat:1 }}%</h2>
+                    <p class="mb-0">Прийняття ставок</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card info">
+                    <i class="bi bi-wallet2" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ total_earned|floatformat:0 }} грн</h2>
+                    <p class="mb-0">Зароблено</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-card">
+                    <i class="bi bi-trophy" style="font-size: 32px;"></i>
+                    <h2 class="mt-3">{{ completed_routes }}</h2>
+                    <p class="mb-0">Завершено</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Продуктивність</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Активних маршрутів:</strong> {{ active_routes }}</p>
+                        <p><strong>Середня ціна за доставку:</strong> {{ average_price|floatformat:0 }} грн</p>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ accepted_rate }}%">
+                                {{ accepted_rate|floatformat:1 }}% прийняття
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Додаткова інформація</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Успішних доставок:</strong> {{ completed_routes }}</p>
+                        <p><strong>Всього зароблено:</strong> {{ total_earned|floatformat:2 }} грн</p>
+                        <p><strong>Середній дохід:</strong> {{ average_price|floatformat:0 }} грн за маршрут</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    {% if user.role == 'company' %}
+    // Статуси маршрутів
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Очікують', 'В дорозі', 'Доставлено'],
+                datasets: [{
+                    data: [{{ by_status.pending }}, {{ by_status.in_transit }}, {{ by_status.delivered }}],
+                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    }
+    
+    // Маршрути по місяцях
+    const monthlyCtx = document.getElementById('monthlyChart');
+    if (monthlyCtx) {
+        const monthlyData = JSON.parse('{{ monthly_data|escapejs }}');
+        new Chart(monthlyCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: monthlyData.map(d => d.month),
+                datasets: [{
+                    label: 'Маршрути',
+                    data: monthlyData.map(d => d.count),
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+</script>
+

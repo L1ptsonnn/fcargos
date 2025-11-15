@@ -37,23 +37,18 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
                             <i class="bi bi-house"></i> Головна
                         </a>
                     </li>
                     {% if user.is_authenticated %}
                         {% if user.role == 'company' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'create_route' %}">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'create_route' %}active{% endif %}" href="{% url 'create_route' %}">
                                     <i class="bi bi-plus-circle"></i> Створити маршрут
                                 </a>
                             </li>
                         {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'statistics' %}">
-                                <i class="bi bi-graph-up"></i> Статистика
-                            </a>
-                        </li>
                     </ul>
                     <ul class="navbar-nav ms-auto d-flex flex-row gap-2">
                         <li class="nav-item d-flex align-items-center">
@@ -97,7 +92,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
                                 <i class="bi bi-person"></i> Профіль
                             </a>
                         </li>

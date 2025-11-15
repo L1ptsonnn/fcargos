@@ -69,6 +69,11 @@ def statistics(request):
     from django.db.models import Count, Sum, Avg
     from django.utils import timezone
     from datetime import timedelta
+    from django.http import HttpResponse
+    
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    template = 'dashboard/statistics_partial.html' if is_htmx else 'dashboard/statistics.html'
     
     context = {}
     
@@ -110,7 +115,7 @@ def statistics(request):
             'active_routes': routes.filter(status='in_transit').count(),
         })
     
-    return render(request, 'dashboard/statistics.html', context)
+    return render(request, template, context)
 
 
 @login_required

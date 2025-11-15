@@ -267,6 +267,23 @@ body {
     transform: scale(1.2);
 }
 
+.nav-link.active {
+    background: rgba(102, 126, 234, 0.3) !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.nav-link.active::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    left: 0;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { left: -100%; }
+    50% { left: 100%; }
+}
+
 /* Modern Cards with Gradient Borders */
 .card {
     background: rgba(255, 255, 255, 0.98);
