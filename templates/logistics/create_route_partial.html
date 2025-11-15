@@ -1,47 +1,4 @@
-{% extends 'base.html' %}
 {% load crispy_forms_tags %}
-
-{% block title %}Створити маршрут - FCargos{% endblock %}
-
-{% block extra_css %}
-<style>
-    .map-container {
-        height: 500px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        position: relative;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    .map-instruction {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 1000;
-        background: white;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        max-width: 300px;
-    }
-    .map-instruction h6 {
-        margin: 0 0 10px 0;
-        color: #667eea;
-    }
-    .selected-point {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        border: 2px solid #667eea;
-    }
-    .selected-point.success {
-        border-color: #28a745;
-        background: #f0f8f4;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-10">
@@ -159,9 +116,7 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
     // Очікуємо завантаження DOM та Leaflet
     document.addEventListener('DOMContentLoaded', function() {
@@ -369,4 +324,46 @@
         });
     });
 </script>
-{% endblock %}
+
+<style>
+    .map-container {
+        height: 500px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .map-instruction {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        max-width: 300px;
+    }
+    .map-instruction h6 {
+        margin: 0 0 10px 0;
+        color: #667eea;
+    }
+    .selected-point {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 2px solid #667eea;
+    }
+    .selected-point.success {
+        border-color: #28a745;
+        background: #f0f8f4;
+    }
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-block;
+    }
+</style>
+
