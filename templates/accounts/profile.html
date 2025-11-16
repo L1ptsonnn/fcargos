@@ -8,14 +8,16 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     body {
-        background: #f5f7fa;
-        background-image: 
-            radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.03) 0%, transparent 50%),
-            radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.03) 0%, transparent 50%),
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
             linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         background-attachment: fixed;
+        background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
         min-height: 100vh;
         position: relative;
+        overflow-x: hidden;
     }
     
     body::before {
@@ -26,10 +28,16 @@
         width: 100%;
         height: 100%;
         background-image: 
-            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(102, 126, 234, 0.01) 2px, rgba(102, 126, 234, 0.01) 4px),
-            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(118, 75, 162, 0.01) 2px, rgba(118, 75, 162, 0.01) 4px);
+            repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(99, 102, 241, 0.03) 3px, rgba(99, 102, 241, 0.03) 6px),
+            repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139, 92, 246, 0.03) 3px, rgba(139, 92, 246, 0.03) 6px);
         pointer-events: none;
         z-index: 0;
+        animation: gridMove 25s linear infinite;
+    }
+    
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(30px, 30px); }
     }
     
     body::after {
@@ -37,18 +45,19 @@
         position: fixed;
         top: -300px;
         right: -200px;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
         z-index: 0;
-        animation: subtleMove 30s ease-in-out infinite;
+        animation: subtleMove 35s ease-in-out infinite;
     }
     
     @keyframes subtleMove {
-        0%, 100% { transform: translate(0, 0); }
-        50% { transform: translate(-50px, 50px); }
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+        33% { transform: translate(-80px, 60px) scale(1.15); opacity: 0.6; }
+        66% { transform: translate(60px, -80px) scale(0.85); opacity: 0.5; }
     }
     
     .profile-container {
@@ -336,7 +345,7 @@
     </div>
     
     <!-- Quick Stats Preview -->
-    <div class="row g-3 mb-3">
+    <div class="row g-3 mb-3" id="quickStats">
         {% if user.role == 'company' %}
             <div class="col-6 col-md-3">
                 <div class="stat-card primary">
