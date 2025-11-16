@@ -6,6 +6,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- AOS - Animate On Scroll -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <style>
     body {
         background: 
@@ -152,12 +154,30 @@
         padding: 1rem;
         text-align: center;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        transition: transform 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+    
+    .stat-card:hover::before {
+        left: 100%;
     }
     
     .stat-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
     }
     
     .stat-card.primary {
@@ -289,7 +309,7 @@
 {% block content %}
 <div class="container profile-container">
     <!-- Profile Header -->
-    <div class="profile-header-card">
+    <div class="profile-header-card" data-aos="fade-down">
         <div class="profile-header-content">
             {% if profile and profile.logo %}
                 <img src="{{ profile.logo.url }}" alt="Logo" class="profile-avatar">
@@ -330,7 +350,7 @@
     </div>
 
     <!-- Statistics Button -->
-    <div class="row mb-3">
+    <div class="row mb-3" data-aos="fade-up" data-aos-delay="100">
         <div class="col-12">
             <button type="button" class="btn btn-lg w-100 statistics-btn" 
                     data-bs-toggle="modal" 
@@ -347,42 +367,42 @@
     <!-- Quick Stats Preview -->
     <div class="row g-3 mb-3" id="quickStats">
         {% if user.role == 'company' %}
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200">
                 <div class="stat-card primary">
                     <i class="bi bi-map stat-icon"></i>
                     <div class="stat-number">{{ total_routes }}</div>
                     <div class="stat-label">Маршрутів</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
                 <div class="stat-card warning">
                     <i class="bi bi-hourglass-split stat-icon"></i>
                     <div class="stat-number">{{ pending_routes }}</div>
                     <div class="stat-label">Очікують</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="400">
                 <div class="stat-card info">
                     <i class="bi bi-truck stat-icon"></i>
                     <div class="stat-number">{{ in_transit_routes }}</div>
                     <div class="stat-label">В дорозі</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="500">
                 <div class="stat-card success">
                     <i class="bi bi-check-circle stat-icon"></i>
                     <div class="stat-number">{{ delivered_routes }}</div>
                     <div class="stat-label">Доставлено</div>
                 </div>
             </div>
-            <div class="col-6 col-md-6">
+            <div class="col-6 col-md-6" data-aos="fade-left" data-aos-delay="600">
                 <div class="stat-card">
                     <i class="bi bi-cash-stack" style="font-size: 1.5rem; color: #667eea;"></i>
                     <div class="stat-number" style="color: #333;">{{ total_spent|floatformat:0 }} грн</div>
                     <div class="stat-label" style="color: #666;">Витрачено</div>
                 </div>
             </div>
-            <div class="col-6 col-md-6">
+            <div class="col-6 col-md-6" data-aos="fade-right" data-aos-delay="600">
                 <div class="stat-card">
                     <i class="bi bi-graph-up" style="font-size: 1.5rem; color: #764ba2;"></i>
                     <div class="stat-number" style="color: #333;">{{ all_routes|length }}</div>
@@ -390,42 +410,42 @@
                 </div>
             </div>
         {% elif user.role == 'carrier' %}
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200">
                 <div class="stat-card primary">
                     <i class="bi bi-cash-stack stat-icon"></i>
                     <div class="stat-number">{{ total_bids }}</div>
                     <div class="stat-label">Ставок</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
                 <div class="stat-card success">
                     <i class="bi bi-check-circle stat-icon"></i>
                     <div class="stat-number">{{ accepted_bids }}</div>
                     <div class="stat-label">Прийнято</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="400">
                 <div class="stat-card info">
                     <i class="bi bi-truck stat-icon"></i>
                     <div class="stat-number">{{ active_routes }}</div>
                     <div class="stat-label">Активних</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="500">
                 <div class="stat-card warning">
                     <i class="bi bi-trophy stat-icon"></i>
                     <div class="stat-number">{{ completed_routes }}</div>
                     <div class="stat-label">Завершено</div>
                 </div>
             </div>
-            <div class="col-6 col-md-6">
+            <div class="col-6 col-md-6" data-aos="fade-left" data-aos-delay="600">
                 <div class="stat-card">
                     <i class="bi bi-wallet2" style="font-size: 1.5rem; color: #11998e;"></i>
                     <div class="stat-number" style="color: #333;">{{ total_earned|floatformat:0 }} грн</div>
                     <div class="stat-label" style="color: #666;">Зароблено</div>
                 </div>
             </div>
-            <div class="col-6 col-md-6">
+            <div class="col-6 col-md-6" data-aos="fade-right" data-aos-delay="600">
                 <div class="stat-card">
                     <i class="bi bi-graph-up-arrow" style="font-size: 1.5rem; color: #38ef7d;"></i>
                     <div class="stat-number" style="color: #333;">{{ average_price|floatformat:0 }} грн</div>
@@ -437,7 +457,7 @@
 
     <!-- Main Content -->
     <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3" data-aos="fade-right" data-aos-delay="700">
             <div class="info-card">
                 <div class="info-card-header">
                     <h5><i class="bi bi-person"></i> Інформація</h5>
@@ -486,7 +506,7 @@
             </div>
         </div>
         
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3" data-aos="fade-left" data-aos-delay="700">
             <div class="info-card">
                 <div class="info-card-header">
                     <h5>
