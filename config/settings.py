@@ -91,8 +91,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database configuration
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-# Currently using SQLite (good for development)
-# For production, use PostgreSQL or MySQL
+# PostgreSQL connection details are injected via environment variables
 
 DATABASES = {
     'default': {
