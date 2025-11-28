@@ -5,7 +5,7 @@ from .models import User, CompanyProfile, CarrierProfile
 
 User = get_user_model()
 
-
+# User model test, tests the user model
 class UserModelTest(TestCase):
     def setUp(self):
         self.company_user = User.objects.create_user(
@@ -23,7 +23,8 @@ class UserModelTest(TestCase):
             role='carrier',
             phone='+380 (67) 987 65 43'
         )
-    
+   
+    # Test company creation
     def test_company_creation(self):
         self.assertEqual(self.company_user.role, 'company')
         self.assertEqual(self.company_user.company_name, 'Test Company')
@@ -32,6 +33,7 @@ class UserModelTest(TestCase):
         self.assertEqual(self.carrier_user.role, 'carrier')
 
 
+# Authentication test, tests the authentication system
 class AuthenticationTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -66,6 +68,7 @@ class AuthenticationTest(TestCase):
         self.assertEqual(response.status_code, 302)  # Redirect after logout
 
 
+# Company registration test, tests the company registration system
 class CompanyRegistrationTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -89,6 +92,7 @@ class CompanyRegistrationTest(TestCase):
         self.assertTrue(User.objects.filter(username='newcompany').exists())
 
 
+# Carrier registration test, tests the carrier registration system
 class CarrierRegistrationTest(TestCase):
     def setUp(self):
         self.client = Client()

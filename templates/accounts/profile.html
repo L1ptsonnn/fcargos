@@ -1129,4 +1129,65 @@
         </div>
     </div>
 </div>
+
+<!-- AOS Script -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: true,
+        offset: 50
+    });
+    
+    // Animate stat numbers on scroll
+    const animateValue = (element, start, end, duration) => {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            element.textContent = value;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                element.textContent = end;
+            }
+        };
+        window.requestAnimationFrame(step);
+    };
+    
+    // Observe stat cards for animation
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statNumber = entry.target.querySelector('.stat-number');
+                if (statNumber && !statNumber.dataset.animated) {
+                    const text = statNumber.textContent.trim();
+                    const finalValue = parseInt(text.replace(/\D/g, '')) || 0;
+                    if (finalValue > 0) {
+                        statNumber.dataset.animated = 'true';
+                        const originalText = text;
+                        animateValue(statNumber, 0, finalValue, 1500);
+                        // Restore original text format after animation
+                        setTimeout(() => {
+                            if (originalText.includes('грн')) {
+                                statNumber.textContent = originalText;
+                            }
+                        }, 1500);
+                    }
+                }
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stat-card').forEach(card => {
+        observer.observe(card);
+    });
+</script>
 {% endblock %}
