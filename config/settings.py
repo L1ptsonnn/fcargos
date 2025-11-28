@@ -7,10 +7,13 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Шляхи визначаємо як BASE_DIR / 'subdir'.
 # Змінна BASE_DIR — корінь проєкту
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / '.env')
 
 # Налаштування для розробки; перед продакшном обов'язково пройти чекліст
 # Докладніше: https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -86,17 +89,28 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Налаштування бази даних
 # Докладніше: https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # Параметри PostgreSQL беремо зі змінних середовища
+# За замовчуванням використовуємо SQLite, щоб проект запускався без додаткових сервісів
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'fcargos'),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() in ('1', 'true', 'yes')
+
+if USE_POSTGRES:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'fcargos'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+            'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Валідатори паролів
