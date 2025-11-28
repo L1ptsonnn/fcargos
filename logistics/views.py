@@ -15,11 +15,12 @@ def check_expired_routes():
     now = timezone.now()
     
     # Шукаємо маршрути зі статусом pending, без перевізника та з минулою датою забору
+    # Виключаємо тимчасові маршрути для чату
     expired_routes = Route.objects.filter(
         status='pending',
         carrier__isnull=True,
         pickup_date__lt=now
-    )
+    ).exclude(origin_city='Чат').exclude(destination_city='Чат')
     
     expired_count = 0
     for route in expired_routes:
@@ -821,6 +822,12 @@ def update_tracking(request, pk):
             
             messages.success(request, f'Прогрес оновлено до {tracking.progress_percent}%')
             return redirect('tracking', pk=route.pk)
+        else:
+            # Якщо форма не валідна, показуємо помилки
+            messages.error(request, 'Помилка валідації форми. Перевірте введені дані.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = TrackingUpdateForm(instance=tracking)
     
@@ -981,9 +988,18 @@ def route_messages_send(request, pk):
         return JsonResponse({'error': 'Invalid route'}, status=404)
     
     if request.method == 'POST':
-        import json
-        data = json.loads(request.body)
-        content = data.get('content', '').strip()
+        # Отримуємо контент з форми (application/x-www-form-urlencoded)
+        # або з JSON (якщо надсилається як JSON)
+        if request.content_type == 'application/json':
+            import json
+            try:
+                data = json.loads(request.body)
+                content = data.get('content', '').strip()
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        else:
+            # Стандартна форма
+            content = request.POST.get('content', '').strip()
         
         if content:
             message = Message.objects.create(
@@ -1010,11 +1026,11 @@ def route_messages_send(request, pk):
 @login_required
 def chats_list(request):
     """Список всіх чатів користувача"""
-    # Отримуємо всі маршрути де користувач є учасником
+    # Отримуємо тільки маршрути-чати (де origin_city='Чат')
     if request.user.role == 'company':
-        routes = Route.objects.filter(company=request.user, carrier__isnull=False).order_by('-created_at')
+        routes = Route.objects.filter(company=request.user, carrier__isnull=False, origin_city='Чат').order_by('-created_at')
     elif request.user.role == 'carrier':
-        routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
+        routes = Route.objects.filter(carrier=request.user, origin_city='Чат').order_by('-created_at')
     else:
         routes = Route.objects.none()
     
@@ -1039,10 +1055,11 @@ def chats_list(request):
 @login_required
 def chats_api(request):
     """API для отримання чатів (AJAX/HTMX)"""
+    # Отримуємо тільки маршрути-чати (де origin_city='Чат')
     if request.user.role == 'company':
-        routes = Route.objects.filter(company=request.user, carrier__isnull=False).order_by('-created_at')
+        routes = Route.objects.filter(company=request.user, carrier__isnull=False, origin_city='Чат').order_by('-created_at')
     elif request.user.role == 'carrier':
-        routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
+        routes = Route.objects.filter(carrier=request.user, origin_city='Чат').order_by('-created_at')
     else:
         routes = Route.objects.none()
     
@@ -1091,9 +1108,11 @@ def history_api(request):
     from django.template.loader import render_to_string
     
     if request.user.role == 'company':
-        routes = Route.objects.filter(company=request.user).order_by('-created_at')
+        # Виключаємо тимчасові маршрути для чату
+        routes = Route.objects.filter(company=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
     elif request.user.role == 'carrier':
-        routes = Route.objects.filter(carrier=request.user).order_by('-created_at')
+        # Виключаємо тимчасові маршрути для чату
+        routes = Route.objects.filter(carrier=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
     else:
         routes = Route.objects.none()
     
@@ -1251,7 +1270,8 @@ def user_profile(request, user_id):
     else:
         # Виключаємо тимчасові маршрути для чату
         routes = Route.objects.filter(carrier=profile_user).exclude(origin_city='Чат').exclude(destination_city='Чат')
-        bids = Bid.objects.filter(carrier=profile_user)
+        # Виключаємо ставки на тимчасові маршрути для чату
+        bids = Bid.objects.filter(carrier=profile_user).exclude(route__origin_city='Чат').exclude(route__destination_city='Чат')
         routes_created = 0
         routes_in_transit = routes.filter(status='in_transit').count()
         routes_completed = routes.filter(status='delivered').count()

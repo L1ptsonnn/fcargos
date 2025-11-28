@@ -91,7 +91,8 @@ def statistics(request):
     context = {}
     
     if request.user.role == 'company':
-        routes = Route.objects.filter(company=request.user)
+        # Виключаємо тимчасові маршрути для чату
+        routes = Route.objects.filter(company=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат')
         
         # Статистика по місяцях
         last_6_months = []
@@ -116,8 +117,9 @@ def statistics(request):
             'monthly_data': json.dumps(last_6_months),
         })
     elif request.user.role == 'carrier':
-        bids = Bid.objects.filter(carrier=request.user)
-        routes = Route.objects.filter(carrier=request.user)
+        bids = Bid.objects.filter(carrier=request.user).exclude(route__origin_city='Чат').exclude(route__destination_city='Чат')
+        # Виключаємо тимчасові маршрути для чату
+        routes = Route.objects.filter(carrier=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат')
         
         context.update({
             'total_bids': bids.count(),
@@ -143,7 +145,8 @@ def history(request):
         context['routes'] = Route.objects.filter(company=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
         context['all_statuses'] = ['pending', 'in_transit', 'delivered', 'cancelled', 'expired']
     elif request.user.role == 'carrier':
-        context['bids'] = Bid.objects.filter(carrier=request.user).select_related('route').order_by('-created_at')
+        # Виключаємо ставки на тимчасові маршрути для чату
+        context['bids'] = Bid.objects.filter(carrier=request.user).exclude(route__origin_city='Чат').exclude(route__destination_city='Чат').select_related('route').order_by('-created_at')
         # Виключаємо тимчасові маршрути для чату
         context['my_routes'] = Route.objects.filter(carrier=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
     
