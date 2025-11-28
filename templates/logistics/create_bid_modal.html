@@ -1,0 +1,169 @@
+<!-- Модальне вікно для створення ставки -->
+<div class="modal fade" id="createBidModal" tabindex="-1" aria-labelledby="createBidModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <div class="d-flex align-items-center w-100">
+                    <div class="bid-icon-wrapper me-3">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="modal-title mb-0" id="createBidModalLabel">
+                            <strong>Зробити ставку</strong>
+                        </h5>
+                        <small class="text-white-50">Запропонуйте свою ціну та умови доставки</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Інформація про маршрут -->
+                <div class="route-info-card mb-4 p-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-route me-2 fs-5 text-primary"></i>
+                        <strong>Маршрут:</strong>
+                    </div>
+                    <p class="mb-2 ms-4">
+                        <span class="badge bg-success">{{ route.origin_city }}</span> 
+                        <i class="bi bi-arrow-right mx-2"></i>
+                        <span class="badge bg-danger">{{ route.destination_city }}</span>
+                    </p>
+                    <div class="d-flex align-items-center mb-0 ms-4">
+                        <i class="bi bi-currency-exchange me-2 text-success"></i>
+                        <strong>Запропонована ціна компанії:</strong>
+                        <span class="badge bg-success ms-2 fs-6">{{ route.price }} грн</span>
+                    </div>
+                </div>
+                
+                <form method="post" id="bidForm" 
+                      hx-post="{% url 'create_bid' route.pk %}" 
+                      hx-target="#createBidModalContent"
+                      hx-swap="innerHTML"
+                      hx-indicator="#bidLoadingIndicator">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-currency-exchange"></i> Ваша пропонована ціна (грн) <span class="text-danger">*</span>
+                        </label>
+                        {{ form.proposed_price }}
+                        <small class="text-muted d-block mt-1">
+                            Вкажіть суму, яку ви готові отримати за доставку
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-calendar-check"></i> Очікувана дата доставки <span class="text-danger">*</span>
+                        </label>
+                        {{ form.estimated_delivery }}
+                        <small class="text-muted d-block mt-1">
+                            Коли ви зможете доставити вантаж
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-chat-left-text"></i> Повідомлення (необов'язково)
+                        </label>
+                        {{ form.message }}
+                        <small class="text-muted d-block mt-1">
+                            Додайте коментар або додаткову інформацію про вашу пропозицію
+                        </small>
+                    </div>
+                    
+                    <div id="bidLoadingIndicator" class="htmx-indicator text-center my-3">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Створення ставки...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Створення ставки...</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Скасувати
+                </button>
+                <button type="submit" form="bidForm" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Зробити ставку
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bid-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    .route-info-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: block;
+    }
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+</style>
+
+<script>
+    // Обробка успішної відповіді від HTMX
+    if (!window.createBidModalHtmxHandler) {
+        window.createBidModalHtmxHandler = true;
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'createBidModalContent') {
+                // Невелика затримка для завантаження DOM
+                setTimeout(function() {
+                    const modalElement = document.getElementById('createBidModal');
+                    if (modalElement) {
+                        // Перевіряємо чи модальне вікно вже ініціалізовано
+                        let modal = bootstrap.Modal.getInstance(modalElement);
+                        if (!modal) {
+                            modal = new bootstrap.Modal(modalElement, {
+                                backdrop: true,
+                                keyboard: true,
+                                focus: true
+                            });
+                        }
+                        
+                        // Перевіряємо чи модальне вікно вже відкрите
+                        if (!modalElement.classList.contains('show')) {
+                            modal.show();
+                        }
+                    }
+                }, 50);
+                
+                const response = event.detail.xhr.responseText;
+                // Якщо відповідь містить скрипт перезавантаження, виконуємо його
+                if (response.includes('window.location.reload')) {
+                    const scriptMatch = response.match(/<script>(.*?)<\/script>/s);
+                    if (scriptMatch) {
+                        eval(scriptMatch[1]);
+                    }
+                }
+            }
+        });
+    }
+</script>
+

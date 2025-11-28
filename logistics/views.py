@@ -400,14 +400,20 @@ def create_bid(request, pk):
     
     # Для HTMX/AJAX повертаємо лише HTML форми (для модалки)
     if is_htmx or is_ajax:
-        template = 'logistics/create_bid_partial.html' if is_htmx else 'logistics/create_bid.html'
-        html = render_to_string(template, {
-            'route': route,
-            'form': form
-        }, request=request)
         if is_htmx:
-            return HttpResponse(html)
-        return JsonResponse({'html': html})
+            # Для HTMX повертаємо модальне вікно
+            if request.method == 'POST' and form.is_valid():
+                # Після успішного створення закриваємо модальне вікно та перезавантажуємо сторінку
+                return HttpResponse(f'<script>var modal = bootstrap.Modal.getInstance(document.getElementById("createBidModal")); if(modal) modal.hide(); setTimeout(() => window.location.reload(), 500);</script>')
+            return render(request, 'logistics/create_bid_modal.html', {'route': route, 'form': form})
+        else:
+            # Для AJAX повертаємо HTML
+            template = 'logistics/create_bid.html'
+            html = render_to_string(template, {
+                'route': route,
+                'form': form
+            }, request=request)
+            return JsonResponse({'html': html})
     
     # Звичайний HTTP — повна сторінка
     return render(request, 'logistics/create_bid.html', {'form': form, 'route': route})
