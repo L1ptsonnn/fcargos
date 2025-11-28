@@ -1172,6 +1172,9 @@ def user_profile(request, user_id):
     if request.user.is_authenticated and request.user.pk == profile_user.pk:
         return redirect('profile')
     
+    # Перевіряємо, чи користувач авторизований (для відображення кнопки чату)
+    is_authenticated = request.user.is_authenticated
+    
     # Отримуємо профіль
     company_profile = None
     carrier_profile = None
@@ -1273,7 +1276,8 @@ def user_profile(request, user_id):
         'user_rating': user_rating,
         'rating_form': rating_form,
         'is_own_profile': is_own_profile,
-        'user': request.user,  # Для перевірки в template
+        'user': request.user if is_authenticated else None,  # Для перевірки в template
+        'is_authenticated': is_authenticated,  # Додаткова перевірка
     }
     
     # Додаткова статистика для перевізника
