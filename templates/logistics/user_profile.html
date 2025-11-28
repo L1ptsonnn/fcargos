@@ -254,7 +254,11 @@
         <!-- Кнопка "Почати чат" (тільки для авторизованих користувачів, які переглядають чужі профілі) -->
         {% if is_authenticated and user and user.pk != profile_user.pk and user.role != profile_user.role %}
             <div class="mt-3">
-                <a href="{% url 'start_chat_with_user' profile_user.pk %}" class="chat-button">
+                <a href="{% url 'start_chat_with_user' profile_user.pk %}" 
+                   class="chat-button"
+                   hx-get="{% url 'start_chat_with_user' profile_user.pk %}"
+                   hx-target="#chatModalContent"
+                   hx-swap="innerHTML">
                     <i class="bi bi-chat-dots"></i> Почати чат
                 </a>
             </div>

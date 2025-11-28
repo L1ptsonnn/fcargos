@@ -199,7 +199,11 @@
                         </div>
                     </div>
                     {% if user.is_authenticated and user.pk != route.company.pk and user.role != route.company.role %}
-                        <a href="{% url 'start_chat_with_user' route.company.pk %}" class="btn btn-primary btn-sm w-100 mt-2">
+                        <a href="{% url 'start_chat_with_user' route.company.pk %}" 
+                           class="btn btn-primary btn-sm w-100 mt-2"
+                           hx-get="{% url 'start_chat_with_user' route.company.pk %}"
+                           hx-target="#chatModalContent"
+                           hx-swap="innerHTML">
                             <i class="bi bi-chat-dots"></i> Написати в чат
                         </a>
                     {% endif %}
@@ -297,7 +301,11 @@
                         </div>
                     </div>
                     {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
-                        <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="btn btn-success btn-sm w-100 mt-2">
+                        <a href="{% url 'start_chat_with_user' route.carrier.pk %}" 
+                           class="btn btn-success btn-sm w-100 mt-2"
+                           hx-get="{% url 'start_chat_with_user' route.carrier.pk %}"
+                           hx-target="#chatModalContent"
+                           hx-swap="innerHTML">
                             <i class="bi bi-chat-dots"></i> Написати в чат
                         </a>
                     {% endif %}
