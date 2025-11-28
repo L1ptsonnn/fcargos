@@ -349,10 +349,16 @@
                             <i class="bi bi-shield-check"></i> Адміністратор
                         </span>
                     {% endif %}
-                    {% if user.role == 'carrier' and carrier_rating %}
+                    {% if user.role == 'carrier' %}
                         <div class="rating-badge-minimal">
                             <i class="bi bi-star-fill text-warning"></i>
-                            <span class="rating-value">{{ carrier_rating|floatformat:1 }}</span>
+                            <span class="rating-value">
+                                {% if carrier_rating %}
+                                    {{ carrier_rating|floatformat:1 }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </span>
                             <span class="rating-max">/ 5.0</span>
                             {% if rating_count > 0 %}
                                 <span class="rating-count">({{ rating_count }})</span>
