@@ -66,20 +66,22 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Показуємо модальне вікно
+    // Показуємо модальне вікно після завантаження через HTMX
+    (function() {
         const modalElement = document.getElementById('chatModal');
         if (modalElement) {
             const modal = new bootstrap.Modal(modalElement);
             modal.show();
             
             // Прокручуємо до низу повідомлень
-            const container = document.getElementById('messagesContainer');
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
+            setTimeout(function() {
+                const container = document.getElementById('messagesContainer');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 300);
             
-            // Обробка відправки повідомлення через HTMX
+            // Обробка відправки повідомлення
             const form = document.getElementById('messageForm');
             if (form) {
                 form.addEventListener('submit', function(e) {
@@ -112,7 +114,12 @@
                     });
                 });
             }
+            
+            // Очищаємо контейнер при закритті модального вікна
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('chatModalContent').innerHTML = '';
+            });
         }
-    });
+    })();
 </script>
 
