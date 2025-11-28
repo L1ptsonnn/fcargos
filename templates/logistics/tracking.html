@@ -144,6 +144,20 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
+    
+    @media (max-width: 991px) {
+        .tracking-main-container {
+            flex-direction: column;
+        }
+        
+        .tracking-map-container {
+            min-height: 400px;
+        }
+        
+        .tracking-sidebar {
+            width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
