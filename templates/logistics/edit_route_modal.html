@@ -1,0 +1,947 @@
+<!-- Модальне вікно для редагування маршруту -->
+<div class="modal fade" id="editRouteModal" tabindex="-1" aria-labelledby="editRouteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-scrollable">
+        <div class="modal-content route-modal-content">
+            <div class="modal-header route-modal-header">
+                <div class="d-flex align-items-center w-100">
+                    <div class="route-icon-wrapper me-3">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="modal-title mb-0" id="editRouteModalLabel">
+                            <strong>Редагувати маршрут</strong>
+                        </h5>
+                        <small class="text-white-50">Оновіть точки на карті та інформацію про вантаж</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" id="editRouteForm" 
+                      hx-post="{% url 'edit_route' route.pk %}" 
+                      hx-target="#editRouteModalContent"
+                      hx-swap="innerHTML"
+                      hx-indicator="#loadingIndicator">
+                    {% csrf_token %}
+                    
+                    <!-- Карта для вибору маршруту -->
+                    <div class="map-container-wrapper mb-4">
+                        <div class="map-instruction-card">
+                            <div class="d-flex align-items-start">
+                                <div class="instruction-icon me-3">
+                                    <i class="bi bi-info-circle-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-2"><strong>Як це працює:</strong></h6>
+                                    <ol class="mb-0">
+                                        <li>Клікніть на карті для вибору <strong>точки відправлення</strong></li>
+                                        <li>Клікніть для вибору <strong>точки призначення</strong></li>
+                                        <li>Заповніть інформацію про вантаж нижче</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="editRouteMap" class="route-map"></div>
+                    </div>
+                    
+                    <!-- Вибрані точки (автоматично заповнюються) -->
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <div class="selected-point-card" id="originPoint">
+                                <div class="point-header">
+                                    <div class="point-icon origin-icon">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                    </div>
+                                    <h6 class="mb-0"><strong>Відправлення</strong></h6>
+                                </div>
+                                <p class="mb-0 text-muted mt-2" id="originPointText">
+                                    {% if route.origin_city %}{{ route.origin_city }}, {{ route.origin_country }}{% else %}Оберіть точку на карті{% endif %}
+                                </p>
+                            </div>
+                            {{ form.origin_city.as_hidden }}
+                            {{ form.origin_country.as_hidden }}
+                            {{ form.origin_lat.as_hidden }}
+                            {{ form.origin_lng.as_hidden }}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="selected-point-card" id="destinationPoint">
+                                <div class="point-header">
+                                    <div class="point-icon destination-icon">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                    </div>
+                                    <h6 class="mb-0"><strong>Призначення</strong></h6>
+                                </div>
+                                <p class="mb-0 text-muted mt-2" id="destinationPointText">
+                                    {% if route.destination_city %}{{ route.destination_city }}, {{ route.destination_country }}{% else %}Оберіть точку на карті{% endif %}
+                                </p>
+                            </div>
+                            {{ form.destination_city.as_hidden }}
+                            {{ form.destination_country.as_hidden }}
+                            {{ form.destination_lat.as_hidden }}
+                            {{ form.destination_lng.as_hidden }}
+                        </div>
+                    </div>
+                    
+                    <!-- Інформація про вантаж -->
+                    <div class="cargo-info-section">
+                        <div class="section-header mb-4">
+                            <div class="section-icon">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <h5 class="mb-0"><strong>Інформація про вантаж</strong></h5>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-tag"></i> Тип вантажу <span class="text-danger">*</span>
+                                </label>
+                                {{ form.cargo_type }}
+                                <small class="text-muted d-block mt-1">Наприклад: Пакування, Меблі</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-speedometer2"></i> Вага (кг) <span class="text-danger">*</span>
+                                </label>
+                                {{ form.weight }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-box"></i> Об'єм (м³) <span class="text-danger">*</span>
+                                </label>
+                                {{ form.volume }}
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-currency-exchange"></i> Максимальна ціна (грн) <span class="text-danger">*</span>
+                                </label>
+                                {{ form.price }}
+                                <small class="text-muted d-block mt-1">Максимальна сума, яку ви готові заплатити</small>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-event"></i> Дата забору <span class="text-danger">*</span>
+                                </label>
+                                {{ form.pickup_date }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-check"></i> Дата доставки <span class="text-danger">*</span>
+                                </label>
+                                {{ form.delivery_date }}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-file-text"></i> Опис вантажу (необов'язково)
+                            </label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info alert-modern mt-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-lightbulb-fill me-3 fs-4"></i>
+                            <div>
+                                <strong>Підказка:</strong> Координати та адреси заповнюються автоматично при виборі точок на карті!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="loadingIndicator" class="htmx-indicator text-center my-4">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Створення маршруту...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Створення маршруту...</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer route-modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Скасувати
+                </button>
+                <button type="submit" form="editRouteForm" class="btn btn-success btn-lg" id="editSubmitBtn">
+                    <i class="bi bi-check-circle"></i> Зберегти зміни
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Стилі для модального вікна */
+    .route-modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .route-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1.5rem 2rem;
+    }
+    
+    .route-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .route-modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 1.5rem 2rem;
+        background: #f8f9fa;
+    }
+    
+    /* Стилі для карти */
+    .map-container-wrapper {
+        position: relative;
+        height: 500px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        background: #f0f0f0;
+    }
+    
+    .route-map {
+        height: 100%;
+        width: 100%;
+        border-radius: 20px;
+    }
+    
+    .map-instruction-card {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        max-width: 320px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    
+    .instruction-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    
+    .map-instruction-card ol {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+    
+    .map-instruction-card h6 {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    /* Стилі для вибраних точок */
+    .selected-point-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .selected-point-card.success {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #f0f8f4 100%);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .point-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .point-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+    }
+    
+    .origin-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    
+    .destination-icon {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    }
+    
+    /* Стилі для секції вантажу */
+    .cargo-info-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .section-icon {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 22px;
+    }
+    
+    .section-header h5 {
+        color: #333;
+    }
+    
+    /* Стилі для форми */
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .form-label {
+        color: #495057;
+        margin-bottom: 8px;
+    }
+    
+    /* Стилі для alert */
+    .alert-modern {
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #e7f3ff 0%, #d1ecf1 100%);
+        border-left: 4px solid #0dcaf0;
+    }
+    
+    /* Індикатор завантаження */
+    .htmx-indicator {
+        display: none;
+    }
+    
+    .htmx-request .htmx-indicator {
+        display: block;
+    }
+    
+    /* Анімації */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .selected-point-card {
+        animation: fadeIn 0.3s ease;
+    }
+    
+    /* Адаптивність */
+    @media (max-width: 768px) {
+        .map-container-wrapper {
+            height: 350px;
+        }
+        
+        .map-instruction-card {
+            max-width: 100%;
+            left: 10px;
+            right: 10px;
+            top: 10px;
+        }
+        
+        .route-modal-header {
+            padding: 1rem;
+        }
+        
+        .route-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+        }
+    }
+</style>
+
+<script>
+    // Використовуємо window об'єкт для уникнення повторного оголошення
+    if (!window.routeModalData) {
+        window.routeModalData = {
+            routeMap: null,
+            originMarker: null,
+            destMarker: null,
+            routeLine: null,
+            originSelected: false,
+            destSelected: false,
+            initialized: false
+        };
+    }
+    
+    // Функція ініціалізації карти
+    function initMap() {
+        const mapElement = document.getElementById('routeMap');
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено!');
+            return;
+        }
+        
+        // Перевірка чи Leaflet завантажений
+        if (typeof L === 'undefined') {
+            console.error('Leaflet не завантажений!');
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка: Бібліотека карт не завантажилась. Перезавантажте сторінку.</div>';
+            return;
+        }
+        
+        try {
+            // Видаляємо стару карту, якщо вона існує
+            if (window.routeModalData.routeMap) {
+                try {
+                    window.routeModalData.routeMap.remove();
+                } catch (e) {
+                    console.log('Карта вже видалена');
+                }
+                window.routeModalData.routeMap = null;
+            }
+            
+            // Перевіряємо чи контейнер має розміри
+            if (mapElement.offsetWidth === 0 || mapElement.offsetHeight === 0) {
+                console.warn('Контейнер карти не має розмірів, чекаємо...');
+                setTimeout(initMap, 200);
+                return;
+            }
+            
+            // Створюємо нову карту
+            window.routeModalData.routeMap = L.map('editRouteMap', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([50.45, 30.52], 6);
+            
+            // Додаємо тайли
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(window.routeModalData.routeMap);
+            
+            // Виправляємо розміри карти після невеликої затримки
+            setTimeout(function() {
+                if (window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.invalidateSize();
+                }
+            }, 100);
+            
+            // Налаштовуємо обробник кліків
+            setupMapClickHandler();
+            
+        } catch (error) {
+            console.error('Помилка ініціалізації карти:', error);
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка створення карти. Перезавантажте сторінку.</div>';
+        }
+    }
+    
+    // Функція налаштування обробника кліків на карті
+    function setupMapClickHandler() {
+        if (!window.routeModalData.routeMap) return;
+        
+        window.routeModalData.routeMap.off('click'); // Видаляємо старі обробники
+        
+        window.routeModalData.routeMap.on('click', function(e) {
+            if (!e || !e.latlng) {
+                console.error('Помилка: невалідні дані кліку');
+                return;
+            }
+            
+            const lat = parseFloat(e.latlng.lat);
+            const lng = parseFloat(e.latlng.lng);
+            
+            // Валідація координат
+            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                console.error('Помилка: невалідні координати');
+                return;
+            }
+        
+            // Отримуємо адресу через геокодування
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.address || {};
+                    const city = address.city || address.town || address.village || address.municipality || 'Не вказано';
+                    const country = address.country || 'Україна';
+                    
+                    if (!window.routeModalData.originSelected) {
+                        // Вибір точки відправлення
+                        if (window.routeModalData.originMarker) window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+                        
+                        window.routeModalData.originMarker = L.marker([lat, lng], {
+                            draggable: true,
+                            icon: L.divIcon({
+                                className: 'custom-marker',
+                                html: '<div style="background: #28a745; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(40, 167, 69, 0.8); display: flex; align-items: center; justify-content: center;"><i class="bi bi-geo-alt-fill" style="color: white; font-size: 16px;"></i></div>',
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 15]
+                            })
+                        }).addTo(window.routeModalData.routeMap)
+                            .bindPopup(`<b>📍 Відправлення</b><br>${city}, ${country}`).openPopup();
+                        
+                        // Заповнюємо форму
+                        document.getElementById('id_origin_lat').value = lat.toFixed(6);
+                        document.getElementById('id_origin_lng').value = lng.toFixed(6);
+                        document.getElementById('id_origin_city').value = city;
+                        document.getElementById('id_origin_country').value = country;
+                        
+                        // Оновлюємо відображення
+                        updateOriginPoint(city, country);
+                        window.routeModalData.originSelected = true;
+                    } else if (!window.routeModalData.destSelected) {
+                        // Вибір точки призначення
+                        if (window.routeModalData.destMarker) window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+                        
+                        window.routeModalData.destMarker = L.marker([lat, lng], {
+                            draggable: true,
+                            icon: L.divIcon({
+                                className: 'custom-marker',
+                                html: '<div style="background: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8); display: flex; align-items: center; justify-content: center;"><i class="bi bi-geo-alt-fill" style="color: white; font-size: 16px;"></i></div>',
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 15]
+                            })
+                        }).addTo(window.routeModalData.routeMap)
+                            .bindPopup(`<b>📍 Призначення</b><br>${city}, ${country}`).openPopup();
+                        
+                        // Заповнюємо форму
+                        document.getElementById('id_destination_lat').value = lat.toFixed(6);
+                        document.getElementById('id_destination_lng').value = lng.toFixed(6);
+                        document.getElementById('id_destination_city').value = city;
+                        document.getElementById('id_destination_country').value = country;
+                        
+                        // Оновлюємо відображення
+                        updateDestinationPoint(city, country);
+                        window.routeModalData.destSelected = true;
+                        
+                        // Додаємо обробник для перетягування маркерів
+                        window.routeModalData.originMarker.on('dragend', function(e) {
+                            const pos = e.target.getLatLng();
+                            updateCoordinates('origin', pos.lat, pos.lng);
+                        });
+                        
+                        window.routeModalData.destMarker.on('dragend', function(e) {
+                            const pos = e.target.getLatLng();
+                            updateCoordinates('destination', pos.lat, pos.lng);
+                        });
+                        
+                        // Малюємо лінію маршруту
+                        updateRouteLine();
+                        
+                        // Активуємо кнопку відправки
+                        const submitBtn = document.getElementById('submitBtn');
+                        if (submitBtn) submitBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Помилка геокодування:', error);
+                });
+        });
+    }
+    
+    // Функції оновлення відображення точок
+    function updateOriginPoint(city, country) {
+        const element = document.getElementById('originPoint');
+        element.innerHTML = `
+            <div class="point-header">
+                <div class="point-icon origin-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <h6 class="mb-0"><strong>Відправлення</strong></h6>
+            </div>
+            <p class="mb-0 mt-2"><strong>${city}, ${country}</strong></p>
+        `;
+        element.classList.add('success');
+    }
+    
+    function updateDestinationPoint(city, country) {
+        const element = document.getElementById('destinationPoint');
+        element.innerHTML = `
+            <div class="point-header">
+                <div class="point-icon destination-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <h6 class="mb-0"><strong>Призначення</strong></h6>
+            </div>
+            <p class="mb-0 mt-2"><strong>${city}, ${country}</strong></p>
+        `;
+        element.classList.add('success');
+    }
+    
+    // Функція оновлення координат при перетягуванні
+    function updateCoordinates(type, lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.address || {};
+                const city = address.city || address.town || address.village || address.municipality || 'Не вказано';
+                const country = address.country || 'Україна';
+                
+                if (type === 'origin') {
+                    document.getElementById('id_origin_lat').value = lat.toFixed(6);
+                    document.getElementById('id_origin_lng').value = lng.toFixed(6);
+                    document.getElementById('id_origin_city').value = city;
+                    document.getElementById('id_origin_country').value = country;
+                    updateOriginPoint(city, country);
+                } else {
+                    document.getElementById('id_destination_lat').value = lat.toFixed(6);
+                    document.getElementById('id_destination_lng').value = lng.toFixed(6);
+                    document.getElementById('id_destination_city').value = city;
+                    document.getElementById('id_destination_country').value = country;
+                    updateDestinationPoint(city, country);
+                }
+                updateRouteLine();
+            })
+            .catch(error => {
+                console.error('Помилка геокодування:', error);
+            });
+    }
+    
+    // Функція оновлення лінії маршруту
+    function updateRouteLine() {
+        if (!window.routeModalData.routeMap) return;
+        
+        try {
+            if (window.routeModalData.routeLine) window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+            if (window.routeModalData.originMarker && window.routeModalData.destMarker) {
+                const originPos = window.routeModalData.originMarker.getLatLng();
+                const destPos = window.routeModalData.destMarker.getLatLng();
+                
+                if (originPos && destPos) {
+                    window.routeModalData.routeLine = L.polyline([
+                        [originPos.lat, originPos.lng],
+                        [destPos.lat, destPos.lng]
+                    ], {
+                        color: '#667eea',
+                        weight: 5,
+                        opacity: 0.7,
+                        dashArray: '15, 10'
+                    }).addTo(window.routeModalData.routeMap);
+                    
+                    window.routeModalData.routeMap.fitBounds([originPos, destPos], {
+                        padding: [80, 80]
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Помилка оновлення лінії маршруту:', error);
+        }
+    }
+    
+    // Обробка подій модального вікна редагування
+    (function() {
+        // Використовуємо делегування подій для динамічно завантаженого контенту
+        document.addEventListener('shown.bs.modal', function(event) {
+            const modal = event.target;
+            if (modal && modal.id === 'editRouteModal') {
+                // Скидаємо стан
+                window.routeModalData.originSelected = false;
+                window.routeModalData.destSelected = false;
+                if (window.routeModalData.originMarker && window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+                }
+                if (window.routeModalData.destMarker && window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+                }
+                if (window.routeModalData.routeLine && window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+                }
+                window.routeModalData.originMarker = null;
+                window.routeModalData.destMarker = null;
+                window.routeModalData.routeLine = null;
+            
+            // Скидаємо форму
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) submitBtn.disabled = true;
+            
+            const originPoint = document.getElementById('originPoint');
+            const destinationPoint = document.getElementById('destinationPoint');
+            if (originPoint) {
+                originPoint.innerHTML = `
+                    <div class="point-header">
+                        <div class="point-icon origin-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h6 class="mb-0"><strong>Відправлення</strong></h6>
+                    </div>
+                    <p class="mb-0 text-muted mt-2">Оберіть точку на карті</p>
+                `;
+                originPoint.classList.remove('success');
+            }
+            if (destinationPoint) {
+                destinationPoint.innerHTML = `
+                    <div class="point-header">
+                        <div class="point-icon destination-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h6 class="mb-0"><strong>Призначення</strong></h6>
+                    </div>
+                    <p class="mb-0 text-muted mt-2">Оберіть точку на карті</p>
+                `;
+                destinationPoint.classList.remove('success');
+            }
+            
+                // Ініціалізуємо карту після того, як модальне вікно повністю відкрилося
+                // Використовуємо більшу затримку для гарантії, що модальне вікно має правильні розміри
+                setTimeout(function() {
+                    const mapElement = document.getElementById('editRouteMap');
+                    const modalElement = document.getElementById('editRouteModal');
+                    if (mapElement && modalElement && modalElement.classList.contains('show')) {
+                        initEditMap();
+                    }
+                }, 500);
+            }
+        });
+        
+        // При закритті модального вікна
+        document.addEventListener('hidden.bs.modal', function(event) {
+            const modal = event.target;
+            if (modal && modal.id === 'editRouteModal') {
+                // Очищаємо карту
+                if (window.routeModalData.routeMap) {
+                    if (window.routeModalData.originMarker) {
+                        window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+                    }
+                    if (window.routeModalData.destMarker) {
+                        window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+                    }
+                    if (window.routeModalData.routeLine) {
+                        window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+                    }
+                    window.routeModalData.routeMap.remove();
+                    window.routeModalData.routeMap = null;
+                }
+            }
+        });
+        
+        // Валідація форми перед відправкою (використовуємо делегування)
+        document.addEventListener('submit', function(e) {
+            if (e.target && e.target.id === 'editRouteForm') {
+                // Для редагування не вимагаємо обов'язкового вибору точок, оскільки вони вже є
+            }
+        });
+    })();
+    
+    // Функція ініціалізації карти для редагування з початковими координатами
+    function initEditMap() {
+        const mapElement = document.getElementById('editRouteMap');
+        if (!mapElement) {
+            console.error('Елемент карти не знайдено!');
+            return;
+        }
+        
+        // Перевірка чи Leaflet завантажений
+        if (typeof L === 'undefined') {
+            console.error('Leaflet не завантажений!');
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка: Бібліотека карт не завантажилась. Перезавантажте сторінку.</div>';
+            return;
+        }
+        
+        try {
+            // Видаляємо стару карту, якщо вона існує
+            if (window.routeModalData.routeMap) {
+                try {
+                    window.routeModalData.routeMap.remove();
+                } catch (e) {
+                    console.log('Карта вже видалена');
+                }
+                window.routeModalData.routeMap = null;
+            }
+            
+            // Перевіряємо чи контейнер має розміри
+            if (mapElement.offsetWidth === 0 || mapElement.offsetHeight === 0) {
+                console.warn('Контейнер карти не має розмірів, чекаємо...');
+                setTimeout(initEditMap, 200);
+                return;
+            }
+            
+            // Отримуємо початкові координати з форми
+            const originLat = parseFloat(document.getElementById('id_origin_lat').value) || 50.45;
+            const originLng = parseFloat(document.getElementById('id_origin_lng').value) || 30.52;
+            const destLat = parseFloat(document.getElementById('id_destination_lat').value) || 49.84;
+            const destLng = parseFloat(document.getElementById('id_destination_lng').value) || 24.03;
+            
+            // Створюємо нову карту з центром між точками
+            const centerLat = (originLat + destLat) / 2;
+            const centerLng = (originLng + destLng) / 2;
+            window.routeModalData.routeMap = L.map('editRouteMap', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([centerLat, centerLng], 6);
+            
+            // Додаємо тайли
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(window.routeModalData.routeMap);
+            
+            // Додаємо маркери для існуючих точок
+            if (originLat && originLng) {
+                window.routeModalData.originMarker = L.marker([originLat, originLng], {
+                    draggable: true,
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #28a745; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(40, 167, 69, 0.8); display: flex; align-items: center; justify-content: center;"><i class="bi bi-geo-alt-fill" style="color: white; font-size: 16px;"></i></div>',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+                }).addTo(window.routeModalData.routeMap);
+                window.routeModalData.originSelected = true;
+                
+                // Оновлюємо відображення
+                const originCity = document.getElementById('id_origin_city').value;
+                const originCountry = document.getElementById('id_origin_country').value;
+                if (originCity) {
+                    updateOriginPoint(originCity, originCountry);
+                }
+            }
+            
+            if (destLat && destLng) {
+                window.routeModalData.destMarker = L.marker([destLat, destLng], {
+                    draggable: true,
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8); display: flex; align-items: center; justify-content: center;"><i class="bi bi-geo-alt-fill" style="color: white; font-size: 16px;"></i></div>',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+                }).addTo(window.routeModalData.routeMap);
+                window.routeModalData.destSelected = true;
+                
+                // Оновлюємо відображення
+                const destCity = document.getElementById('id_destination_city').value;
+                const destCountry = document.getElementById('id_destination_country').value;
+                if (destCity) {
+                    updateDestinationPoint(destCity, destCountry);
+                }
+            }
+            
+            // Додаємо обробники для перетягування
+            if (window.routeModalData.originMarker) {
+                window.routeModalData.originMarker.on('dragend', function(e) {
+                    const pos = e.target.getLatLng();
+                    updateCoordinates('origin', pos.lat, pos.lng);
+                });
+            }
+            
+            if (window.routeModalData.destMarker) {
+                window.routeModalData.destMarker.on('dragend', function(e) {
+                    const pos = e.target.getLatLng();
+                    updateCoordinates('destination', pos.lat, pos.lng);
+                });
+            }
+            
+            // Малюємо лінію маршруту, якщо обидві точки є
+            if (window.routeModalData.originMarker && window.routeModalData.destMarker) {
+                updateRouteLine();
+            }
+            
+            // Виправляємо розміри карти після невеликої затримки
+            setTimeout(function() {
+                if (window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.invalidateSize();
+                    if (window.routeModalData.originMarker && window.routeModalData.destMarker) {
+                        const originPos = window.routeModalData.originMarker.getLatLng();
+                        const destPos = window.routeModalData.destMarker.getLatLng();
+                        window.routeModalData.routeMap.fitBounds([originPos, destPos], {
+                            padding: [80, 80]
+                        });
+                    }
+                }
+            }, 100);
+            
+            // Налаштовуємо обробник кліків
+            setupMapClickHandler();
+            
+        } catch (error) {
+            console.error('Помилка ініціалізації карти:', error);
+            mapElement.innerHTML = '<div class="alert alert-danger m-3">Помилка створення карти. Перезавантажте сторінку.</div>';
+        }
+    }
+    
+    // Обробка успішної відповіді від HTMX для редагування
+    if (!window.editRouteModalHtmxHandler) {
+        window.editRouteModalHtmxHandler = true;
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'editRouteModalContent') {
+                // Невелика затримка для завантаження DOM
+                setTimeout(function() {
+                    const modalElement = document.getElementById('createRouteModal');
+                    if (modalElement) {
+                        // Перевіряємо чи модальне вікно вже ініціалізовано
+                        let modal = bootstrap.Modal.getInstance(modalElement);
+                        if (!modal) {
+                            modal = new bootstrap.Modal(modalElement, {
+                                backdrop: true,
+                                keyboard: true,
+                                focus: true
+                            });
+                        }
+                        
+                        // Перевіряємо чи модальне вікно вже відкрите
+                        if (!modalElement.classList.contains('show')) {
+                            modal.show();
+                        }
+                    }
+                }, 50);
+                
+                const response = event.detail.xhr.responseText;
+                // Якщо відповідь містить скрипт перенаправлення, виконуємо його
+                if (response.includes('window.location.href')) {
+                    const scriptMatch = response.match(/<script>(.*?)<\/script>/s);
+                    if (scriptMatch) {
+                        eval(scriptMatch[1]);
+                    }
+                }
+            }
+        });
+    }
+</script>

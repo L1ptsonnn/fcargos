@@ -28,6 +28,60 @@
         font-family: 'Courier New', monospace;
         font-size: 0.9rem;
     }
+    .cargo-info-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+    }
+    .cargo-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .cargo-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+    }
+    .info-item {
+        text-align: center;
+    }
+    .info-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+    .info-value {
+        font-size: 1.1rem;
+    }
+    .date-card {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .date-card:hover {
+        transform: translateY(-2px);
+    }
+    .pickup-card {
+        background: linear-gradient(135deg, #d4edda 0%, #f0f8f4 100%);
+        border-left: 4px solid #28a745;
+    }
+    .delivery-card {
+        background: linear-gradient(135deg, #fff3cd 0%, #fffbf0 100%);
+        border-left: 4px solid #ffc107;
+    }
+    .date-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+    }
 </style>
 {% endblock %}
 
@@ -37,13 +91,26 @@
         <div class="col-md-8">
             <div class="card shadow-lg border-0 mb-4" style="border-radius: 15px; overflow: hidden;">
                 <div class="route-header text-white">
-                    <h3 class="mb-2">
-                        <i class="bi bi-route"></i> 
-                        <strong>{{ route.origin_city }}</strong> → <strong>{{ route.destination_city }}</strong>
-                    </h3>
-                    <span class="status-badge badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
-                        Статус: {{ route.get_status_display }}
-                    </span>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-2">
+                                <i class="bi bi-route"></i> 
+                                <strong>{{ route.origin_city }}</strong> → <strong>{{ route.destination_city }}</strong>
+                            </h3>
+                            <span class="status-badge badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
+                                Статус: {{ route.get_status_display }}
+                            </span>
+                        </div>
+                        {% if user.role == 'company' and route.company == user and route.status == 'pending' %}
+                            <a href="{% url 'edit_route' route.pk %}" 
+                               class="btn btn-light btn-sm"
+                               hx-get="{% url 'edit_route' route.pk %}"
+                               hx-target="#editRouteModalContent"
+                               hx-swap="innerHTML">
+                                <i class="bi bi-pencil-square"></i> Редагувати
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-4">
@@ -67,21 +134,80 @@
                         </div>
                     </div>
                     
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="bg-light rounded p-3">
-                                <h6 class="text-primary mb-3"><i class="bi bi-box"></i> Інформація про вантаж</h6>
-                                <p class="mb-2"><strong>Тип:</strong> <span class="badge bg-secondary">{{ route.cargo_type }}</span></p>
-                                <p class="mb-2"><strong>Вага:</strong> <span class="badge bg-info">{{ route.weight }} кг</span></p>
-                                <p class="mb-0"><strong>Об'єм:</strong> <span class="badge bg-info">{{ route.volume }} м³</span></p>
+                    <!-- Покращена секція з інформацією про вантаж -->
+                    <div class="cargo-info-section mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="cargo-card p-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="cargo-icon me-3">
+                                            <i class="bi bi-box-seam"></i>
+                                        </div>
+                                        <h5 class="mb-0"><strong>Детальна інформація про вантаж</strong></h5>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="info-item">
+                                                <div class="info-label">
+                                                    <i class="bi bi-tag"></i> Тип вантажу
+                                                </div>
+                                                <div class="info-value">
+                                                    <span class="badge bg-primary">{{ route.cargo_type }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="info-item">
+                                                <div class="info-label">
+                                                    <i class="bi bi-speedometer2"></i> Вага
+                                                </div>
+                                                <div class="info-value">
+                                                    <span class="badge bg-info">{{ route.weight }} кг</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="info-item">
+                                                <div class="info-label">
+                                                    <i class="bi bi-box"></i> Об'єм
+                                                </div>
+                                                <div class="info-value">
+                                                    <span class="badge bg-info">{{ route.volume }} м³</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="info-item">
+                                                <div class="info-label">
+                                                    <i class="bi bi-currency-exchange"></i> Ціна
+                                                </div>
+                                                <div class="info-value">
+                                                    <span class="badge bg-success fs-6">{{ route.price }} грн</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="bg-light rounded p-3">
-                                <h6 class="text-success mb-3"><i class="bi bi-currency-exchange"></i> Фінанси та терміни</h6>
-                                <p class="mb-2"><strong>Ціна:</strong> <span class="badge bg-success" style="font-size: 1rem;">{{ route.price }} грн</span></p>
-                                <p class="mb-2"><strong><i class="bi bi-calendar-event"></i> Забір:</strong> {{ route.pickup_date|date:"d.m.Y H:i" }}</p>
-                                <p class="mb-0"><strong><i class="bi bi-calendar-check"></i> Доставка:</strong> {{ route.delivery_date|date:"d.m.Y H:i" }}</p>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="date-card pickup-card p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-calendar-event me-2"></i>
+                                        <strong>Дата забору</strong>
+                                    </div>
+                                    <div class="date-value">{{ route.pickup_date|date:"d.m.Y H:i" }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="date-card delivery-card p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-calendar-check me-2"></i>
+                                        <strong>Дата доставки</strong>
+                                    </div>
+                                    <div class="date-value">{{ route.delivery_date|date:"d.m.Y H:i" }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>

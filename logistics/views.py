@@ -194,6 +194,61 @@ def create_route(request):
     return render(request, 'logistics/create_route.html', {'form': form})
 
 
+# Редагування маршруту (тільки для компаній-власників)
+@login_required
+def edit_route(request, pk):
+    """Edit route (only for route owner company)"""
+    # Завантажуємо маршрут або повертаємо 404
+    route = get_object_or_404(Route, pk=pk)
+    
+    # Перевіряємо права доступу: тільки компанія-власник може редагувати
+    if request.user.role != 'company' or route.company != request.user:
+        messages.error(request, 'Ви не маєте прав для редагування цього маршруту')
+        return redirect('route_detail', pk=pk)
+    
+    # Не можна редагувати маршрут, якщо він вже в дорозі або доставлений
+    if route.status in ['in_transit', 'delivered']:
+        messages.error(request, 'Неможливо редагувати маршрут, який вже в дорозі або доставлений')
+        return redirect('route_detail', pk=pk)
+    
+    # Підтримка HTMX для модальних вікон
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    
+    # Обробляємо POST-запит із даними форми
+    if request.method == 'POST':
+        form = RouteForm(request.POST, instance=route)
+        if form.is_valid():
+            # Зберігаємо маршрут
+            route = form.save()
+            
+            # Оновлюємо Tracking, якщо змінилися координати відправлення
+            tracking = Tracking.objects.filter(route=route).first()
+            if tracking:
+                tracking.current_location = route.origin_city
+                tracking.current_lat = route.origin_lat
+                tracking.current_lng = route.origin_lng
+                tracking.save()
+            
+            messages.success(request, 'Маршрут успішно оновлено!')
+            if is_htmx:
+                # Закриваємо модальне вікно та перенаправляємо
+                return HttpResponse(f'<script>var modal = bootstrap.Modal.getInstance(document.getElementById("editRouteModal")); if(modal) modal.hide(); window.location.reload();</script>')
+            return redirect('route_detail', pk=route.pk)
+        else:
+            # Якщо форма невалідна, повертаємо модальне вікно з помилками
+            if is_htmx:
+                return render(request, 'logistics/edit_route_modal.html', {'form': form, 'route': route})
+    else:
+        # На GET повертаємо модальне вікно для HTMX або повну сторінку
+        form = RouteForm(instance=route)
+        if is_htmx:
+            return render(request, 'logistics/edit_route_modal.html', {'form': form, 'route': route})
+        else:
+            return render(request, 'logistics/edit_route.html', {'form': form, 'route': route})
+    
+    return render(request, 'logistics/edit_route.html', {'form': form, 'route': route})
+
+
 # Деталі маршруту: інформація, ставки, карта та дії
 @login_required
 def route_detail(request, pk):

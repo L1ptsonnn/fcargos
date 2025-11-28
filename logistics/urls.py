@@ -9,6 +9,7 @@ urlpatterns = [
     path('routes/', views.routes_list, name='routes_list'),                    # список маршрутів
     path('routes/create/', views.create_route, name='create_route'),           # створення маршруту
     path('routes/<int:pk>/', views.route_detail, name='route_detail'),          # деталі маршруту
+    path('routes/<int:pk>/edit/', views.edit_route, name='edit_route'),         # редагування маршруту
     path('routes/<int:pk>/bid/', views.create_bid, name='create_bid'),         # створення ставки
     path('routes/<int:pk>/complete/', views.complete_route, name='complete_route'), # завершення маршруту
     
