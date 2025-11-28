@@ -524,6 +524,12 @@
                         }).addTo(window.routeModalData.routeMap)
                             .bindPopup(`<b>📍 Відправлення</b><br>${city}, ${country}`).openPopup();
                         
+                        // Додаємо обробник правої кнопки миші для видалення маркера
+                        window.routeModalData.originMarker.on('contextmenu', function(e) {
+                            e.originalEvent.preventDefault();
+                            removeOriginPoint();
+                        });
+                        
                         // Заповнюємо форму
                         document.getElementById('id_origin_lat').value = lat.toFixed(6);
                         document.getElementById('id_origin_lng').value = lng.toFixed(6);
@@ -547,6 +553,12 @@
                             })
                         }).addTo(window.routeModalData.routeMap)
                             .bindPopup(`<b>📍 Призначення</b><br>${city}, ${country}`).openPopup();
+                        
+                        // Додаємо обробник правої кнопки миші для видалення маркера
+                        window.routeModalData.destMarker.on('contextmenu', function(e) {
+                            e.originalEvent.preventDefault();
+                            removeDestinationPoint();
+                        });
                         
                         // Заповнюємо форму
                         document.getElementById('id_destination_lat').value = lat.toFixed(6);
@@ -610,6 +622,86 @@
             <p class="mb-0 mt-2"><strong>${city}, ${country}</strong></p>
         `;
         element.classList.add('success');
+    }
+    
+    // Функція видалення точки відправлення (права кнопка миші)
+    function removeOriginPoint() {
+        if (window.routeModalData.originMarker && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+            window.routeModalData.originMarker = null;
+        }
+        window.routeModalData.originSelected = false;
+        
+        // Очищаємо поля форми
+        document.getElementById('id_origin_lat').value = '';
+        document.getElementById('id_origin_lng').value = '';
+        document.getElementById('id_origin_city').value = '';
+        document.getElementById('id_origin_country').value = '';
+        
+        // Оновлюємо відображення
+        const element = document.getElementById('originPoint');
+        element.innerHTML = `
+            <div class="point-header">
+                <div class="point-icon origin-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <h6 class="mb-0"><strong>Відправлення</strong></h6>
+            </div>
+            <p class="mb-0 text-muted mt-2">Оберіть точку на карті</p>
+        `;
+        element.classList.remove('success');
+        
+        // Видаляємо лінію маршруту, якщо вона є
+        if (window.routeModalData.routeLine && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+            window.routeModalData.routeLine = null;
+        }
+        
+        // Деактивуємо кнопку відправки, якщо немає обох точок
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn && !window.routeModalData.destSelected) {
+            submitBtn.disabled = true;
+        }
+    }
+    
+    // Функція видалення точки призначення (права кнопка миші)
+    function removeDestinationPoint() {
+        if (window.routeModalData.destMarker && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+            window.routeModalData.destMarker = null;
+        }
+        window.routeModalData.destSelected = false;
+        
+        // Очищаємо поля форми
+        document.getElementById('id_destination_lat').value = '';
+        document.getElementById('id_destination_lng').value = '';
+        document.getElementById('id_destination_city').value = '';
+        document.getElementById('id_destination_country').value = '';
+        
+        // Оновлюємо відображення
+        const element = document.getElementById('destinationPoint');
+        element.innerHTML = `
+            <div class="point-header">
+                <div class="point-icon destination-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <h6 class="mb-0"><strong>Призначення</strong></h6>
+            </div>
+            <p class="mb-0 text-muted mt-2">Оберіть точку на карті</p>
+        `;
+        element.classList.remove('success');
+        
+        // Видаляємо лінію маршруту, якщо вона є
+        if (window.routeModalData.routeLine && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+            window.routeModalData.routeLine = null;
+        }
+        
+        // Деактивуємо кнопку відправки
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
     }
     
     // Функція оновлення координат при перетягуванні
