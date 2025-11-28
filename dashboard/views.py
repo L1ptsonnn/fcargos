@@ -16,10 +16,23 @@ def home(request):
     
     # Для каруселі беремо 3 найновіші маршрути
     # Використовуємо select_related, щоб мінімізувати кількість запитів
-    routes_carousel = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier').order_by('-created_at')[:3]
+    # Виключаємо тимчасові маршрути для чату (де origin_city='Чат' або destination_city='Чат')
+    routes_carousel = Route.objects.filter(
+        status__in=['pending', 'in_transit']
+    ).exclude(
+        origin_city='Чат'
+    ).exclude(
+        destination_city='Чат'
+    ).select_related('company', 'carrier').order_by('-created_at')[:3]
     
-    # Для карти потрібні всі активні маршрути
-    routes_all = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')
+    # Для карти потрібні всі активні маршрути (виключаємо чати)
+    routes_all = Route.objects.filter(
+        status__in=['pending', 'in_transit']
+    ).exclude(
+        origin_city='Чат'
+    ).exclude(
+        destination_city='Чат'
+    ).select_related('company', 'carrier')
     
     # Формуємо структуру даних для карти та перевіряємо координати
     routes_data = []

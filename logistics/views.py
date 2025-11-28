@@ -58,12 +58,13 @@ def routes_list(request):
     check_expired_routes()
     
     # Витягуємо маршрути відповідно до ролі
+    # Виключаємо тимчасові маршрути для чату (де origin_city='Чат' або destination_city='Чат')
     if request.user.role == 'company':
-        # Компанія бачить усі власні маршрути
-        routes = Route.objects.filter(company=request.user).order_by('-created_at')
+        # Компанія бачить усі власні маршрути (виключаємо чати)
+        routes = Route.objects.filter(company=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
     elif request.user.role == 'carrier':
-        # Перевізники бачать лише pending-маршрути
-        routes = Route.objects.filter(status='pending').order_by('-created_at')
+        # Перевізники бачать лише pending-маршрути (виключаємо чати)
+        routes = Route.objects.filter(status='pending').exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
     else:
         # Інші ролі не мають доступу
         routes = Route.objects.none()
@@ -81,8 +82,8 @@ def routes_list(request):
     if status_filter:
         routes = routes.filter(status__in=status_filter)
     
-    # Формуємо список унікальних міст для фільтра
-    origin_cities = Route.objects.values_list('origin_city', flat=True).distinct().order_by('origin_city')
+    # Формуємо список унікальних міст для фільтра (виключаємо чати)
+    origin_cities = Route.objects.exclude(origin_city='Чат').exclude(destination_city='Чат').values_list('origin_city', flat=True).distinct().order_by('origin_city')
     
     # Обслуговуємо AJAX-запит для списку міст (автозаповнення)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'get_cities' in request.GET:
