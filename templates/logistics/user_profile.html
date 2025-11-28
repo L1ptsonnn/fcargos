@@ -275,6 +275,25 @@
         border: 2px solid #f1f5f9;
     }
     
+    .rating-card-modern {
+        background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+        border-radius: 20px;
+        border: 2px solid #fbbf24;
+        box-shadow: 0 8px 30px rgba(251, 191, 36, 0.2);
+    }
+    .rating-value-large {
+        font-size: 4rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+    .rating-number {
+        color: #f59e0b;
+    }
+    .rating-max {
+        color: #9ca3af;
+        font-size: 2rem;
+        font-weight: 400;
+    }
     .rating-section {
         background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
         border-radius: 15px;
@@ -494,31 +513,37 @@
     {% endif %}
     
     <!-- Рейтинг для перевізника -->
-    {% if profile_user.role == 'carrier' and carrier_profile and carrier_profile.rating > 0 %}
-    <div class="rating-section text-center">
-        <h3 class="mb-3"><i class="bi bi-star-fill"></i> Рейтинг перевізника</h3>
-        <div class="rating-display-large">
-            <div class="rating-stars-large mb-2">
-                {% with rating_rounded=carrier_profile.rating|floatformat:0 %}
-                    {% for i in "12345" %}
-                        {% if forloop.counter <= rating_rounded|add:0 %}
-                            <i class="bi bi-star-fill text-warning"></i>
-                        {% else %}
-                            <i class="bi bi-star text-muted"></i>
-                        {% endif %}
-                    {% endfor %}
-                {% endwith %}
+    {% if profile_user.role == 'carrier' and carrier_profile %}
+    <div class="rating-section text-center mb-4">
+        <div class="rating-card-modern p-4">
+            <h3 class="mb-3">
+                <i class="bi bi-star-fill text-warning"></i> 
+                <strong>Рейтинг перевізника</strong>
+            </h3>
+            <div class="rating-display-large">
+                <div class="rating-stars-large mb-3">
+                    {% with rating_rounded=carrier_profile.rating|floatformat:0 %}
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= rating_rounded|add:0 %}
+                                <i class="bi bi-star-fill text-warning" style="font-size: 2.5rem;"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted" style="font-size: 2.5rem;"></i>
+                            {% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                </div>
+                <div class="rating-value-large mb-2">
+                    <span class="rating-number">{{ carrier_profile.rating|floatformat:1 }}</span>
+                    <span class="rating-max">/ 5.0</span>
+                </div>
+                <p class="text-muted mb-0">
+                    {% if ratings %}
+                        <i class="bi bi-people"></i> На основі {{ ratings|length }} оцінок
+                    {% else %}
+                        <i class="bi bi-info-circle"></i> Поки немає оцінок
+                    {% endif %}
+                </p>
             </div>
-            <div style="font-size: 3rem; font-weight: 700; color: #f59e0b;">
-                {{ carrier_profile.rating|floatformat:1 }}
-            </div>
-            <p class="text-muted mb-0">
-                {% if ratings %}
-                    на основі {{ ratings|length }} оцінок
-                {% else %}
-                    Рейтинг перевізника
-                {% endif %}
-            </p>
         </div>
     </div>
     {% endif %}

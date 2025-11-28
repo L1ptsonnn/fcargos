@@ -315,6 +315,74 @@
                 </div>
             {% endif %}
             
+            <!-- Форма оцінки перевізника (тільки для доставлених маршрутів) -->
+            {% if can_rate and route.carrier %}
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="bi bi-star-fill"></i> 
+                            Оцінити перевізника
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <div>
+                                    <strong>Перевізник:</strong> 
+                                    <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none">
+                                        {{ route.carrier.username }}
+                                    </a>
+                                    {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                                        <span class="badge bg-warning text-dark ms-2">
+                                            <i class="bi bi-star-fill"></i> 
+                                            {{ route.carrier.carrier_profile.rating|floatformat:1 }} / 5.0
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if existing_rating %}
+                            <div class="alert alert-success mb-3">
+                                <i class="bi bi-check-circle"></i> 
+                                Ви вже поставили оцінку цьому перевізнику за цей маршрут. Можете оновити її нижче.
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="rating_submit" value="1">
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-star"></i> Оцінка <span class="text-danger">*</span>
+                                </label>
+                                {{ rating_form.rating }}
+                                <small class="text-muted d-block mt-1">
+                                    Оберіть оцінку від 1 до 5 зірок
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-chat-left-text"></i> Коментар (необов'язково)
+                                </label>
+                                {{ rating_form.comment }}
+                                <small class="text-muted d-block mt-1">
+                                    Залиште відгук про роботу перевізника
+                                </small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-star-fill"></i> 
+                                {% if existing_rating %}Оновити оцінку{% else %}Залишити оцінку{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+            
             {% if bids_with_diff %}
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-info text-white">
@@ -326,13 +394,20 @@
                             <div class="border-bottom pb-3 mb-3 {% if bid.is_accepted %}bg-light p-3 rounded{% endif %}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
-                                        <p class="mb-1"><strong>
-                                            <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
-                                        </strong></p>
+                                        <p class="mb-1">
+                                            <a href="{% url 'user_profile' bid.carrier.pk %}" class="text-decoration-none">
+                                                <strong>
+                                                    <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
+                                                </strong>
+                                            </a>
+                                        </p>
                                         {% if bid.carrier.carrier_profile %}
                                             <small class="text-muted">
                                                 <i class="bi bi-star-fill text-warning"></i> 
-                                                Рейтинг: {{ bid.carrier.carrier_profile.rating }} / 5
+                                                Рейтинг: 
+                                                <span class="badge bg-warning text-dark">
+                                                    {{ bid.carrier.carrier_profile.rating|floatformat:1 }} / 5.0
+                                                </span>
                                             </small>
                                         {% endif %}
                                     </div>

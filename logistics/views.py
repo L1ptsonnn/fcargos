@@ -358,12 +358,53 @@ def route_detail(request, pk):
             is_read=False  # лише непрочитані
         ).count()
     
+    # Перевіряємо чи компанія може поставити оцінку перевізнику (тільки для доставлених маршрутів)
+    can_rate = False
+    existing_rating = None
+    rating_form = None
+    
+    if (request.user.role == 'company' and 
+        route.company == request.user and 
+        route.status == 'delivered' and 
+        route.carrier):
+        can_rate = True
+        # Перевіряємо чи вже є оцінка для цього маршруту
+        existing_rating = Rating.objects.filter(
+            route=route,
+            carrier=route.carrier,
+            company=request.user
+        ).first()
+        
+        # Обробка форми оцінки
+        if request.method == 'POST' and 'rating_submit' in request.POST:
+            rating_form = RatingForm(request.POST, instance=existing_rating)
+            if rating_form.is_valid():
+                rating_obj, created = Rating.objects.update_or_create(
+                    route=route,
+                    carrier=route.carrier,
+                    company=request.user,
+                    defaults={
+                        'rating': int(rating_form.cleaned_data['rating']),
+                        'comment': rating_form.cleaned_data['comment']
+                    }
+                )
+                messages.success(request, 'Оцінку успішно збережено!')
+                return redirect('route_detail', pk=pk)
+        else:
+            if existing_rating:
+                rating_form = RatingForm(instance=existing_rating)
+            else:
+                rating_form = RatingForm()
+    
     context = {
         'route': route,
         'bids_with_diff': bids_with_diff,
         'can_bid': can_bid,
         'can_accept_bids': can_accept_bids,
         'can_complete': can_complete,
+        'can_rate': can_rate,
+        'existing_rating': existing_rating,
+        'rating_form': rating_form,
         'unread_messages_count': unread_messages_count,
         'route_data': {
             'origin': {
