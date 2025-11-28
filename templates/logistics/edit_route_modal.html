@@ -616,6 +616,70 @@
         element.classList.add('success');
     }
     
+    // Функція видалення точки відправлення (права кнопка миші)
+    function removeOriginPoint() {
+        if (window.routeModalData.originMarker && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+            window.routeModalData.originMarker = null;
+        }
+        window.routeModalData.originSelected = false;
+        
+        // Очищаємо поля форми
+        document.getElementById('id_origin_lat').value = '';
+        document.getElementById('id_origin_lng').value = '';
+        document.getElementById('id_origin_city').value = '';
+        document.getElementById('id_origin_country').value = '';
+        
+        // Оновлюємо відображення
+        const element = document.getElementById('originPoint');
+        const originPointText = document.getElementById('originPointText');
+        if (originPointText) {
+            originPointText.textContent = 'Оберіть точку на карті';
+            originPointText.className = 'mb-0 text-muted mt-2';
+        }
+        if (element) {
+            element.classList.remove('success');
+        }
+        
+        // Видаляємо лінію маршруту, якщо вона є
+        if (window.routeModalData.routeLine && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+            window.routeModalData.routeLine = null;
+        }
+    }
+    
+    // Функція видалення точки призначення (права кнопка миші)
+    function removeDestinationPoint() {
+        if (window.routeModalData.destMarker && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+            window.routeModalData.destMarker = null;
+        }
+        window.routeModalData.destSelected = false;
+        
+        // Очищаємо поля форми
+        document.getElementById('id_destination_lat').value = '';
+        document.getElementById('id_destination_lng').value = '';
+        document.getElementById('id_destination_city').value = '';
+        document.getElementById('id_destination_country').value = '';
+        
+        // Оновлюємо відображення
+        const element = document.getElementById('destinationPoint');
+        const destinationPointText = document.getElementById('destinationPointText');
+        if (destinationPointText) {
+            destinationPointText.textContent = 'Оберіть точку на карті';
+            destinationPointText.className = 'mb-0 text-muted mt-2';
+        }
+        if (element) {
+            element.classList.remove('success');
+        }
+        
+        // Видаляємо лінію маршруту, якщо вона є
+        if (window.routeModalData.routeLine && window.routeModalData.routeMap) {
+            window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+            window.routeModalData.routeLine = null;
+        }
+    }
+    
     // Функція оновлення координат при перетягуванні
     function updateCoordinates(type, lat, lng) {
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=uk`)
@@ -836,6 +900,12 @@
                 }).addTo(window.routeModalData.routeMap);
                 window.routeModalData.originSelected = true;
                 
+                // Додаємо обробник правої кнопки миші для видалення маркера
+                window.routeModalData.originMarker.on('contextmenu', function(e) {
+                    e.originalEvent.preventDefault();
+                    removeOriginPoint();
+                });
+                
                 // Оновлюємо відображення
                 const originCity = document.getElementById('id_origin_city').value;
                 const originCountry = document.getElementById('id_origin_country').value;
@@ -855,6 +925,12 @@
                     })
                 }).addTo(window.routeModalData.routeMap);
                 window.routeModalData.destSelected = true;
+                
+                // Додаємо обробник правої кнопки миші для видалення маркера
+                window.routeModalData.destMarker.on('contextmenu', function(e) {
+                    e.originalEvent.preventDefault();
+                    removeDestinationPoint();
+                });
                 
                 // Оновлюємо відображення
                 const destCity = document.getElementById('id_destination_city').value;
