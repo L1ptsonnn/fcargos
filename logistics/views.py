@@ -1137,25 +1137,70 @@ def start_chat_with_user(request, user_id):
     
     if existing_route:
         # Якщо є маршрут, перенаправляємо на його чат
+        if request.headers.get('HX-Request'):
+            # Для HTMX запитів відкриваємо модальне вікно
+            from django.template.loader import render_to_string
+            from django.http import HttpResponse
+            
+            # Отримуємо повідомлення
+            from logistics.models import Message
+            messages_list = Message.objects.filter(route=existing_route).order_by('created_at')
+            
+            # Визначаємо співрозмовника
+            if request.user == existing_route.company:
+                other_user_for_chat = existing_route.carrier
+            else:
+                other_user_for_chat = existing_route.company
+            
+            html = render_to_string('logistics/messages_modal.html', {
+                'route': existing_route,
+                'messages': messages_list,
+                'other_user': other_user_for_chat,
+                'user': request.user,
+            }, request=request)
+            return HttpResponse(html)
         return redirect('route_messages', pk=existing_route.pk)
     else:
         # Створюємо тимчасовий маршрут для чату
-        # Використовуємо дефолтні значення
+        from django.utils import timezone
+        from datetime import timedelta
+        
         chat_route = Route.objects.create(
             company=company,
             carrier=carrier,
             origin_city='Чат',
             destination_city='Чат',
-            price=0,
-            status='pending',
-            cargo_type='Інше',
-            cargo_weight=0,
-            cargo_description='Тимчасовий маршрут для чату',
+            origin_country='UA',
+            destination_country='UA',
             origin_lat=50.45,  # Київ
             origin_lng=30.52,
             destination_lat=50.45,
             destination_lng=30.52,
+            cargo_type='Інше',
+            weight=0,
+            volume=0,
+            price=0,
+            pickup_date=timezone.now(),
+            delivery_date=timezone.now() + timedelta(days=1),
+            status='pending',
+            description='Тимчасовий маршрут для чату',
         )
+        
+        if request.headers.get('HX-Request'):
+            # Для HTMX запитів відкриваємо модальне вікно
+            from django.template.loader import render_to_string
+            from django.http import HttpResponse
+            
+            from logistics.models import Message
+            messages_list = Message.objects.filter(route=chat_route).order_by('created_at')
+            
+            html = render_to_string('logistics/messages_modal.html', {
+                'route': chat_route,
+                'messages': messages_list,
+                'other_user': other_user,
+                'user': request.user,
+            }, request=request)
+            return HttpResponse(html)
         
         messages.info(request, f'Чат з {other_user.username} створено')
         return redirect('route_messages', pk=chat_route.pk)
