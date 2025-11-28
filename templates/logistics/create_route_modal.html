@@ -406,13 +406,18 @@
 </style>
 
 <script>
-    // Глобальні змінні для карти
-    let routeMap = null;
-    let originMarker = null;
-    let destMarker = null;
-    let routeLine = null;
-    let originSelected = false;
-    let destSelected = false;
+    // Використовуємо window об'єкт для уникнення повторного оголошення
+    if (!window.routeModalData) {
+        window.routeModalData = {
+            routeMap: null,
+            originMarker: null,
+            destMarker: null,
+            routeLine: null,
+            originSelected: false,
+            destSelected: false,
+            initialized: false
+        };
+    }
     
     // Функція ініціалізації карти
     function initMap() {
@@ -431,12 +436,13 @@
         
         try {
             // Видаляємо стару карту, якщо вона існує
-            if (routeMap) {
-                routeMap.remove();
+            if (window.routeModalData.routeMap) {
+                window.routeModalData.routeMap.remove();
+                window.routeModalData.routeMap = null;
             }
             
             // Створюємо нову карту
-            routeMap = L.map('routeMap', {
+            window.routeModalData.routeMap = L.map('routeMap', {
                 zoomControl: true,
                 scrollWheelZoom: true
             }).setView([50.45, 30.52], 6);
@@ -445,12 +451,12 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
-            }).addTo(routeMap);
+            }).addTo(window.routeModalData.routeMap);
             
             // Виправляємо розміри карти після невеликої затримки
             setTimeout(function() {
-                if (routeMap) {
-                    routeMap.invalidateSize();
+                if (window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.invalidateSize();
                 }
             }, 300);
             
@@ -465,11 +471,11 @@
     
     // Функція налаштування обробника кліків на карті
     function setupMapClickHandler() {
-        if (!routeMap) return;
+        if (!window.routeModalData.routeMap) return;
         
-        routeMap.off('click'); // Видаляємо старі обробники
+        window.routeModalData.routeMap.off('click'); // Видаляємо старі обробники
         
-        routeMap.on('click', function(e) {
+        window.routeModalData.routeMap.on('click', function(e) {
             if (!e || !e.latlng) {
                 console.error('Помилка: невалідні дані кліку');
                 return;
@@ -492,11 +498,11 @@
                     const city = address.city || address.town || address.village || address.municipality || 'Не вказано';
                     const country = address.country || 'Україна';
                     
-                    if (!originSelected) {
+                    if (!window.routeModalData.originSelected) {
                         // Вибір точки відправлення
-                        if (originMarker) routeMap.removeLayer(originMarker);
+                        if (window.routeModalData.originMarker) window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
                         
-                        originMarker = L.marker([lat, lng], {
+                        window.routeModalData.originMarker = L.marker([lat, lng], {
                             draggable: true,
                             icon: L.divIcon({
                                 className: 'custom-marker',
@@ -504,7 +510,7 @@
                                 iconSize: [30, 30],
                                 iconAnchor: [15, 15]
                             })
-                        }).addTo(routeMap)
+                        }).addTo(window.routeModalData.routeMap)
                             .bindPopup(`<b>📍 Відправлення</b><br>${city}, ${country}`).openPopup();
                         
                         // Заповнюємо форму
@@ -515,12 +521,12 @@
                         
                         // Оновлюємо відображення
                         updateOriginPoint(city, country);
-                        originSelected = true;
-                    } else if (!destSelected) {
+                        window.routeModalData.originSelected = true;
+                    } else if (!window.routeModalData.destSelected) {
                         // Вибір точки призначення
-                        if (destMarker) routeMap.removeLayer(destMarker);
+                        if (window.routeModalData.destMarker) window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
                         
-                        destMarker = L.marker([lat, lng], {
+                        window.routeModalData.destMarker = L.marker([lat, lng], {
                             draggable: true,
                             icon: L.divIcon({
                                 className: 'custom-marker',
@@ -528,7 +534,7 @@
                                 iconSize: [30, 30],
                                 iconAnchor: [15, 15]
                             })
-                        }).addTo(routeMap)
+                        }).addTo(window.routeModalData.routeMap)
                             .bindPopup(`<b>📍 Призначення</b><br>${city}, ${country}`).openPopup();
                         
                         // Заповнюємо форму
@@ -539,15 +545,15 @@
                         
                         // Оновлюємо відображення
                         updateDestinationPoint(city, country);
-                        destSelected = true;
+                        window.routeModalData.destSelected = true;
                         
                         // Додаємо обробник для перетягування маркерів
-                        originMarker.on('dragend', function(e) {
+                        window.routeModalData.originMarker.on('dragend', function(e) {
                             const pos = e.target.getLatLng();
                             updateCoordinates('origin', pos.lat, pos.lng);
                         });
                         
-                        destMarker.on('dragend', function(e) {
+                        window.routeModalData.destMarker.on('dragend', function(e) {
                             const pos = e.target.getLatLng();
                             updateCoordinates('destination', pos.lat, pos.lng);
                         });
@@ -556,7 +562,8 @@
                         updateRouteLine();
                         
                         // Активуємо кнопку відправки
-                        document.getElementById('submitBtn').disabled = false;
+                        const submitBtn = document.getElementById('submitBtn');
+                        if (submitBtn) submitBtn.disabled = false;
                     }
                 })
                 .catch(error => {
@@ -625,16 +632,16 @@
     
     // Функція оновлення лінії маршруту
     function updateRouteLine() {
-        if (!routeMap) return;
+        if (!window.routeModalData.routeMap) return;
         
         try {
-            if (routeLine) routeMap.removeLayer(routeLine);
-            if (originMarker && destMarker) {
-                const originPos = originMarker.getLatLng();
-                const destPos = destMarker.getLatLng();
+            if (window.routeModalData.routeLine) window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+            if (window.routeModalData.originMarker && window.routeModalData.destMarker) {
+                const originPos = window.routeModalData.originMarker.getLatLng();
+                const destPos = window.routeModalData.destMarker.getLatLng();
                 
                 if (originPos && destPos) {
-                    routeLine = L.polyline([
+                    window.routeModalData.routeLine = L.polyline([
                         [originPos.lat, originPos.lng],
                         [destPos.lat, destPos.lng]
                     ], {
@@ -642,9 +649,9 @@
                         weight: 5,
                         opacity: 0.7,
                         dashArray: '15, 10'
-                    }).addTo(routeMap);
+                    }).addTo(window.routeModalData.routeMap);
                     
-                    routeMap.fitBounds([originPos, destPos], {
+                    window.routeModalData.routeMap.fitBounds([originPos, destPos], {
                         padding: [80, 80]
                     });
                 }
@@ -655,21 +662,30 @@
     }
     
     // Обробка подій модального вікна
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('createRouteModal');
-        if (!modal) return;
+    (function() {
+        // Перевіряємо чи обробники вже додані
+        if (window.routeModalData.initialized) return;
+        window.routeModalData.initialized = true;
         
-        // При відкритті модального вікна
-        modal.addEventListener('shown.bs.modal', function() {
-            // Скидаємо стан
-            originSelected = false;
-            destSelected = false;
-            if (originMarker && routeMap) routeMap.removeLayer(originMarker);
-            if (destMarker && routeMap) routeMap.removeLayer(destMarker);
-            if (routeLine && routeMap) routeMap.removeLayer(routeLine);
-            originMarker = null;
-            destMarker = null;
-            routeLine = null;
+        // Використовуємо делегування подій для динамічно завантаженого контенту
+        document.addEventListener('shown.bs.modal', function(event) {
+            const modal = event.target;
+            if (modal && modal.id === 'createRouteModal') {
+                // Скидаємо стан
+                window.routeModalData.originSelected = false;
+                window.routeModalData.destSelected = false;
+                if (window.routeModalData.originMarker && window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+                }
+                if (window.routeModalData.destMarker && window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+                }
+                if (window.routeModalData.routeLine && window.routeModalData.routeMap) {
+                    window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+                }
+                window.routeModalData.originMarker = null;
+                window.routeModalData.destMarker = null;
+                window.routeModalData.routeLine = null;
             
             // Скидаємо форму
             const submitBtn = document.getElementById('submitBtn');
@@ -702,55 +718,71 @@
                 destinationPoint.classList.remove('success');
             }
             
-            // Ініціалізуємо карту після невеликої затримки
-            setTimeout(function() {
-                initMap();
-            }, 100);
-        });
-        
-        // При закритті модального вікна
-        modal.addEventListener('hidden.bs.modal', function() {
-            // Очищаємо карту
-            if (routeMap) {
-                if (originMarker) routeMap.removeLayer(originMarker);
-                if (destMarker) routeMap.removeLayer(destMarker);
-                if (routeLine) routeMap.removeLayer(routeLine);
-                routeMap.remove();
-                routeMap = null;
+                // Ініціалізуємо карту після невеликої затримки
+                setTimeout(function() {
+                    initMap();
+                }, 200);
             }
         });
         
-        // Валідація форми перед відправкою
-        const routeForm = document.getElementById('routeForm');
-        if (routeForm) {
-            routeForm.addEventListener('submit', function(e) {
-                if (!originSelected || !destSelected) {
+        // При закритті модального вікна
+        document.addEventListener('hidden.bs.modal', function(event) {
+            const modal = event.target;
+            if (modal && modal.id === 'createRouteModal') {
+                // Очищаємо карту
+                if (window.routeModalData.routeMap) {
+                    if (window.routeModalData.originMarker) {
+                        window.routeModalData.routeMap.removeLayer(window.routeModalData.originMarker);
+                    }
+                    if (window.routeModalData.destMarker) {
+                        window.routeModalData.routeMap.removeLayer(window.routeModalData.destMarker);
+                    }
+                    if (window.routeModalData.routeLine) {
+                        window.routeModalData.routeMap.removeLayer(window.routeModalData.routeLine);
+                    }
+                    window.routeModalData.routeMap.remove();
+                    window.routeModalData.routeMap = null;
+                }
+            }
+        });
+        
+        // Валідація форми перед відправкою (використовуємо делегування)
+        document.addEventListener('submit', function(e) {
+            if (e.target && e.target.id === 'routeForm') {
+                if (!window.routeModalData.originSelected || !window.routeModalData.destSelected) {
                     e.preventDefault();
                     alert('Будь ласка, оберіть обидві точки на карті!');
                     return false;
                 }
-            });
-        }
-    });
+            }
+        });
+    })();
     
     // Обробка успішної відповіді від HTMX
-    document.body.addEventListener('htmx:afterSwap', function(event) {
-        if (event.detail.target.id === 'createRouteModalContent') {
-            // Відкриваємо модальне вікно після завантаження контенту
-            const modalElement = document.getElementById('createRouteModal');
-            if (modalElement) {
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
-            }
-            
-            const response = event.detail.xhr.responseText;
-            // Якщо відповідь містить скрипт перенаправлення, виконуємо його
-            if (response.includes('window.location.href')) {
-                const scriptMatch = response.match(/<script>(.*?)<\/script>/s);
-                if (scriptMatch) {
-                    eval(scriptMatch[1]);
+    if (!window.routeModalHtmxHandler) {
+        window.routeModalHtmxHandler = true;
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'createRouteModalContent') {
+                // Відкриваємо модальне вікно після завантаження контенту
+                const modalElement = document.getElementById('createRouteModal');
+                if (modalElement) {
+                    // Перевіряємо чи модальне вікно вже ініціалізовано
+                    let modal = bootstrap.Modal.getInstance(modalElement);
+                    if (!modal) {
+                        modal = new bootstrap.Modal(modalElement);
+                    }
+                    modal.show();
+                }
+                
+                const response = event.detail.xhr.responseText;
+                // Якщо відповідь містить скрипт перенаправлення, виконуємо його
+                if (response.includes('window.location.href')) {
+                    const scriptMatch = response.match(/<script>(.*?)<\/script>/s);
+                    if (scriptMatch) {
+                        eval(scriptMatch[1]);
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 </script>
