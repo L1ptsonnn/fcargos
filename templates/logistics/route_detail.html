@@ -228,6 +228,59 @@
                         </div>
                     {% endif %}
                 </div>
+                
+                <!-- Інформація про компанію та перевізника -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card border-primary mb-3">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="bi bi-building"></i> Компанія</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none fw-bold">
+                                        <i class="bi bi-person-circle"></i> {{ route.company.company_name|default:route.company.username }}
+                                    </a>
+                                </p>
+                                <p class="mb-0 text-muted small">
+                                    <i class="bi bi-envelope"></i> {{ route.company.email }}
+                                </p>
+                                {% if user.is_authenticated and user.pk != route.company.pk and user.role != route.company.role %}
+                                    <a href="{% url 'start_chat_with_user' route.company.pk %}" class="btn btn-sm btn-primary mt-2">
+                                        <i class="bi bi-chat-dots"></i> Написати в чат
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if route.carrier %}
+                    <div class="col-md-6">
+                        <div class="card border-success mb-3">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="bi bi-truck"></i> Перевізник</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none fw-bold">
+                                        <i class="bi bi-person-circle"></i> {{ route.carrier.username }}
+                                    </a>
+                                </p>
+                                {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                                    <p class="mb-2">
+                                        <i class="bi bi-star-fill text-warning"></i> 
+                                        Рейтинг: <span class="badge bg-warning text-dark">{{ route.carrier.carrier_profile.rating|floatformat:1 }} / 5.0</span>
+                                    </p>
+                                {% endif %}
+                                {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
+                                    <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="btn btn-sm btn-success mt-2">
+                                        <i class="bi bi-chat-dots"></i> Написати в чат
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
             
             <!-- Візуалізація маршруту -->
