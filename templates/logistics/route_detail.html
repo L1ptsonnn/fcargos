@@ -6,460 +6,298 @@
 {% block extra_css %}
 <style>
     body {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        background-attachment: fixed;
-    }
-    
-    .route-hero-compact {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-    }
-    
-    .route-title-compact {
-        font-size: 1.4rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-    }
-    
-    .route-subtitle-compact {
-        font-size: 0.85rem;
-        opacity: 0.9;
-        margin-bottom: 0.5rem;
-    }
-    
-    .status-badge-compact {
-        padding: 0.4rem 0.9rem;
-        border-radius: 15px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .compact-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
-        transition: all 0.2s;
-    }
-    
-    .compact-card:hover {
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-    
-    .compact-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .compact-label {
-        font-size: 0.75rem;
-        color: #64748b;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        margin-bottom: 0.25rem;
-    }
-    
-    .compact-value {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #1e293b;
-    }
-    
-    .map-compact {
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        margin-bottom: 1rem;
-    }
-    
-    .map-header-compact {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-    
-    .map-compact #routeMap {
-        height: 280px !important;
-    }
-    
-    .bids-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-    
-    .bid-card-compact {
-        background: white;
-        border-radius: 10px;
-        padding: 0.875rem;
-        border: 1px solid #e2e8f0;
-        transition: all 0.2s;
-    }
-    
-    .bid-card-compact:hover {
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-        transform: translateY(-2px);
-    }
-    
-    .bid-card-compact.accepted {
-        border-color: #10b981;
-        background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
-    }
-    
-    .user-card-compact {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
-        margin-bottom: 0.75rem;
-    }
-    
-    .user-avatar-compact {
-        width: 45px;
-        height: 45px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        color: white;
-        margin-right: 0.75rem;
-    }
-    
-    .chat-btn-compact {
-        padding: 0.4rem 1rem;
-        font-size: 0.8rem;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-block;
-        margin-top: 0.5rem;
-        transition: all 0.2s;
-    }
-    
-    .cargo-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .cargo-item {
-        text-align: center;
-        padding: 0.75rem;
-        background: #f8fafc;
-        border-radius: 10px;
-    }
-    
-    .date-compact {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background: #f8fafc;
-        border-radius: 10px;
-        margin-bottom: 0.5rem;
-    }
-    
-    .date-compact:last-child {
-        margin-bottom: 0;
-    }
-    
-    .action-btn-compact {
-        width: 100%;
-        padding: 0.6rem;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .coordinate-compact {
-        font-size: 0.75rem;
-        color: #64748b;
-        font-family: 'Courier New', monospace;
-        margin-top: 0.25rem;
+        background: #f8f9fa;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Компактний Hero -->
-    <div class="route-hero-compact">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h1 class="route-title-compact mb-1">
-                    <i class="bi bi-route"></i> {{ route.origin_city }} → {{ route.destination_city }}
-                </h1>
-                <p class="route-subtitle-compact mb-2">
-                    <i class="bi bi-calendar3"></i> {{ route.created_at|date:"d.m.Y H:i" }}
-                </p>
-                <span class="status-badge-compact badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %}">
-                    <i class="bi bi-{% if route.status == 'pending' %}clock{% elif route.status == 'in_transit' %}truck{% else %}check-circle{% endif %}"></i> 
-                    {{ route.get_status_display }}
-                </span>
-            </div>
-            {% if user.role == 'company' and route.company == user and route.status == 'pending' %}
-                <div class="d-flex gap-2">
-                    <a href="{% url 'edit_route' route.pk %}" 
-                       class="btn btn-light btn-sm"
-                       hx-get="{% url 'edit_route' route.pk %}"
-                       hx-target="#editRouteModalContent"
-                       hx-swap="innerHTML">
-                        <i class="bi bi-pencil-square"></i>
-                    </a>
-                    <a href="{% url 'delete_route' route.pk %}" 
-                       class="btn btn-danger btn-sm"
-                       hx-get="{% url 'delete_route' route.pk %}"
-                       hx-target="#deleteRouteModalContent"
-                       hx-swap="innerHTML">
-                        <i class="bi bi-trash"></i>
-                    </a>
+    <!-- Заголовок -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h2 class="mb-2">
+                        <i class="bi bi-route text-primary"></i> 
+                        {{ route.origin_city }} → {{ route.destination_city }}
+                    </h2>
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-calendar3"></i> Створено: {{ route.created_at|date:"d.m.Y H:i" }}
+                    </p>
+                    <span class="badge bg-{% if route.status == 'pending' %}warning{% elif route.status == 'in_transit' %}info{% else %}success{% endif %} fs-6">
+                        <i class="bi bi-{% if route.status == 'pending' %}clock{% elif route.status == 'in_transit' %}truck{% else %}check-circle{% endif %}"></i> 
+                        {{ route.get_status_display }}
+                    </span>
                 </div>
-            {% endif %}
+                {% if user.role == 'company' and route.company == user and route.status == 'pending' %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'edit_route' route.pk %}" 
+                           class="btn btn-outline-primary"
+                           hx-get="{% url 'edit_route' route.pk %}"
+                           hx-target="#editRouteModalContent"
+                           hx-swap="innerHTML">
+                            <i class="bi bi-pencil-square"></i> Редагувати
+                        </a>
+                        <a href="{% url 'delete_route' route.pk %}" 
+                           class="btn btn-outline-danger"
+                           hx-get="{% url 'delete_route' route.pk %}"
+                           hx-target="#deleteRouteModalContent"
+                           hx-swap="innerHTML">
+                            <i class="bi bi-trash"></i> Видалити
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
     
-    <div class="row g-2">
+    <div class="row g-4">
         <!-- Ліва колонка -->
         <div class="col-lg-8">
-            <!-- Локації та карта в одному ряді -->
-            <div class="row g-2 mb-2">
-                <div class="col-md-4">
-                    <div class="compact-card">
-                        <div class="compact-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                            <i class="bi bi-geo-alt-fill"></i>
+            <!-- Локації -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-geo-alt-fill text-primary"></i> Відправлення
+                            </h5>
+                            <h4 class="mb-2">{{ route.origin_city }}</h4>
+                            <p class="text-muted mb-1">
+                                <i class="bi bi-globe"></i> {{ route.origin_country }}
+                            </p>
+                            <small class="text-muted">
+                                <i class="bi bi-geo"></i> {{ route.origin_lat }}, {{ route.origin_lng }}
+                            </small>
                         </div>
-                        <div class="compact-label">Відправлення</div>
-                        <div class="compact-value mb-1">{{ route.origin_city }}</div>
-                        <small class="text-muted d-block mb-1">{{ route.origin_country }}</small>
-                        <div class="coordinate-compact">{{ route.origin_lat }}, {{ route.origin_lng }}</div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="compact-card">
-                        <div class="compact-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                            <i class="bi bi-geo-alt"></i>
-                        </div>
-                        <div class="compact-label">Призначення</div>
-                        <div class="compact-value mb-1">{{ route.destination_city }}</div>
-                        <small class="text-muted d-block mb-1">{{ route.destination_country }}</small>
-                        <div class="coordinate-compact">{{ route.destination_lat }}, {{ route.destination_lng }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="map-compact">
-                        <div class="map-header-compact">
-                            <i class="bi bi-map"></i> Карта
-                        </div>
-                        <div id="routeMap" style="height: 280px; width: 100%; background: #f8f9fa;"></div>
-                        <div id="mapFallback" style="display: none; padding: 20px; text-align: center; background: #f8f9fa;">
-                            <i class="bi bi-route" style="font-size: 40px; color: #667eea; opacity: 0.5;"></i>
-                            <p class="text-muted mb-0 mt-2" style="font-size: 0.85rem;">Карта маршруту</p>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-geo-alt text-danger"></i> Призначення
+                            </h5>
+                            <h4 class="mb-2">{{ route.destination_city }}</h4>
+                            <p class="text-muted mb-1">
+                                <i class="bi bi-globe"></i> {{ route.destination_country }}
+                            </p>
+                            <small class="text-muted">
+                                <i class="bi bi-geo"></i> {{ route.destination_lat }}, {{ route.destination_lng }}
+                            </small>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Вантаж компактно -->
-            <div class="compact-card mb-2">
-                <div class="d-flex align-items-center mb-2" style="border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem;">
-                    <div class="compact-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin: 0 0.75rem 0 0;">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
-                    <h6 class="mb-0" style="font-weight: 700; color: #1e293b;">Вантаж</h6>
+            <!-- Карта -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-map"></i> Візуалізація маршруту
+                    </h5>
                 </div>
-                <div class="cargo-grid">
-                    <div class="cargo-item">
-                        <div class="compact-icon mx-auto" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                            <i class="bi bi-tag"></i>
-                        </div>
-                        <div class="compact-label">Тип</div>
-                        <div class="compact-value" style="font-size: 0.9rem;">
-                            <span class="badge bg-primary">{{ route.cargo_type }}</span>
-                        </div>
-                    </div>
-                    <div class="cargo-item">
-                        <div class="compact-icon mx-auto" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                        <div class="compact-label">Вага</div>
-                        <div class="compact-value" style="font-size: 0.9rem; color: #10b981;">
-                            <strong>{{ route.weight }} кг</strong>
-                        </div>
-                    </div>
-                    <div class="cargo-item">
-                        <div class="compact-icon mx-auto" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
-                            <i class="bi bi-box"></i>
-                        </div>
-                        <div class="compact-label">Об'єм</div>
-                        <div class="compact-value" style="font-size: 0.9rem; color: #f59e0b;">
-                            <strong>{{ route.volume }} м³</strong>
-                        </div>
-                    </div>
-                    <div class="cargo-item">
-                        <div class="compact-icon mx-auto" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
-                            <i class="bi bi-currency-exchange"></i>
-                        </div>
-                        <div class="compact-label">Ціна</div>
-                        <div class="compact-value" style="font-size: 0.9rem; color: #10b981;">
-                            <strong>{{ route.price }} грн</strong>
-                        </div>
+                <div class="card-body p-0">
+                    <div id="routeMap" style="height: 400px; width: 100%; background: #f8f9fa;"></div>
+                    <div id="mapFallback" style="display: none; padding: 40px; text-align: center; background: #f8f9fa;">
+                        <i class="bi bi-route" style="font-size: 60px; color: #667eea; opacity: 0.5;"></i>
+                        <h5 class="text-muted mt-3">Карта маршруту</h5>
                     </div>
                 </div>
-                <div class="row g-2 mt-2">
-                    <div class="col-6">
-                        <div class="date-compact">
-                            <i class="bi bi-calendar-event text-success"></i>
-                            <div>
-                                <div class="compact-label">Забір</div>
-                                <div class="compact-value" style="font-size: 0.85rem;">{{ route.pickup_date|date:"d.m.Y H:i" }}</div>
+            </div>
+            
+            <!-- Вантаж -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam"></i> Інформація про вантаж
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <i class="bi bi-tag text-primary" style="font-size: 2rem;"></i>
+                                <p class="mb-1 mt-2"><strong>Тип вантажу</strong></p>
+                                <span class="badge bg-primary">{{ route.cargo_type }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <i class="bi bi-speedometer2 text-success" style="font-size: 2rem;"></i>
+                                <p class="mb-1 mt-2"><strong>Вага</strong></p>
+                                <h5 class="text-success mb-0">{{ route.weight }} кг</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <i class="bi bi-box text-warning" style="font-size: 2rem;"></i>
+                                <p class="mb-1 mt-2"><strong>Об'єм</strong></p>
+                                <h5 class="text-warning mb-0">{{ route.volume }} м³</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <i class="bi bi-currency-exchange text-success" style="font-size: 2rem;"></i>
+                                <p class="mb-1 mt-2"><strong>Ціна</strong></p>
+                                <h5 class="text-success mb-0">{{ route.price }} грн</h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="date-compact">
-                            <i class="bi bi-calendar-check text-warning"></i>
-                            <div>
-                                <div class="compact-label">Доставка</div>
-                                <div class="compact-value" style="font-size: 0.85rem;">{{ route.delivery_date|date:"d.m.Y H:i" }}</div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <p class="text-muted mb-1"><i class="bi bi-calendar-event"></i> Дата забору</p>
+                                <h6 class="mb-0">{{ route.pickup_date|date:"d.m.Y H:i" }}</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <p class="text-muted mb-1"><i class="bi bi-calendar-check"></i> Дата доставки</p>
+                                <h6 class="mb-0">{{ route.delivery_date|date:"d.m.Y H:i" }}</h6>
                             </div>
                         </div>
                     </div>
+                    
+                    {% if route.description %}
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <h6 class="mb-2">
+                                <i class="bi bi-info-circle text-primary"></i> Опис
+                            </h6>
+                            <p class="mb-0">{{ route.description }}</p>
+                        </div>
+                    {% endif %}
                 </div>
-                {% if route.description %}
-                    <div class="mt-2 p-2" style="background: #f8fafc; border-radius: 8px; border-left: 3px solid #667eea;">
-                        <small class="text-muted" style="font-size: 0.8rem;">{{ route.description }}</small>
-                    </div>
-                {% endif %}
             </div>
         </div>
         
         <!-- Права колонка -->
         <div class="col-lg-4">
             <!-- Компанія -->
-            <div class="user-card-compact">
-                <div class="d-flex align-items-center">
-                    <div class="user-avatar-compact" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                        <i class="bi bi-building"></i>
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-building"></i> Компанія
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0">
+                                <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none">
+                                    {{ route.company.company_name|default:route.company.username }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">
+                                <i class="bi bi-envelope"></i> {{ route.company.email }}
+                            </small>
+                        </div>
                     </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <h6 class="mb-0" style="font-size: 0.95rem; font-weight: 700;">
-                            <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none" style="color: #1e293b;">
-                                {{ route.company.company_name|default:route.company.username }}
-                            </a>
-                        </h6>
-                        <small class="text-muted d-block" style="font-size: 0.75rem;">
-                            <i class="bi bi-envelope"></i> {{ route.company.email }}
-                        </small>
-                        {% if user.is_authenticated and user.pk != route.company.pk and user.role != route.company.role %}
-                            <a href="{% url 'start_chat_with_user' route.company.pk %}" 
-                               class="chat-btn-compact" 
-                               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                                <i class="bi bi-chat-dots"></i> Чат
-                            </a>
-                        {% endif %}
-                    </div>
+                    {% if user.is_authenticated and user.pk != route.company.pk and user.role != route.company.role %}
+                        <a href="{% url 'start_chat_with_user' route.company.pk %}" class="btn btn-primary btn-sm w-100 mt-2">
+                            <i class="bi bi-chat-dots"></i> Написати в чат
+                        </a>
+                    {% endif %}
                 </div>
             </div>
             
             <!-- Перевізник -->
             {% if route.carrier %}
-            <div class="user-card-compact">
-                <div class="d-flex align-items-center">
-                    <div class="user-avatar-compact" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <i class="bi bi-truck"></i>
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-truck"></i> Перевізник
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0">
+                                <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none">
+                                    {{ route.carrier.username }}
+                                </a>
+                            </h6>
+                            {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                                <div class="mt-1">
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    <span class="badge bg-warning text-dark">
+                                        {{ route.carrier.carrier_profile.rating|floatformat:1 }} / 5.0
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <h6 class="mb-0" style="font-size: 0.95rem; font-weight: 700;">
-                            <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none" style="color: #1e293b;">
-                                {{ route.carrier.username }}
-                            </a>
-                        </h6>
-                        {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
-                            <div class="mt-1">
-                                <i class="bi bi-star-fill text-warning" style="font-size: 0.75rem;"></i>
-                                <span class="badge bg-warning text-dark" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">
-                                    {{ route.carrier.carrier_profile.rating|floatformat:1 }}
-                                </span>
-                            </div>
-                        {% endif %}
-                        {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
-                            <a href="{% url 'start_chat_with_user' route.carrier.pk %}" 
-                               class="chat-btn-compact" 
-                               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
-                                <i class="bi bi-chat-dots"></i> Чат
-                            </a>
-                        {% endif %}
-                    </div>
+                    {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
+                        <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="btn btn-success btn-sm w-100 mt-2">
+                            <i class="bi bi-chat-dots"></i> Написати в чат
+                        </a>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
             
             <!-- Дії -->
             {% if can_complete %}
-                <div class="compact-card">
-                    <a href="{% url 'complete_route' route.pk %}" 
-                       class="btn btn-success action-btn-compact" 
-                       onclick="return confirm('Підтвердити завершення доставки?')">
-                        <i class="bi bi-check-lg"></i> Завершити маршрут
-                    </a>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <a href="{% url 'complete_route' route.pk %}" 
+                           class="btn btn-success w-100" 
+                           onclick="return confirm('Підтвердити завершення доставки?')">
+                            <i class="bi bi-check-lg"></i> Завершити маршрут
+                        </a>
+                    </div>
                 </div>
             {% endif %}
             
             {% if route.status == 'in_transit' or route.status == 'delivered' %}
-                <div class="compact-card">
-                    <a href="{% url 'tracking' route.pk %}" class="btn btn-info action-btn-compact">
-                        <i class="bi bi-radar"></i> Відстежити
-                    </a>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <a href="{% url 'tracking' route.pk %}" class="btn btn-info w-100">
+                            <i class="bi bi-radar"></i> Відстежити
+                        </a>
+                    </div>
                 </div>
             {% endif %}
             
             <!-- Форма оцінки -->
             {% if can_rate and route.carrier %}
-                <div class="compact-card">
-                    <h6 class="mb-2" style="font-size: 0.9rem; font-weight: 700;">
-                        <i class="bi bi-star-fill text-warning"></i> Оцінити
-                    </h6>
-                    {% if existing_rating %}
-                        <div class="alert alert-success py-2 mb-2" style="font-size: 0.75rem;">
-                            <i class="bi bi-check-circle"></i> Оцінка поставлена
-                        </div>
-                    {% endif %}
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="rating_submit" value="1">
-                        <div class="mb-2">
-                            {{ rating_form.rating }}
-                        </div>
-                        <div class="mb-2">
-                            {{ rating_form.comment }}
-                        </div>
-                        <button type="submit" class="btn btn-warning btn-sm w-100">
-                            <i class="bi bi-star-fill"></i> 
-                            {% if existing_rating %}Оновити{% else %}Залишити{% endif %}
-                        </button>
-                    </form>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-star-fill text-warning"></i> Оцінити перевізника
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if existing_rating %}
+                            <div class="alert alert-success py-2 mb-3">
+                                <i class="bi bi-check-circle"></i> Оцінка поставлена
+                            </div>
+                        {% endif %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="rating_submit" value="1">
+                            <div class="mb-3">
+                                <label class="form-label">Оцінка</label>
+                                {{ rating_form.rating }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Коментар</label>
+                                {{ rating_form.comment }}
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-star-fill"></i> 
+                                {% if existing_rating %}Оновити{% else %}Залишити{% endif %} оцінку
+                            </button>
+                        </form>
+                    </div>
                 </div>
             {% endif %}
         </div>
@@ -467,67 +305,81 @@
     
     <!-- Ставки -->
     {% if bids_with_diff %}
-        <div class="compact-card mb-2">
-            <div class="d-flex justify-content-between align-items-center mb-2" style="border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem;">
-                <h6 class="mb-0" style="font-weight: 700; color: #1e293b;">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
                     <i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})
-                </h6>
+                </h5>
             </div>
-            <div class="bids-grid">
-                {% for item in bids_with_diff %}
-                    {% with bid=item.bid %}
-                    <div class="bid-card-compact {% if bid.is_accepted %}accepted{% endif %}">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <a href="{% url 'user_profile' bid.carrier.pk %}" class="text-decoration-none fw-bold" style="color: #1e293b; font-size: 0.9rem;">
-                                <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
-                            </a>
-                            {% if bid.is_accepted %}
-                                <span class="badge bg-success" style="font-size: 0.65rem;">✓</span>
-                            {% endif %}
-                        </div>
-                        {% if bid.carrier.carrier_profile %}
-                            <div class="mb-1">
-                                <i class="bi bi-star-fill text-warning" style="font-size: 0.7rem;"></i>
-                                <span class="badge bg-warning text-dark" style="font-size: 0.65rem; padding: 0.15rem 0.3rem;">
-                                    {{ bid.carrier.carrier_profile.rating|floatformat:1 }}
-                                </span>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for item in bids_with_diff %}
+                        {% with bid=item.bid %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 {% if bid.is_accepted %}border-success{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <a href="{% url 'user_profile' bid.carrier.pk %}" class="text-decoration-none">
+                                                    <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
+                                                </a>
+                                            </h6>
+                                            {% if bid.carrier.carrier_profile %}
+                                                <div class="mb-2">
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                    <span class="badge bg-warning text-dark">
+                                                        {{ bid.carrier.carrier_profile.rating|floatformat:1 }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        {% if bid.is_accepted %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Прийнято
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-2">
+                                        <h5 class="text-success mb-1">{{ bid.proposed_price }} грн</h5>
+                                        {% if item.price_diff > 0 %}
+                                            <small class="text-muted">
+                                                {% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-muted mb-2">
+                                        <i class="bi bi-calendar-check"></i> {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
+                                    </p>
+                                    {% if can_accept_bids and not bid.is_accepted %}
+                                        <a href="{% url 'accept_bid' bid.pk %}" 
+                                           class="btn btn-success btn-sm w-100"
+                                           onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
+                                            <i class="bi bi-check"></i> Прийняти
+                                        </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                        {% endif %}
-                        <div class="mb-1">
-                            <strong class="text-success" style="font-size: 1rem;">{{ bid.proposed_price }} грн</strong>
-                            {% if item.price_diff > 0 %}
-                                <small class="text-muted d-block" style="font-size: 0.7rem;">
-                                    {% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн
-                                </small>
-                            {% endif %}
                         </div>
-                        <small class="text-muted d-block mb-2" style="font-size: 0.7rem;">
-                            <i class="bi bi-calendar-check"></i> {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
-                        </small>
-                        {% if can_accept_bids and not bid.is_accepted %}
-                            <a href="{% url 'accept_bid' bid.pk %}" 
-                               class="btn btn-sm btn-success w-100"
-                               onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
-                                <i class="bi bi-check"></i> Прийняти
-                            </a>
-                        {% endif %}
-                    </div>
-                    {% endwith %}
-                {% endfor %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     {% endif %}
     
     <!-- Кнопка для ставки -->
     {% if can_bid %}
-        <div class="compact-card text-center">
-            <a href="{% url 'create_bid' route.pk %}" 
-               class="btn btn-warning"
-               hx-get="{% url 'create_bid' route.pk %}"
-               hx-target="#createBidModalContent"
-               hx-swap="innerHTML">
-                <i class="bi bi-cash-coin"></i> Створити ставку
-            </a>
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <a href="{% url 'create_bid' route.pk %}" 
+                   class="btn btn-warning btn-lg"
+                   hx-get="{% url 'create_bid' route.pk %}"
+                   hx-target="#createBidModalContent"
+                   hx-swap="innerHTML">
+                    <i class="bi bi-cash-coin"></i> Створити ставку
+                </a>
+            </div>
         </div>
     {% endif %}
 </div>
