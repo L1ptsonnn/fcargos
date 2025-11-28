@@ -139,10 +139,12 @@ def history(request):
     context = {}
     
     if request.user.role == 'company':
-        context['routes'] = Route.objects.filter(company=request.user).order_by('-created_at')
+        # Виключаємо тимчасові маршрути для чату
+        context['routes'] = Route.objects.filter(company=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
         context['all_statuses'] = ['pending', 'in_transit', 'delivered', 'cancelled', 'expired']
     elif request.user.role == 'carrier':
         context['bids'] = Bid.objects.filter(carrier=request.user).select_related('route').order_by('-created_at')
-        context['my_routes'] = Route.objects.filter(carrier=request.user).order_by('-created_at')
+        # Виключаємо тимчасові маршрути для чату
+        context['my_routes'] = Route.objects.filter(carrier=request.user).exclude(origin_city='Чат').exclude(destination_city='Чат').order_by('-created_at')
     
     return render(request, 'dashboard/history.html', context)
