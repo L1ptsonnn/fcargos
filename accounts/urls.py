@@ -5,21 +5,20 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from . import views
 
-# Custom logout view - adds success message after logout
+# Кастомний logout: показує повідомлення після виходу
 def logout_view(request):
     """Custom logout view with success message"""
     logout(request)
     messages.success(request, 'Ви успішно вийшли з акаунту.')
     return redirect('home')
 
-# URL patterns for accounts app
-# All URLs here are prefixed with 'accounts/' (from config/urls.py)
+# Маршрути застосунку accounts (у config/urls.py вже додано префікс accounts/)
 urlpatterns = [
-    path('login/', views.login_view, name='login'),              # Login page
-    path('logout/', logout_view, name='logout'),                 # Logout (custom view)
-    path('register/', views.register_view, name='register'),     # Registration type selection
-    path('register/company/', views.register_company, name='register_company'),  # Company registration
-    path('register/carrier/', views.register_carrier, name='register_carrier'), # Carrier registration
-    path('profile/', views.profile_view, name='profile'),        # User profile page
+    path('login/', views.login_view, name='login'),              # сторінка входу
+    path('logout/', logout_view, name='logout'),                 # вихід (кастомний)
+    path('register/', views.register_view, name='register'),     # вибір типу реєстрації
+    path('register/company/', views.register_company, name='register_company'),  # реєстрація компанії
+    path('register/carrier/', views.register_carrier, name='register_carrier'), # реєстрація перевізника
+    path('profile/', views.profile_view, name='profile'),        # профіль користувача
 ]
 

@@ -3,44 +3,40 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from accounts.models import User
 
 
-# Route model - represents a delivery route from origin to destination
-# Created by companies, carriers can bid on it, after acceptance carrier delivers it
+# Модель маршруту: шлях доставки від точки А до Б
+# Створюють компанії, перевізники подають ставки, після прийняття виконують доставку
 class Route(models.Model):
     """Delivery route model"""
     
-    # Route status choices - possible states of a route
+    # Перелік статусів маршруту
     STATUS_CHOICES = [
-        ('pending', 'Очікує'),       # Waiting for bids (no carrier assigned)
-        ('in_transit', 'В дорозі'),  # Carrier is delivering (cargo is moving)
-        ('delivered', 'Доставлено'), # Route completed successfully
-        ('cancelled', 'Скасовано'),  # Route was cancelled
-        ('expired', 'Просрочений'),  # No bid accepted before pickup_date
+        ('pending', 'Очікує'),       # ставки очікуються, перевізника нема
+        ('in_transit', 'В дорозі'),  # вантаж у русі
+        ('delivered', 'Доставлено'), # маршрут завершено
+        ('cancelled', 'Скасовано'),  # маршрут скасовано
+        ('expired', 'Просрочений'),  # не прийнято ставку до pickup_date
     ]
 
-    # Company that created this route (owner)
-    # CASCADE: if company is deleted, all their routes are deleted
-    # limit_choices_to: only users with role='company' can be selected
+    # Компанія-власник маршруту; CASCADE — видаляємо маршрути разом із компанією
     company = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='routes',  # Access via company.routes.all()
+        related_name='routes',  # доступ через company.routes.all()
         limit_choices_to={'role': 'company'},
         verbose_name='Компанія'
     )
     
-    # Carrier assigned to this route (optional - only after bid acceptance)
-    # SET_NULL: if carrier is deleted, route.carrier becomes None (route is not deleted)
-    # limit_choices_to: only users with role='carrier' can be selected
+    # Перевізник призначається після прийняття ставки; при видаленні — SET_NULL
     carrier = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='assigned_routes',  # Access via carrier.assigned_routes.all()
+        related_name='assigned_routes',  # доступ через carrier.assigned_routes.all()
         limit_choices_to={'role': 'carrier'},
         verbose_name='Перевізник'
     )
-    # Origin location (where cargo is picked up)
+    # Локація відправлення
     origin_city = models.CharField(
         max_length=255,
         verbose_name='Місто відправлення'
@@ -49,7 +45,7 @@ class Route(models.Model):
         max_length=100,
         verbose_name='Країна відправлення'
     )
-    # Latitude/longitude for map display (from map click or geocoding)
+    # Координати широти/довготи (для карти)
     origin_lat = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -61,7 +57,7 @@ class Route(models.Model):
         verbose_name='Довгота відправлення'
     )
     
-    # Destination location (where cargo is delivered)
+    # Локація призначення
     destination_city = models.CharField(
         max_length=255,
         verbose_name='Місто призначення'
@@ -70,7 +66,7 @@ class Route(models.Model):
         max_length=100,
         verbose_name='Країна призначення'
     )
-    # Latitude/longitude for map display (from map click or geocoding)
+    # Координати призначення
     destination_lat = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -82,27 +78,26 @@ class Route(models.Model):
         verbose_name='Довгота призначення'
     )
     
-    # Cargo information
+    # Опис вантажу
     cargo_type = models.CharField(
         max_length=255,
         verbose_name='Тип вантажу'
     )
-    # Weight in kilograms (must be >= 0)
+    # Вага (кг), не менше нуля
     weight = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name='Вага (кг)'
     )
-    # Volume in cubic meters (must be >= 0)
+    # Об'єм (м³), не менше нуля
     volume = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         verbose_name='Об\'єм (м³)'
     )
-    # Price in UAH (must be >= 0)
-    # This can be updated when bid is accepted (to bid.proposed_price)
+    # Ціна (грн), може оновлюватися до запропонованої ставки
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -110,7 +105,7 @@ class Route(models.Model):
         verbose_name='Ціна'
     )
     
-    # Dates
+    # Дати
     pickup_date = models.DateTimeField(
         verbose_name='Дата забору'
     )
@@ -118,7 +113,7 @@ class Route(models.Model):
         verbose_name='Дата доставки'
     )
     
-    # Route status (pending by default)
+    # Статус маршруту (за замовчуванням pending)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -126,19 +121,19 @@ class Route(models.Model):
         verbose_name='Статус'
     )
     
-    # Optional description
+    # Необов'язковий опис
     description = models.TextField(
         blank=True,
         verbose_name='Опис'
     )
     
-    # Timestamps
+    # Мітки часу
     created_at = models.DateTimeField(
-        auto_now_add=True,  # Set when object is created
+        auto_now_add=True,  # при створенні
         verbose_name='Створено'
     )
     updated_at = models.DateTimeField(
-        auto_now=True,  # Updated every time object is saved
+        auto_now=True,  # оновлюється при збереженні
         verbose_name='Оновлено'
     )
 
@@ -151,31 +146,28 @@ class Route(models.Model):
         return f"{self.origin_city} → {self.destination_city} ({self.status})"
 
 
-# Bid model - represents a carrier's offer/price for a route
-# Multiple carriers can bid on same route, but company accepts only one
+# Модель ставки перевізника; компанія обирає максимум одну ставку на маршрут
 class Bid(models.Model):
     """Carrier bid on route"""
     
-    # Route this bid is for
-    # CASCADE: if route is deleted, all bids are deleted
+    # Маршрут, до якого належить ставка (при видаленні маршруту видаляються й ставки)
     route = models.ForeignKey(
         Route,
         on_delete=models.CASCADE,
-        related_name='bids',  # Access via route.bids.all()
+        related_name='bids',  # доступ через route.bids.all()
         verbose_name='Маршрут'
     )
     
-    # Carrier who made this bid
-    # CASCADE: if carrier is deleted, all their bids are deleted
+    # Перевізник, що зробив ставку (при видаленні видаляємо й ставки)
     carrier = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='bids',  # Access via carrier.bids.all()
+        related_name='bids',  # доступ через carrier.bids.all()
         limit_choices_to={'role': 'carrier'},
         verbose_name='Перевізник'
     )
     
-    # Price proposed by carrier (can be different from route.price)
+    # Запропонована ціна (може відрізнятися від базової)
     proposed_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -183,25 +175,24 @@ class Bid(models.Model):
         verbose_name='Запропонована ціна'
     )
     
-    # When carrier estimates delivery will be completed
+    # Орієнтовний час доставки
     estimated_delivery = models.DateTimeField(
         verbose_name='Орієнтовна доставка'
     )
     
-    # Optional message from carrier to company
+    # Додаткове повідомлення від перевізника
     message = models.TextField(
         blank=True,
         verbose_name='Повідомлення'
     )
     
-    # Whether company accepted this bid
-    # Only one bid per route can have is_accepted=True
+    # Прапорець прийняття; лише одна ставка може бути прийнята
     is_accepted = models.BooleanField(
         default=False,
         verbose_name='Прийнято'
     )
     
-    # When bid was created
+    # Час створення ставки
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Створено'
@@ -210,36 +201,34 @@ class Bid(models.Model):
     class Meta:
         verbose_name = 'Ставка'
         verbose_name_plural = 'Ставки'
-        ordering = ['-created_at']  # Newest bids first
-        # One carrier can only bid once per route (unique constraint)
+        ordering = ['-created_at']  # спочатку нові
+        # Один перевізник може зробити лише одну ставку на маршрут
         unique_together = ['route', 'carrier']
 
     def __str__(self):
         return f"Ставка від {self.carrier.username} на маршрут {self.route}"
 
 
-# Tracking model - tracks cargo location and progress during delivery
-# One-to-one with Route (one route = one tracking object)
+# Відстеження маршруту (one-to-one з Route)
 class Tracking(models.Model):
     """Cargo tracking model"""
     
-    # Route being tracked
-    # OneToOne: one route has exactly one tracking object
+    # Маршрут, що відстежується
     route = models.OneToOneField(
         Route,
-        on_delete=models.CASCADE,  # If route deleted, tracking deleted
-        related_name='tracking',  # Access via route.tracking
+        on_delete=models.CASCADE,  # видаляємо разом із маршрутом
+        related_name='tracking',  # доступ через route.tracking
         verbose_name='Маршрут'
     )
     
-    # Current location of cargo (text description)
+    # Поточна текстова локація вантажу
     current_location = models.CharField(
         max_length=255,
         verbose_name='Поточна локація',
         default=''
     )
     
-    # Current coordinates (calculated from progress_percent or set manually)
+    # Поточні координати (розраховуються чи задаються вручну)
     current_lat = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -255,18 +244,17 @@ class Tracking(models.Model):
         verbose_name='Поточна довгота'
     )
     
-    # Progress percentage (0-100%)
-    # 0% = at origin, 100% = at destination
-    # Automatically calculated based on time or manually updated by carrier
+    # Прогрес у відсотках (0% — старт, 100% — призначення)
+    # Може розраховуватись автоматично або вручну перевізником
     progress_percent = models.IntegerField(
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         verbose_name='Прогрес (%)'
     )
     
-    # When tracking was last updated
+    # Час останнього оновлення
     last_update = models.DateTimeField(
-        auto_now=True,  # Updated every time object is saved
+        auto_now=True,  # оновлюється при кожному save
         verbose_name='Останнє оновлення'
     )
 
@@ -279,48 +267,46 @@ class Tracking(models.Model):
         return f"Відстеження {self.route} - {self.progress_percent}%"
 
 
-# Message model - chat messages between company and carrier about a route
-# All messages are related to a specific route
+# Повідомлення між компанією та перевізником щодо маршруту
 class Message(models.Model):
     """Message between company and carrier"""
     
-    # Route this message is about
-    # CASCADE: if route deleted, all messages are deleted
+    # Маршрут, до якого належить повідомлення (при видаленні зникає)
     route = models.ForeignKey(
         Route,
         on_delete=models.CASCADE,
-        related_name='messages',  # Access via route.messages.all()
+        related_name='messages',  # доступ через route.messages.all()
         verbose_name='Маршрут'
     )
     
-    # User who sent the message (can be company or carrier)
+    # Відправник (компанія чи перевізник)
     sender = models.ForeignKey(
         'accounts.User',
         on_delete=models.CASCADE,
-        related_name='sent_messages',  # Access via user.sent_messages.all()
+        related_name='sent_messages',  # доступ через user.sent_messages.all()
         verbose_name='Відправник'
     )
     
-    # User who receives the message (the other party - company or carrier)
+    # Отримувач (інша сторона)
     recipient = models.ForeignKey(
         'accounts.User',
         on_delete=models.CASCADE,
-        related_name='received_messages',  # Access via user.received_messages.all()
+        related_name='received_messages',  # доступ через user.received_messages.all()
         verbose_name='Отримувач'
     )
     
-    # Message text content
+    # Текст листування
     content = models.TextField(
         verbose_name='Текст повідомлення'
     )
     
-    # Whether recipient has read the message
+    # Позначка про прочитання
     is_read = models.BooleanField(
         default=False,
         verbose_name='Прочитано'
     )
     
-    # When message was sent
+    # Час відправлення
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Створено'
@@ -335,66 +321,65 @@ class Message(models.Model):
         return f"{self.sender.username} → {self.recipient.username}: {self.content[:50]}"
 
 
-# Notification model - in-app notifications for users
-# Users get notifications about bids, messages, route updates, etc.
+# Сповіщення в застосунку: ставки, повідомлення, оновлення маршрутів тощо
 class Notification(models.Model):
     """User notification model"""
     
-    # Types of notifications that can be created
+    # Типи доступних сповіщень
     NOTIFICATION_TYPES = [
-        ('new_bid', 'Нова ставка'),                    # New bid on route (company gets)
-        ('bid_accepted', 'Вашу ставку прийнято'),      # Bid was accepted (carrier gets)
-        ('bid_rejected', 'Вашу ставку відхилено'),    # Bid was rejected (carrier gets)
-        ('new_message', 'Нове повідомлення'),         # New message received
-        ('route_assigned', 'Вам призначено маршрут'), # Route assigned to carrier
-        ('route_completed', 'Маршрут завершено'),     # Route was completed
-        ('tracking_updated', 'Оновлено відстеження'), # Tracking was updated
-        ('route_expired', 'Маршрут просрочений'),     # Route expired (company gets)
+        ('new_bid', 'Нова ставка'),                    # ставок стало більше
+        ('bid_accepted', 'Вашу ставку прийнято'),      # прийняли ставку
+        ('bid_rejected', 'Вашу ставку відхилено'),    # відмовили у ставці
+        ('new_message', 'Нове повідомлення'),         # новий чат
+        ('route_assigned', 'Вам призначено маршрут'), # перевізника призначено
+        ('route_completed', 'Маршрут завершено'),     # маршрут завершено
+        ('tracking_updated', 'Оновлено відстеження'), # оновлено прогрес
+        ('route_expired', 'Маршрут просрочений'),     # маршрут прострочений
     ]
     
-    # User who receives this notification
+    # Отримувач сповіщення
     user = models.ForeignKey(
         'accounts.User',
         on_delete=models.CASCADE,
-        related_name='notifications',  # Access via user.notifications.all()
+        related_name='notifications',  # доступ через user.notifications.all()
         verbose_name='Користувач'
     )
     
-    # Type of notification (from NOTIFICATION_TYPES)
+    # Тип сповіщення
     notification_type = models.CharField(
         max_length=20,
         choices=NOTIFICATION_TYPES,
         verbose_name='Тип сповіщення'
     )
     
-    # Notification title
+    # Заголовок
     title = models.CharField(
         max_length=255,
         verbose_name='Заголовок'
     )
     
-    # Notification message/content
+    # Текст
     message = models.TextField(
         verbose_name='Текст сповіщення'
     )
     
-    # Related route (optional - not all notifications are route-related)
+    # Дотичний маршрут (може бути None)
     route = models.ForeignKey(
         Route,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='notifications',  # Access via route.notifications.all()
+        related_name='notifications',  # доступ через route.notifications.all()
         verbose_name='Маршрут'
     )
     
-    # Whether user has read this notification
+    # Прапорець прочитано/непрочитано
     is_read = models.BooleanField(
         default=False,
         verbose_name='Прочитано'
     )
     
-    # When notification was created
+    # Час створення
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Створено'
@@ -454,46 +439,46 @@ class Rating(models.Model):
     class Meta:
         verbose_name = 'Оцінка'
         verbose_name_plural = 'Оцінки'
-        unique_together = ('carrier', 'company', 'route')  # Одна оцінка від компанії для маршруту
+        unique_together = ('carrier', 'company', 'route')  # одна оцінка від компанії для маршруту
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.company.username} → {self.carrier.username}: {self.rating}/5"
 
-    # Override save() to automatically update carrier's average rating
+    # Перевизначаємо save, щоб оновлювати середній рейтинг перевізника
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Update carrier's average rating after saving this rating
+        # Оновлюємо середнє після збереження оцінки
         self.update_carrier_rating()
 
-    # Override delete() to update carrier's rating after deletion
+    # Аналогічно перевизначаємо delete для перерахунку рейтингу
     def delete(self, *args, **kwargs):
-        carrier = self.carrier  # Save carrier reference before deletion
+        carrier = self.carrier  # зберігаємо посилання до видалення
         super().delete(*args, **kwargs)
-        # Update rating after deletion (recalculate average)
+        # Після видалення перераховуємо рейтинг
         self._update_carrier_rating_for(carrier)
 
-    # Method to update carrier's average rating
+    # Метод перерахунку середнього рейтингу
     def update_carrier_rating(self):
         """Update carrier's average rating"""
         from accounts.models import CarrierProfile
         from django.db.models import Avg
         try:
             carrier_profile = CarrierProfile.objects.get(user=self.carrier)
-            # Get all ratings for this carrier
+            # Збираємо всі оцінки перевізника
             ratings = Rating.objects.filter(carrier=self.carrier)
             if ratings.exists():
-                # Calculate average rating
+                # Обчислюємо середнє
                 avg_rating = ratings.aggregate(avg=Avg('rating'))['avg']
-                carrier_profile.rating = round(avg_rating, 2)  # Round to 2 decimal places
+                carrier_profile.rating = round(avg_rating, 2)  # округлюємо до сотих
             else:
-                # No ratings - set to 0
+                # Якщо оцінок немає — записуємо 0
                 carrier_profile.rating = 0.00
             carrier_profile.save()
         except CarrierProfile.DoesNotExist:
-            pass  # Carrier profile doesn't exist - skip
+            pass  # профіль відсутній — пропускаємо
 
-    # Static method to update rating for a specific carrier
+    # Статичний метод для окремого перевізника
     @staticmethod
     def _update_carrier_rating_for(carrier):
         """Update rating for specific carrier"""

@@ -7,62 +7,62 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-# BASE_DIR is the project root directory
+# Шляхи визначаємо як BASE_DIR / 'subdir'.
+# Змінна BASE_DIR — корінь проєкту
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# Налаштування для розробки; перед продакшном обов'язково пройти чекліст
+# Докладніше: https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Secret key is used for cryptographic signing - NEVER share this in production!
+# УВАГА: секретний ключ у продакшні має бути прихованим
+# Використовується для підписів — не поширюємо!
 SECRET_KEY = 'django-insecure-pmeube#7m+19!8(gh2xd)o(0hn+@q-%tdtg^hu@g77rt-dx&*o'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG=True shows detailed error pages - set to False in production!
+# Параметр DEBUG=True лише для розробки (показує детальні помилки)
+# У продакшні вимикаємо
 DEBUG = True
 
-# ALLOWED_HOSTS: List of host/domain names that this Django site can serve
-# Empty list = any host can access (only for development!)
+# Поле ALLOWED_HOSTS містить список дозволених доменів
+# Порожній список означає «всі» (лише локально)
 ALLOWED_HOSTS = []
 
 
-# Application definition
-# INSTALLED_APPS: List of all Django applications that are enabled
+# Налаштування застосунків
+# Список INSTALLED_APPS містить усі увімкнені Django-додатки
 INSTALLED_APPS = [
-    # Django built-in apps
-    'django.contrib.admin',          # Admin interface
-    'django.contrib.auth',           # Authentication system
-    'django.contrib.contenttypes',   # Content type framework
-    'django.contrib.sessions',       # Session framework
-    'django.contrib.messages',       # Messaging framework
-    'django.contrib.staticfiles',   # Static file handling
+    # Вбудовані Django-додатки
+    'django.contrib.admin',          # Адмін-панель
+    'django.contrib.auth',           # Автентифікація
+    'django.contrib.contenttypes',   # Типи контенту
+    'django.contrib.sessions',       # Сесії
+    'django.contrib.messages',       # Повідомлення
+    'django.contrib.staticfiles',   # Статика
     
-    # Third-party apps
-    'crispy_forms',                  # Beautiful Django forms
-    'crispy_bootstrap5',             # Bootstrap 5 theme for crispy forms
+    # Сторонні пакети
+    'crispy_forms',                  # Зручні форми
+    'crispy_bootstrap5',             # Тема Bootstrap 5
     
-    # Our custom apps
-    'accounts',                       # User accounts, registration, profiles
-    'logistics',                     # Routes, bids, tracking, messages, ratings
-    'dashboard',                     # Home page, statistics, history
+    # Наші застосунки
+    'accounts',                       # Акаунти, реєстрація, профілі
+    'logistics',                     # Маршрути, ставки, трекінг, повідомлення
+    'dashboard',                     # Головна, статистика, історія
 ]
 
-# MIDDLEWARE: List of middleware classes that process requests/responses
-# Order matters! They execute top-to-bottom on request, bottom-to-top on response
+# Перелік MIDDLEWARE описує проміжні обробники запитів/відповідей
+# Порядок важливий (проходження вниз на запиті й вгору на відповіді)
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',           # Security enhancements
-    'django.contrib.sessions.middleware.SessionMiddleware',   # Session management
-    'django.middleware.common.CommonMiddleware',               # Common processing
-    'django.middleware.csrf.CsrfViewMiddleware',              # CSRF protection
-    'django.contrib.auth.middleware.AuthenticationMiddleware', # User authentication
-    'django.contrib.messages.middleware.MessageMiddleware',   # Message framework
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection
+    'django.middleware.security.SecurityMiddleware',           # Безпека і заголовки
+    'django.contrib.sessions.middleware.SessionMiddleware',   # Сесії
+    'django.middleware.common.CommonMiddleware',               # Базові HTTP-утиліти
+    'django.middleware.csrf.CsrfViewMiddleware',              # захист від CSRF
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # Авторизація
+    'django.contrib.messages.middleware.MessageMiddleware',   # Повідомлення
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Захист від clickjacking
 ]
 
-# ROOT_URLCONF: Python path to main URL configuration
-# This file contains all URL patterns for the project
+# Параметр ROOT_URLCONF вказує на головний файл маршрутів
+# Тут підключаємо URL-и застосунків
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -83,9 +83,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database configuration
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-# PostgreSQL connection details are injected via environment variables
+# Налаштування бази даних
+# Докладніше: https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Параметри PostgreSQL беремо зі змінних середовища
 
 DATABASES = {
     'default': {
@@ -99,8 +99,8 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# Валідатори паролів
+# Докладніше: https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -118,8 +118,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# Інтернаціоналізація
+# Докладніше: https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -130,40 +130,38 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# Статичні файли (CSS, JavaScript, зображення)
+# Докладніше: https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-# URL prefix for static files (when accessed via browser)
+# Префікс URL для статики
 STATIC_URL = 'static/'
-# Directory where static files are located (for development)
+# Тека зі статикою в режимі розробки
 STATICFILES_DIRS = [BASE_DIR / 'static']
-# Directory where collectstatic will put all static files (for production)
+# Куди collectstatic збирає файли для продакшну
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files (user-uploaded files like logos, images)
-# URL prefix for media files
+# Медіафайли (логотипи та інші завантаження)
+# Префікс URL для медіа
 MEDIA_URL = 'media/'
-# Directory where uploaded files are stored
+# Директорія збереження медіа
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Crispy Forms configuration
-# Use Bootstrap 5 styling for all forms
+# Налаштування Crispy Forms (Bootstrap 5)
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
-# Custom User Model
-# Tell Django to use our custom User model instead of default one
+# Кастомна модель користувача, яку використовує Django
 AUTH_USER_MODEL = 'accounts.User'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# Тип primary key за замовчуванням
+# Докладніше: https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Language and Timezone
+# Мова та часовий пояс
 LANGUAGE_CODE = 'uk'
 
-# Authentication URLs
+# Посилання для аутентифікації
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'

@@ -2,45 +2,45 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-# Custom user model that extends Django's AbstractUser
-# This allows us to add custom fields like role, company_name, etc.
+# Кастомна модель користувача, що розширює Django AbstractUser
+# Додаємо власні поля (роль, назва компанії тощо)
 class User(AbstractUser):
-    """Custom user model with roles"""
+    """Кастомний користувач із підтримкою ролей"""
     
-    # Role choices for the user - can be either company or carrier
+    # Доступні ролі користувача: компанія або перевізник
     ROLE_CHOICES = [
-        ('company', 'Компанія'),   # Company that creates routes
-        ('carrier', 'Перевізник'),  # Carrier that makes bids on routes
+        ('company', 'Компанія'),   # Компанія створює маршрути
+        ('carrier', 'Перевізник'),  # Перевізник робить ставки
     ]
     
-    # User role field - determines if user is company or carrier
+    # Поле ролі визначає тип користувача
     role = models.CharField(
         max_length=10,
         choices=ROLE_CHOICES,
         verbose_name='Роль'
     )
     
-    # Phone number field (currently optional, not used in registration)
+    # Номер телефону (опційне поле, наразі не використовується у формі)
     phone = models.CharField(
         max_length=20,
         blank=True,
         verbose_name='Телефон'
     )
     
-    # Company name - only used if role is 'company'
+    # Назва компанії зберігається лише для ролі company
     company_name = models.CharField(
         max_length=255,
         blank=True,
         verbose_name='Назва компанії'
     )
     
-    # Timestamp when user was created
+    # Час створення користувача
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Створено'
     )
     
-    # Timestamp when user was last updated
+    # Час останнього оновлення профілю
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name='Оновлено'
@@ -49,28 +49,28 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Користувач'
         verbose_name_plural = 'Користувачі'
-        ordering = ['-created_at']  # Newest users first
+        ordering = ['-created_at']  # Спочатку нові користувачі
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
 
 
-# Company profile model - stores additional information for company users
-# One-to-one relationship with User model (one user = one company profile)
+# Профіль компанії: додаткові дані для користувачів-компаній
+# Зв'язок один-до-одного з User (1 користувач = 1 профіль)
 class CompanyProfile(models.Model):
-    """Company profile model"""
+    """Модель профілю компанії"""
     
-    # Link to the User model - OneToOne means one user has one company profile
+    # Посилання на користувача; при видаленні користувача видаляємо профіль
     user = models.OneToOneField(
         User,
-        on_delete=models.CASCADE,  # If user is deleted, profile is also deleted
-        related_name='company_profile'  # Access via user.company_profile
+        on_delete=models.CASCADE,  # Видаляємо профіль разом із користувачем
+        related_name='company_profile'  # Доступ до профілю user.company_profile
     )
     
-    # Company address (text description)
+    # Юридична адреса компанії
     address = models.TextField(verbose_name='Адреса')
     
-    # Latitude coordinate of company address (for map display)
+    # Широта адреси (для карти)
     address_lat = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -79,7 +79,7 @@ class CompanyProfile(models.Model):
         verbose_name='Широта'
     )
     
-    # Longitude coordinate of company address (for map display)
+    # Довгота адреси (для карти)
     address_lng = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -88,20 +88,20 @@ class CompanyProfile(models.Model):
         verbose_name='Довгота'
     )
     
-    # Tax identification number (unique - each company has unique tax ID)
+    # Податковий номер (унікальний для кожної компанії)
     tax_id = models.CharField(
         max_length=50,
         unique=True,
         verbose_name='Податковий номер'
     )
     
-    # Company description (optional text field)
+    # Опис компанії (необов'язковий)
     description = models.TextField(
         blank=True,
         verbose_name='Опис'
     )
     
-    # Company logo image (uploaded to media/companies/logos/)
+    # Логотип (файл потрапляє в media/companies/logos/)
     logo = models.ImageField(
         upload_to='companies/logos/',
         blank=True,
@@ -118,26 +118,26 @@ class CompanyProfile(models.Model):
         return f"Профіль {self.user.company_name}"
 
 
-# Carrier profile model - stores additional information for carrier users
-# One-to-one relationship with User model (one user = one carrier profile)
+# Профіль перевізника: додаткова інформація для ролі carrier
+# Також зв'язок один-до-одного з користувачем
 class CarrierProfile(models.Model):
-    """Carrier profile model"""
+    """Модель профілю перевізника"""
     
-    # Link to the User model - OneToOne means one user has one carrier profile
+    # Долучаємо користувача і видаляємо профіль при видаленні користувача
     user = models.OneToOneField(
         User,
-        on_delete=models.CASCADE,  # If user is deleted, profile is also deleted
-        related_name='carrier_profile'  # Access via user.carrier_profile
+        on_delete=models.CASCADE,  # Каскадне видалення
+        related_name='carrier_profile'  # доступ через user.carrier_profile
     )
     
-    # License/registration number for the vehicle (unique identifier)
+    # Ліцензія/реєстраційний номер транспорту (унікальний)
     license_number = models.CharField(
         max_length=100,
         unique=True,
         verbose_name='Номер ліцензії'
     )
     
-    # Country code for the license plate (default is Ukraine - UA)
+    # Код країни номера (за замовчуванням UA)
     license_country = models.CharField(
         max_length=10,
         default='UA',
@@ -145,25 +145,25 @@ class CarrierProfile(models.Model):
         help_text='Код країни для номерного знаку'
     )
     
-    # Type of vehicle (e.g., "Вантажівка", "Легкова")
+    # Тип транспорту (вантажівка, бус тощо)
     vehicle_type = models.CharField(
         max_length=100,
         verbose_name='Тип транспорту'
     )
     
-    # Vehicle model (e.g., "Mercedes Actros", "Volvo FH")
+    # Модель авто (наприклад, Mercedes Actros)
     vehicle_model = models.CharField(
         max_length=150,
         verbose_name='Модель машини'
     )
     
-    # Carrier address (text description)
+    # Адреса (можна залишити порожньою)
     address = models.TextField(
         blank=True,
         verbose_name='Адреса'
     )
     
-    # Latitude coordinate of carrier address (for map display)
+    # Широта адреси
     address_lat = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -172,7 +172,7 @@ class CarrierProfile(models.Model):
         verbose_name='Широта адреси'
     )
     
-    # Longitude coordinate of carrier address (for map display)
+    # Довгота адреси
     address_lng = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -181,21 +181,20 @@ class CarrierProfile(models.Model):
         verbose_name='Довгота адреси'
     )
     
-    # Years of experience in logistics
+    # Стаж у роках
     experience_years = models.IntegerField(
         default=0,
         verbose_name='Досвід (років)'
     )
     
-    # Carrier description (optional text field)
+    # Опис досвіду та послуг
     description = models.TextField(
         blank=True,
         verbose_name='Опис',
         help_text='Опис вашого досвіду та послуг'
     )
     
-    # Average rating from companies (calculated automatically from Rating model)
-    # Range: 0.00 to 5.00
+    # Середній рейтинг (0.00–5.00), обчислюється автоматично
     rating = models.DecimalField(
         max_digits=3,
         decimal_places=2,
@@ -206,7 +205,7 @@ class CarrierProfile(models.Model):
     class Meta:
         verbose_name = 'Профіль перевізника'
         verbose_name_plural = 'Профілі перевізників'
-        # Order by rating (highest first), then by username
+        # Спочатку за рейтингом (спадаючий), потім за логіном
         ordering = ['-rating', 'user__username']
 
     def __str__(self):

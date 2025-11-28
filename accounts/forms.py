@@ -4,7 +4,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Field
 from .models import User, CompanyProfile, CarrierProfile
 
-# Login form, allows to login to the system
+# Форма авторизації користувача
 class LoginForm(forms.Form):
     username = forms.CharField(
         label='Логін',
@@ -26,7 +26,7 @@ class LoginForm(forms.Form):
             Submit('submit', 'Увійти', css_class='btn btn-primary w-100')
         )
 
-# Company registration form, allows to register a new company
+# Форма реєстрації компанії
 class CompanyRegistrationForm(UserCreationForm):
     email = forms.EmailField(
         label='Email',
@@ -124,7 +124,7 @@ class CompanyRegistrationForm(UserCreationForm):
             user.save()
         return user
 
-# Company profile edit form, allows to edit company profile information
+# Форма редагування профілю компанії
 class CompanyProfileEditForm(forms.ModelForm):
     """Форма редагування профілю компанії"""
     email = forms.EmailField(
@@ -192,7 +192,7 @@ class CompanyProfileEditForm(forms.ModelForm):
 
 
 class CarrierRegistrationForm(UserCreationForm):
-    # Popular vehicle models
+    # Популярні моделі транспорту
     POPULAR_VEHICLE_MODELS = [
         ('', 'Оберіть модель або введіть свою'),
         ('Mercedes-Benz Actros', 'Mercedes-Benz Actros'),
@@ -216,7 +216,7 @@ class CarrierRegistrationForm(UserCreationForm):
         ('Інша модель', 'Інша модель'),
     ]
 
-    # Popular countries for license plate
+    # Популярні країни номерних знаків
     LICENSE_COUNTRIES = [
         ('UA', 'Україна (UA)'),
         ('PL', 'Польща (PL)'),
@@ -234,7 +234,7 @@ class CarrierRegistrationForm(UserCreationForm):
         ('BG', 'Болгарія (BG)'),
         ('TR', 'Туреччина (TR)'),
     ]
-    # Email field and other fields for carrier registration
+    # Поле email та інші елементи форми реєстрації перевізника
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
@@ -303,7 +303,7 @@ class CarrierRegistrationForm(UserCreationForm):
             'password1': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password1'}),
             'password2': forms.PasswordInput(attrs={'class': 'form-control form-control-enhanced', 'id': 'id_password2'}),
         }
-    # Carrier registration form layout
+    # Побудова layout через Crispy Forms
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -325,37 +325,37 @@ class CarrierRegistrationForm(UserCreationForm):
             Field('experience_years'),
             Submit('submit', 'Зареєструватися', css_class='btn btn-success w-100 mt-3')
         )
-    # Carrier registration form validation, checks if the vehicle model is valid
+    # Валідація: підставляємо власну модель транспорту за потреби
     def clean(self):
         cleaned_data = super().clean()
         vehicle_model = cleaned_data.get('vehicle_model')
         vehicle_model_custom = cleaned_data.get('vehicle_model_custom')
         
-        # If the vehicle model is "Інша модель" or empty, use the custom model
+        # Якщо вибрали «Інша модель» або нічого, беремо ручне поле
         if vehicle_model == 'Інша модель' or not vehicle_model:
             if not vehicle_model_custom:
                 raise forms.ValidationError('Будь ласка, введіть модель вашого транспорту.')
             cleaned_data['vehicle_model'] = vehicle_model_custom
         elif vehicle_model_custom and vehicle_model != 'Інша модель':
-            # If the vehicle model is selected from the list, ignore the custom model
+            # Якщо модель обрана зі списку, очищаємо кастомне поле
             cleaned_data['vehicle_model_custom'] = ''
         
         return cleaned_data
-    # Carrier registration form saving, creates a new carrier profile
+    # Збереження форми: створення користувача та профілю перевізника
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'carrier'
         if commit:
             user.save()
-            # Create a new carrier profile
+            # Створюємо CarrierProfile
             vehicle_model = self.cleaned_data['vehicle_model']
             if not vehicle_model:
                 vehicle_model = self.cleaned_data.get('vehicle_model_custom', '')
             
             CarrierProfile.objects.create(
                 user=user,
-                license_number=f"CARRIER-{user.id}-{user.username[:3].upper()}",  # Автоматично генеруємо номер
-                license_country='UA',  # За замовчуванням
+                license_number=f"CARRIER-{user.id}-{user.username[:3].upper()}",  # авто-генерація номера
+                license_country='UA',  # значення за замовчуванням
                 vehicle_type=self.cleaned_data['vehicle_type'],
                 vehicle_model=vehicle_model,
                 address=self.cleaned_data.get('address', ''),
@@ -365,7 +365,7 @@ class CarrierRegistrationForm(UserCreationForm):
             )
         return user
 
-# Carrier profile edit form, allows to edit carrier profile information
+# Форма редагування профілю перевізника
 class CarrierProfileEditForm(forms.ModelForm):
     """Форма редагування профілю перевізника"""
     POPULAR_VEHICLE_MODELS = [
@@ -390,7 +390,7 @@ class CarrierProfileEditForm(forms.ModelForm):
         ('КАМАЗ', 'КАМАЗ'),
         ('Інша модель', 'Інша модель'),
     ]
-    # Popular countries for license plate
+    # Популярні країни номерних знаків
     LICENSE_COUNTRIES = [
         ('UA', 'Україна (UA)'),
         ('PL', 'Польща (PL)'),
@@ -408,7 +408,7 @@ class CarrierProfileEditForm(forms.ModelForm):
         ('BG', 'Болгарія (BG)'),
         ('TR', 'Туреччина (TR)'),
     ]
-    # Email field and other fields for carrier profile edit
+    # Поле email та допоміжні елементи
     email = forms.EmailField(
         label='Email',
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-enhanced'})
@@ -424,7 +424,7 @@ class CarrierProfileEditForm(forms.ModelForm):
             'placeholder': 'Введіть модель вашого транспорту'
         })
     )
-    # Carrier profile edit form layout
+    # Метадані форми (layout, віджети)
     class Meta:
         model = CarrierProfile
         fields = ('vehicle_type', 'vehicle_model', 'address', 'address_lat', 'address_lng', 'experience_years', 'description')
@@ -446,7 +446,7 @@ class CarrierProfileEditForm(forms.ModelForm):
             'experience_years': forms.NumberInput(attrs={'class': 'form-control form-control-enhanced'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-enhanced', 'rows': 5}),
         }
-    # Carrier profile edit form initialization, sets the initial values for the fields
+    # Ініціалізація форми: заповнюємо поля поточними даними
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
@@ -465,10 +465,10 @@ class CarrierProfileEditForm(forms.ModelForm):
             ('Інший', 'Інший'),
         ]
         
-        # Setting the vehicle_model choices
+        # Формуємо список моделей
         model_choices = list(self.POPULAR_VEHICLE_MODELS)
         
-        # Add the vehicle model if it is not in the list
+        # Якщо у профілі збережена модель, якої нема в списку — додаємо
         if self.instance and self.instance.vehicle_model:
             current_model = self.instance.vehicle_model
             if current_model not in [choice[0] for choice in self.POPULAR_VEHICLE_MODELS]:

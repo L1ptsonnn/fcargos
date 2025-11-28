@@ -158,7 +158,7 @@ class RouteViewsTest(TestCase):
     
     def test_routes_list_requires_login(self):
         response = self.client.get(reverse('routes_list'))
-        self.assertEqual(response.status_code, 302)  # Redirect to login
+        self.assertEqual(response.status_code, 302)  # редірект на логін
     
     def test_routes_list_for_company(self):
         self.client.login(username='company', password='testpass')
@@ -168,7 +168,7 @@ class RouteViewsTest(TestCase):
     def test_create_route_requires_company(self):
         self.client.login(username='carrier', password='testpass')
         response = self.client.get(reverse('create_route'))
-        self.assertEqual(response.status_code, 302)  # Redirect (only companies can create)
+        self.assertEqual(response.status_code, 302)  # редірект (лише компанії можуть створювати)
     
     def test_route_detail_view(self):
         self.client.login(username='company', password='testpass')
@@ -227,7 +227,7 @@ class BidViewsTest(TestCase):
     def test_create_bid_requires_carrier(self):
         self.client.login(username='company', password='testpass')
         response = self.client.get(reverse('create_bid', args=[self.route.pk]))
-        self.assertEqual(response.status_code, 302)  # Redirect (only carriers can bid)
+        self.assertEqual(response.status_code, 302)  # редірект (ставки роблять перевізники)
     
     def test_accept_bid_requires_company(self):
         bid = Bid.objects.create(
@@ -239,4 +239,4 @@ class BidViewsTest(TestCase):
         
         self.client.login(username='carrier', password='testpass')
         response = self.client.get(reverse('accept_bid', args=[bid.pk]))
-        self.assertEqual(response.status_code, 302)  # Redirect (only companies can accept)
+        self.assertEqual(response.status_code, 302)  # редірект (приймає ставка компанія)

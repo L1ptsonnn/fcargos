@@ -5,7 +5,7 @@ from .models import User, CompanyProfile, CarrierProfile
 
 User = get_user_model()
 
-# User model test, tests the user model
+# Тести моделі користувача
 class UserModelTest(TestCase):
     def setUp(self):
         self.company_user = User.objects.create_user(
@@ -24,7 +24,7 @@ class UserModelTest(TestCase):
             phone='+380 (67) 987 65 43'
         )
    
-    # Test company creation
+    # Перевірка створення компанії
     def test_company_creation(self):
         self.assertEqual(self.company_user.role, 'company')
         self.assertEqual(self.company_user.company_name, 'Test Company')
@@ -33,7 +33,7 @@ class UserModelTest(TestCase):
         self.assertEqual(self.carrier_user.role, 'carrier')
 
 
-# Authentication test, tests the authentication system
+# Тести автентифікації
 class AuthenticationTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -53,22 +53,22 @@ class AuthenticationTest(TestCase):
             'username': 'testuser',
             'password': 'testpass123'
         })
-        self.assertEqual(response.status_code, 302)  # Redirect after login
+        self.assertEqual(response.status_code, 302)  # редірект після входу
     
     def test_login_with_invalid_credentials(self):
         response = self.client.post(reverse('login'), {
             'username': 'testuser',
             'password': 'wrongpass'
         })
-        self.assertEqual(response.status_code, 200)  # Stays on login page
+        self.assertEqual(response.status_code, 200)  # лишаємось на формі
     
     def test_logout(self):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('logout'))
-        self.assertEqual(response.status_code, 302)  # Redirect after logout
+        self.assertEqual(response.status_code, 302)  # редірект після виходу
 
 
-# Company registration test, tests the company registration system
+# Тести реєстрації компаній
 class CompanyRegistrationTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -88,11 +88,11 @@ class CompanyRegistrationTest(TestCase):
             'address': 'Test Address',
             'tax_id': '12345678'
         })
-        self.assertEqual(response.status_code, 302)  # Redirect after registration
+        self.assertEqual(response.status_code, 302)  # редірект після реєстрації
         self.assertTrue(User.objects.filter(username='newcompany').exists())
 
 
-# Carrier registration test, tests the carrier registration system
+# Тести реєстрації перевізників
 class CarrierRegistrationTest(TestCase):
     def setUp(self):
         self.client = Client()

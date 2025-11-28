@@ -6,22 +6,22 @@ from logistics.models import Route
 from logistics.views import check_expired_routes
 
 
-# Home page view - displays main dashboard with world map and recent routes carousel
-# Shows all active routes on map, but only 3 latest routes in carousel
+# Головна сторінка з картою та каруселлю останніх маршрутів
+# На карті показуємо всі активні маршрути, у каруселі лише три останні
 def home(request):
     """Home page with dynamic world map"""
-    # Check for expired routes when page loads (if user is authenticated)
+    # Якщо користувач у системі — одразу оновлюємо статус прострочених маршрутів
     if request.user.is_authenticated:
         check_expired_routes()
     
-    # For carousel - only 3 most recent routes (for better UX)
-    # select_related optimizes database queries (joins company and carrier data)
+    # Для каруселі беремо 3 найновіші маршрути
+    # Використовуємо select_related, щоб мінімізувати кількість запитів
     routes_carousel = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier').order_by('-created_at')[:3]
     
-    # For map - ALL active routes (pending or in_transit)
+    # Для карти потрібні всі активні маршрути
     routes_all = Route.objects.filter(status__in=['pending', 'in_transit']).select_related('company', 'carrier')
     
-    # Build route data for map display with validation (ALL routes)
+    # Формуємо структуру даних для карти та перевіряємо координати
     routes_data = []
     for route in routes_all:
         try:
@@ -52,12 +52,12 @@ def home(request):
                 'cargo_type': route.cargo_type or 'Не вказано',
             })
         except (ValueError, TypeError):
-            # Пропускаємо маршрути з помилками в даних
+            # Пропускаємо маршрути з помилковими даними
             continue
     
     context = {
-        'routes': routes_carousel,  # Для каруселі тільки 3
-        'routes_data': json.dumps(routes_data),  # Для карти всі маршрути
+        'routes': routes_carousel,  # дані для каруселі
+        'routes_data': json.dumps(routes_data),  # дані для карти
     }
     return render(request, 'dashboard/home.html', context)
 
@@ -71,7 +71,7 @@ def statistics(request):
     from datetime import timedelta
     from django.http import HttpResponse
     
-    # Check if this is an HTMX request
+    # Підтримка HTMX для часткового оновлення
     is_htmx = request.headers.get('HX-Request') == 'true'
     template = 'dashboard/statistics_partial.html' if is_htmx else 'dashboard/statistics.html'
     
