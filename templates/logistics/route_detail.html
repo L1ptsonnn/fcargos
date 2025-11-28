@@ -332,9 +332,6 @@
         font-weight: 600;
     }
     
-    .map-container-modern #routeMap {
-        height: 350px !important;
-    }
     
     .bids-section-compact {
         background: white;
@@ -507,7 +504,7 @@
     <div class="row g-3">
         <!-- Основна інформація -->
         <div class="col-lg-8">
-            <!-- Локації -->
+            <!-- Локації та карта -->
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <div class="info-card-modern">
@@ -515,7 +512,7 @@
                             <i class="bi bi-geo-alt-fill"></i>
                         </div>
                         <div class="info-label-modern">Відправлення</div>
-                        <div class="info-value-modern mb-3">{{ route.origin_city }}</div>
+                        <div class="info-value-modern mb-2">{{ route.origin_city }}</div>
                         <div class="mb-2">
                             <small class="text-muted"><i class="bi bi-globe"></i> {{ route.origin_country }}</small>
                         </div>
@@ -530,12 +527,49 @@
                             <i class="bi bi-geo-alt"></i>
                         </div>
                         <div class="info-label-modern">Призначення</div>
-                        <div class="info-value-modern mb-3">{{ route.destination_city }}</div>
+                        <div class="info-value-modern mb-2">{{ route.destination_city }}</div>
                         <div class="mb-2">
                             <small class="text-muted"><i class="bi bi-globe"></i> {{ route.destination_country }}</small>
                         </div>
                         <div class="coordinate-display">
                             <i class="bi bi-geo"></i> {{ route.destination_lat }}, {{ route.destination_lng }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карта маршруту (піднята вище) -->
+            <div class="map-container-modern mb-3">
+                <div class="map-header">
+                    <i class="bi bi-map"></i> Візуалізація маршруту
+                </div>
+                <div id="routeMap" style="height: 350px; width: 100%; background: #f8f9fa;"></div>
+                <div id="mapFallback" style="display: none; padding: 30px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                    <div class="mb-3">
+                        <i class="bi bi-route" style="font-size: 60px; color: #667eea; opacity: 0.5;"></i>
+                    </div>
+                    <h5 class="text-muted mb-3">Маршрут на карті</h5>
+                    <div class="row justify-content-center">
+                        <div class="col-md-5">
+                            <div class="card border-success mb-3">
+                                <div class="card-body text-center">
+                                    <h6 class="text-success"><i class="bi bi-geo-alt-fill"></i> Відправлення</h6>
+                                    <p class="mb-1">{{ route.origin_city }}</p>
+                                    <small class="text-muted">{{ route.origin_country }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-arrow-right" style="font-size: 30px; color: #667eea;"></i>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="card border-danger mb-3">
+                                <div class="card-body text-center">
+                                    <h6 class="text-danger"><i class="bi bi-geo-alt"></i> Призначення</h6>
+                                    <p class="mb-1">{{ route.destination_city }}</p>
+                                    <small class="text-muted">{{ route.destination_country }}</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -629,43 +663,6 @@
                     </div>
                 {% endif %}
             </div>
-            
-            <!-- Карта маршруту -->
-            <div class="map-container-modern">
-                <div class="map-header">
-                    <i class="bi bi-map"></i> Візуалізація маршруту
-                </div>
-                <div id="routeMap" style="height: 500px; width: 100%; background: #f8f9fa;"></div>
-                <div id="mapFallback" style="display: none; padding: 40px; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-                    <div class="mb-4">
-                        <i class="bi bi-route" style="font-size: 80px; color: #667eea; opacity: 0.5;"></i>
-                    </div>
-                    <h4 class="text-muted mb-3">Маршрут на карті</h4>
-                    <div class="row justify-content-center">
-                        <div class="col-md-5">
-                            <div class="card border-success mb-3">
-                                <div class="card-body text-center">
-                                    <h5 class="text-success"><i class="bi bi-geo-alt-fill"></i> Відправлення</h5>
-                                    <h6 class="mb-1">{{ route.origin_city }}</h6>
-                                    <small class="text-muted">{{ route.origin_country }}</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-arrow-right" style="font-size: 40px; color: #667eea;"></i>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="card border-danger mb-3">
-                                <div class="card-body text-center">
-                                    <h5 class="text-danger"><i class="bi bi-geo-alt"></i> Призначення</h5>
-                                    <h6 class="mb-1">{{ route.destination_city }}</h6>
-                                    <small class="text-muted">{{ route.destination_country }}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
         
         <!-- Бічна панель -->
@@ -693,37 +690,38 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Перевізник -->
             {% if route.carrier %}
-            <div class="user-card-modern carrier mb-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="user-avatar" style="margin: 0; width: 50px; height: 50px; font-size: 1.5rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <i class="bi bi-truck"></i>
-                    </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <h6 class="mb-1" style="color: #1e293b; font-weight: 700; font-size: 1rem;">
-                            <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none" style="color: inherit;">
-                                {{ route.carrier.username }}
-                            </a>
-                        </h6>
-                        {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
-                            <div class="mb-1">
-                                <i class="bi bi-star-fill text-warning" style="font-size: 0.9rem;"></i>
-                                <span class="badge bg-warning text-dark" style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
-                                    {{ route.carrier.carrier_profile.rating|floatformat:1 }} / 5.0
-                                </span>
+                <div class="col-12">
+                    <div class="user-card-modern carrier">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="user-avatar" style="margin: 0; width: 50px; height: 50px; font-size: 1.5rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                <i class="bi bi-truck"></i>
                             </div>
-                        {% endif %}
-                        {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
-                            <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="chat-button-modern carrier" style="margin-top: 0.5rem; display: inline-block;">
-                                <i class="bi bi-chat-dots"></i> Написати в чат
-                            </a>
-                        {% endif %}
+                            <div style="flex: 1; min-width: 0;">
+                                <h6 class="mb-1" style="color: #1e293b; font-weight: 700; font-size: 1rem;">
+                                    <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none" style="color: inherit;">
+                                        {{ route.carrier.username }}
+                                    </a>
+                                </h6>
+                                {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                                    <div class="mb-1">
+                                        <i class="bi bi-star-fill text-warning" style="font-size: 0.9rem;"></i>
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
+                                            {{ route.carrier.carrier_profile.rating|floatformat:1 }} / 5.0
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
+                                    <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="chat-button-modern carrier" style="margin-top: 0.5rem; display: inline-block;">
+                                        <i class="bi bi-chat-dots"></i> Написати в чат
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
             {% endif %}
+            </div>
             
             <!-- Дії -->
             {% if can_complete %}
