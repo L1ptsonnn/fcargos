@@ -206,6 +206,67 @@
                 </div>
             </div>
             
+            <!-- Ставки -->
+            {% if bids_with_diff %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-2">
+                            {% for item in bids_with_diff %}
+                                {% with bid=item.bid %}
+                                <div class="border rounded p-2 {% if bid.is_accepted %}border-success bg-light{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <h6 class="mb-0" style="font-size: 0.9rem;">
+                                                <a href="{% url 'user_profile' bid.carrier.pk %}" class="text-decoration-none">
+                                                    <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
+                                                </a>
+                                            </h6>
+                                            {% if bid.carrier.carrier_profile %}
+                                                <div class="mt-1">
+                                                    <i class="bi bi-star-fill text-warning" style="font-size: 0.7rem;"></i>
+                                                    <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">
+                                                        {{ bid.carrier.carrier_profile.rating|floatformat:1 }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        {% if bid.is_accepted %}
+                                            <span class="badge bg-success" style="font-size: 0.7rem;">
+                                                <i class="bi bi-check-circle"></i>
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-1">
+                                        <strong class="text-success" style="font-size: 1rem;">{{ bid.proposed_price }} грн</strong>
+                                        {% if item.price_diff > 0 %}
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">
+                                                {% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                                        <i class="bi bi-calendar-check"></i> {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
+                                    </small>
+                                    {% if can_accept_bids and not bid.is_accepted %}
+                                        <a href="{% url 'accept_bid' bid.pk %}" 
+                                           class="btn btn-success btn-sm w-100"
+                                           onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
+                                            <i class="bi bi-check"></i> Прийняти
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
             <!-- Перевізник -->
             {% if route.carrier %}
             <div class="card mb-3">
@@ -302,71 +363,6 @@
             {% endif %}
         </div>
     </div>
-    
-    <!-- Ставки -->
-    {% if bids_with_diff %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    {% for item in bids_with_diff %}
-                        {% with bid=item.bid %}
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card h-100 {% if bid.is_accepted %}border-success{% endif %}">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <h6 class="mb-1">
-                                                <a href="{% url 'user_profile' bid.carrier.pk %}" class="text-decoration-none">
-                                                    <i class="bi bi-person-circle"></i> {{ bid.carrier.username }}
-                                                </a>
-                                            </h6>
-                                            {% if bid.carrier.carrier_profile %}
-                                                <div class="mb-2">
-                                                    <i class="bi bi-star-fill text-warning"></i>
-                                                    <span class="badge bg-warning text-dark">
-                                                        {{ bid.carrier.carrier_profile.rating|floatformat:1 }}
-                                                    </span>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        {% if bid.is_accepted %}
-                                            <span class="badge bg-success">
-                                                <i class="bi bi-check-circle"></i> Прийнято
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-2">
-                                        <h5 class="text-success mb-1">{{ bid.proposed_price }} грн</h5>
-                                        {% if item.price_diff > 0 %}
-                                            <small class="text-muted">
-                                                {% if item.diff_type == 'discount' %}знижка{% else %}доплата{% endif %}: {{ item.price_diff|floatformat:0 }} грн
-                                            </small>
-                                        {% endif %}
-                                    </div>
-                                    <p class="text-muted mb-2">
-                                        <i class="bi bi-calendar-check"></i> {{ bid.estimated_delivery|date:"d.m.Y H:i" }}
-                                    </p>
-                                    {% if can_accept_bids and not bid.is_accepted %}
-                                        <a href="{% url 'accept_bid' bid.pk %}" 
-                                           class="btn btn-success btn-sm w-100"
-                                           onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
-                                            <i class="bi bi-check"></i> Прийняти
-                                        </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endwith %}
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    {% endif %}
     
     <!-- Кнопка для ставки -->
     {% if can_bid %}
