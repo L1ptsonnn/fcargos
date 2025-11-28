@@ -1,0 +1,145 @@
+<!-- Модальне вікно для підтвердження видалення маршруту -->
+<div class="modal fade" id="deleteRouteModal" tabindex="-1" aria-labelledby="deleteRouteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <div class="d-flex align-items-center w-100">
+                    <div class="delete-icon-wrapper me-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="modal-title mb-0" id="deleteRouteModalLabel">
+                            <strong>Підтвердження видалення</strong>
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-warning mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                        <div>
+                            <h6 class="alert-heading mb-2">Увага! Ця дія незворотна</h6>
+                            <p class="mb-0">Ви впевнені, що хочете видалити цей маршрут? Всі пов'язані дані (ставки, повідомлення, відстеження) також будуть видалені.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="route-info-delete mb-4 p-3 bg-light rounded">
+                    <h6 class="mb-3"><strong>Інформація про маршрут:</strong></h6>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <p class="mb-1">
+                                <i class="bi bi-route text-primary"></i>
+                                <strong>Маршрут:</strong> 
+                                <span class="badge bg-success">{{ route.origin_city }}</span> 
+                                <i class="bi bi-arrow-right mx-2"></i>
+                                <span class="badge bg-danger">{{ route.destination_city }}</span>
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <p class="mb-1">
+                                <i class="bi bi-box text-info"></i>
+                                <strong>Вантаж:</strong> {{ route.cargo_type }}, {{ route.weight }} кг, {{ route.volume }} м³
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <p class="mb-0">
+                                <i class="bi bi-currency-exchange text-success"></i>
+                                <strong>Ціна:</strong> {{ route.price }} грн
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" id="deleteRouteForm" 
+                      hx-post="{% url 'delete_route' route.pk %}" 
+                      hx-target="#deleteRouteModalContent"
+                      hx-swap="innerHTML"
+                      hx-indicator="#deleteLoadingIndicator">
+                    {% csrf_token %}
+                    
+                    <div id="deleteLoadingIndicator" class="htmx-indicator text-center my-3">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Видалення маршруту...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Видалення маршруту...</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Скасувати
+                </button>
+                <button type="submit" form="deleteRouteForm" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Видалити маршрут
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .delete-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    .route-info-delete {
+        border-left: 4px solid #dc3545;
+    }
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: block;
+    }
+</style>
+
+<script>
+    // Обробка успішної відповіді від HTMX
+    if (!window.deleteRouteModalHtmxHandler) {
+        window.deleteRouteModalHtmxHandler = true;
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'deleteRouteModalContent') {
+                // Невелика затримка для завантаження DOM
+                setTimeout(function() {
+                    const modalElement = document.getElementById('deleteRouteModal');
+                    if (modalElement) {
+                        // Перевіряємо чи модальне вікно вже ініціалізовано
+                        let modal = bootstrap.Modal.getInstance(modalElement);
+                        if (!modal) {
+                            modal = new bootstrap.Modal(modalElement, {
+                                backdrop: true,
+                                keyboard: true,
+                                focus: true
+                            });
+                        }
+                        
+                        // Перевіряємо чи модальне вікно вже відкрите
+                        if (!modalElement.classList.contains('show')) {
+                            modal.show();
+                        }
+                    }
+                }, 50);
+                
+                const response = event.detail.xhr.responseText;
+                // Якщо відповідь містить скрипт перенаправлення, виконуємо його
+                if (response.includes('window.location.href')) {
+                    const scriptMatch = response.match(/<script>(.*?)<\/script>/s);
+                    if (scriptMatch) {
+                        eval(scriptMatch[1]);
+                    }
+                }
+            }
+        });
+    }
+</script>
+

@@ -102,13 +102,22 @@
                             </span>
                         </div>
                         {% if user.role == 'company' and route.company == user and route.status == 'pending' %}
-                            <a href="{% url 'edit_route' route.pk %}" 
-                               class="btn btn-light btn-sm"
-                               hx-get="{% url 'edit_route' route.pk %}"
-                               hx-target="#editRouteModalContent"
-                               hx-swap="innerHTML">
-                                <i class="bi bi-pencil-square"></i> Редагувати
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'edit_route' route.pk %}" 
+                                   class="btn btn-light btn-sm"
+                                   hx-get="{% url 'edit_route' route.pk %}"
+                                   hx-target="#editRouteModalContent"
+                                   hx-swap="innerHTML">
+                                    <i class="bi bi-pencil-square"></i> Редагувати
+                                </a>
+                                <a href="{% url 'delete_route' route.pk %}" 
+                                   class="btn btn-danger btn-sm"
+                                   hx-get="{% url 'delete_route' route.pk %}"
+                                   hx-target="#deleteRouteModalContent"
+                                   hx-swap="innerHTML">
+                                    <i class="bi bi-trash"></i> Видалити
+                                </a>
+                            </div>
                         {% endif %}
                     </div>
                 </div>

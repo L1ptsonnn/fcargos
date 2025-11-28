@@ -249,6 +249,49 @@ def edit_route(request, pk):
     return render(request, 'logistics/edit_route.html', {'form': form, 'route': route})
 
 
+# Видалення маршруту (тільки для компаній-власників)
+@login_required
+def delete_route(request, pk):
+    """Delete route (only for route owner company)"""
+    # Завантажуємо маршрут або повертаємо 404
+    route = get_object_or_404(Route, pk=pk)
+    
+    # Перевіряємо права доступу: тільки компанія-власник може видаляти
+    if request.user.role != 'company' or route.company != request.user:
+        messages.error(request, 'Ви не маєте прав для видалення цього маршруту')
+        return redirect('route_detail', pk=pk)
+    
+    # Не можна видаляти маршрут, якщо він вже в дорозі або доставлений
+    if route.status in ['in_transit', 'delivered']:
+        messages.error(request, 'Неможливо видалити маршрут, який вже в дорозі або доставлений')
+        return redirect('route_detail', pk=pk)
+    
+    # Підтримка HTMX для модальних вікон
+    is_htmx = request.headers.get('HX-Request') == 'true'
+    
+    # Обробка POST-запиту для підтвердження видалення
+    if request.method == 'POST':
+        # Зберігаємо інформацію про маршрут для повідомлення
+        route_info = f"{route.origin_city} → {route.destination_city}"
+        
+        # Видаляємо маршрут (CASCADE видалить пов'язані об'єкти)
+        route.delete()
+        
+        messages.success(request, f'Маршрут {route_info} успішно видалено!')
+        
+        if is_htmx:
+            # Закриваємо модальне вікно та перенаправляємо на список маршрутів
+            return HttpResponse('<script>var modal = bootstrap.Modal.getInstance(document.getElementById("deleteRouteModal")); if(modal) modal.hide(); window.location.href = "/logistics/routes/";</script>')
+        return redirect('routes_list')
+    else:
+        # На GET повертаємо модальне вікно підтвердження
+        if is_htmx:
+            return render(request, 'logistics/delete_route_modal.html', {'route': route})
+        else:
+            # Для звичайного HTTP можна показати сторінку підтвердження
+            return render(request, 'logistics/delete_route_confirm.html', {'route': route})
+
+
 # Деталі маршруту: інформація, ставки, карта та дії
 @login_required
 def route_detail(request, pk):
