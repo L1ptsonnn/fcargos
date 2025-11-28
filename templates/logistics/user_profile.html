@@ -522,9 +522,9 @@
             </h3>
             <div class="rating-display-large">
                 <div class="rating-stars-large mb-3">
-                    {% with rating_rounded=carrier_profile.rating|floatformat:0 %}
+                    {% with rating_rounded=carrier_profile.rating|floatformat:0|add:0 %}
                         {% for i in "12345" %}
-                            {% if forloop.counter <= rating_rounded|add:0 %}
+                            {% if forloop.counter <= rating_rounded %}
                                 <i class="bi bi-star-fill text-warning" style="font-size: 2.5rem;"></i>
                             {% else %}
                                 <i class="bi bi-star text-muted" style="font-size: 2.5rem;"></i>
@@ -533,7 +533,13 @@
                     {% endwith %}
                 </div>
                 <div class="rating-value-large mb-2">
-                    <span class="rating-number">{{ carrier_profile.rating|floatformat:1 }}</span>
+                    <span class="rating-number">
+                        {% if carrier_profile.rating > 0 %}
+                            {{ carrier_profile.rating|floatformat:1 }}
+                        {% else %}
+                            0.0
+                        {% endif %}
+                    </span>
                     <span class="rating-max">/ 5.0</span>
                 </div>
                 <p class="text-muted mb-0">
