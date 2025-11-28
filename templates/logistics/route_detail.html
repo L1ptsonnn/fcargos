@@ -670,46 +670,6 @@
         
         <!-- Бічна панель -->
         <div class="col-lg-4">
-            <!-- Ставки в бічній панелі (якщо є) -->
-            {% if bids_with_diff %}
-                <div class="bids-section-compact mb-3">
-                    <h6 class="mb-2" style="color: #1e293b; font-weight: 700; font-size: 0.95rem;">
-                        <i class="bi bi-list-ul"></i> Ставки ({{ bids_with_diff|length }})
-                    </h6>
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        {% for item in bids_with_diff %}
-                            {% with bid=item.bid %}
-                            <div class="bid-item-compact mb-2" style="border-color: {% if bid.is_accepted %}#10b981{% else %}#e2e8f0{% endif %} !important; background: {% if bid.is_accepted %}linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%){% else %}white{% endif %};">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div style="flex: 1; min-width: 0;">
-                                        <a href="{% url 'user_profile' bid.carrier.pk %}" class="text-decoration-none fw-bold" style="color: #1e293b; font-size: 0.85rem;">
-                                            {{ bid.carrier.username }}
-                                        </a>
-                                    </div>
-                                    {% if bid.is_accepted %}
-                                        <span class="badge bg-success" style="font-size: 0.65rem;">✓</span>
-                                    {% endif %}
-                                </div>
-                                <div class="mb-1">
-                                    <strong class="text-success" style="font-size: 0.9rem;">{{ bid.proposed_price }} грн</strong>
-                                </div>
-                                <small class="text-muted d-block mb-2" style="font-size: 0.7rem;">
-                                    <i class="bi bi-calendar-check"></i> {{ bid.estimated_delivery|date:"d.m.Y" }}
-                                </small>
-                                {% if can_accept_bids and not bid.is_accepted %}
-                                    <a href="{% url 'accept_bid' bid.pk %}" 
-                                       class="btn btn-sm btn-success w-100"
-                                       onclick="return confirm('Прийняти ставку від {{ bid.carrier.username }}?')">
-                                        <i class="bi bi-check"></i> Прийняти
-                                    </a>
-                                {% endif %}
-                            </div>
-                            {% endwith %}
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-            
             <!-- Компанія -->
             <div class="user-card-modern company mb-3">
                 <div class="d-flex align-items-center gap-3">
