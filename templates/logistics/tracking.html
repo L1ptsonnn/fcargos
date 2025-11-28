@@ -10,23 +10,33 @@
     
     .tracking-hero {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.25rem 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+    
+    .tracking-hero h2 {
+        font-size: 1.4rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .tracking-hero p {
+        font-size: 0.9rem;
+        margin-bottom: 0;
     }
     
     .tracking-main-container {
         display: flex;
-        gap: 1rem;
+        gap: 0.75rem;
         align-items: stretch;
     }
     
     .tracking-card {
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         border: 1px solid #e2e8f0;
         overflow: hidden;
         display: flex;
@@ -37,14 +47,14 @@
     .tracking-card-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 0.875rem 1.25rem;
+        padding: 0.6rem 1rem;
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
     
     .tracking-map-container {
         flex: 1;
-        min-height: 600px;
+        min-height: 450px;
         background: #f8f9fa;
         position: relative;
     }
@@ -52,14 +62,14 @@
     .tracking-sidebar {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
     }
     
     .progress-card {
         background: white;
-        border-radius: 12px;
-        padding: 1.25rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         border: 1px solid #e2e8f0;
     }
     
@@ -95,10 +105,10 @@
     }
     
     .info-item {
-        padding: 0.875rem;
+        padding: 0.75rem;
         background: #f8f9fa;
         border-radius: 8px;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         border-left: 3px solid #667eea;
     }
     
@@ -107,16 +117,16 @@
     }
     
     .info-item-label {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         color: #64748b;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.35rem;
     }
     
     .info-item-value {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: #1e293b;
     }
@@ -145,13 +155,22 @@
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
     
+    .form-control, .form-range {
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.875rem;
+    }
+    
     @media (max-width: 991px) {
         .tracking-main-container {
             flex-direction: column;
         }
         
         .tracking-map-container {
-            min-height: 400px;
+            min-height: 350px;
         }
         
         .tracking-sidebar {
@@ -197,18 +216,18 @@
         <div class="tracking-sidebar" style="flex: 1; min-width: 0;">
             <!-- Прогрес -->
             <div class="progress-card">
-                <h6 class="mb-3 text-center" style="font-weight: 700;">
-                    <i class="bi bi-speedometer2"></i> Прогрес доставки
+                <h6 class="mb-2 text-center" style="font-weight: 700; font-size: 0.9rem;">
+                    <i class="bi bi-speedometer2"></i> Прогрес
                 </h6>
-                <div class="progress-circle" style="width: 120px; height: 120px; margin: 0 auto 1rem;">
-                    <svg width="120" height="120">
-                        <circle cx="60" cy="60" r="55" stroke="#e2e8f0" stroke-width="8" fill="none"/>
-                        <circle cx="60" cy="60" r="55" stroke="#667eea" stroke-width="8" fill="none"
-                                stroke-dasharray="{{ tracking.progress_percent|floatformat:0 }} 346"
+                <div class="progress-circle">
+                    <svg width="100" height="100">
+                        <circle cx="50" cy="50" r="45" stroke="#e2e8f0" stroke-width="6" fill="none"/>
+                        <circle cx="50" cy="50" r="45" stroke="#667eea" stroke-width="6" fill="none"
+                                stroke-dasharray="{{ tracking.progress_percent|floatformat:0 }} 283"
                                 stroke-dashoffset="0"
                                 stroke-linecap="round"/>
                     </svg>
-                    <div class="progress-circle-text" style="font-size: 1.5rem;">
+                    <div class="progress-circle-text">
                         {{ tracking.progress_percent }}%
                     </div>
                 </div>
@@ -216,7 +235,7 @@
                     <div class="progress-bar-fill" style="width: {{ tracking.progress_percent }}%;"></div>
                 </div>
                 <div class="text-center">
-                    <small class="text-muted" style="font-size: 0.75rem;">
+                    <small class="text-muted" style="font-size: 0.7rem;">
                         <i class="bi bi-clock-history"></i> {{ tracking.last_update|date:"d.m.Y H:i" }}
                     </small>
                 </div>
@@ -225,11 +244,11 @@
             <!-- Інформація -->
             <div class="tracking-card" style="flex: 1;">
                 <div class="tracking-card-header">
-                    <h6 class="mb-0">
+                    <h6 class="mb-0" style="font-size: 0.9rem;">
                         <i class="bi bi-info-circle"></i> Інформація
                     </h6>
                 </div>
-                <div class="card-body" style="flex: 1; overflow-y: auto;">
+                <div class="card-body" style="flex: 1; overflow-y: auto; padding: 1rem;">
                     <div class="info-item">
                         <div class="info-item-label">
                             <i class="bi bi-pin-map"></i> Поточна локація
@@ -279,20 +298,20 @@
             {% if can_update and form %}
             <div class="tracking-card">
                 <div class="tracking-card-header">
-                    <h6 class="mb-0">
-                        <i class="bi bi-sliders"></i> Оновити прогрес
+                    <h6 class="mb-0" style="font-size: 0.9rem;">
+                        <i class="bi bi-sliders"></i> Оновити
                     </h6>
                 </div>
-                <div class="card-body" style="padding: 1.25rem;">
+                <div class="card-body" style="padding: 1rem;">
                     <form method="post" action="{% url 'tracking' route.pk %}">
                         {% csrf_token %}
                         <input type="hidden" name="current_lat" value="{{ tracking.current_lat|default:'' }}">
                         <input type="hidden" name="current_lng" value="{{ tracking.current_lng|default:'' }}">
                         
-                        <div class="mb-3">
-                            <label for="id_progress_percent" class="form-label d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-speedometer2"></i> Прогрес доставки</span>
-                                <span id="progress-value" class="badge bg-primary fs-6">{{ tracking.progress_percent }}%</span>
+                        <div class="mb-2">
+                            <label for="id_progress_percent" class="form-label d-flex justify-content-between align-items-center mb-1" style="font-size: 0.85rem;">
+                                <span><i class="bi bi-speedometer2"></i> Прогрес</span>
+                                <span id="progress-value" class="badge bg-primary" style="font-size: 0.8rem;">{{ tracking.progress_percent }}%</span>
                             </label>
                             <input type="range" 
                                    class="form-range" 
@@ -301,21 +320,22 @@
                                    min="0" 
                                    max="100" 
                                    value="{{ tracking.progress_percent }}"
+                                   style="height: 6px;"
                                    oninput="document.getElementById('progress-value').textContent = this.value + '%';">
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="id_current_location" class="form-label">
-                                <i class="bi bi-pin-map"></i> Поточна локація
+                        <div class="mb-2">
+                            <label for="id_current_location" class="form-label mb-1" style="font-size: 0.85rem;">
+                                <i class="bi bi-pin-map"></i> Локація
                             </label>
                             {{ form.current_location }}
                         </div>
                         
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-primary w-100 btn-sm">
                             <i class="bi bi-check-circle"></i> Зберегти
                         </button>
-                        <small class="text-muted d-block text-center mt-2">
-                            <i class="bi bi-info-circle"></i> Координати розраховуються автоматично
+                        <small class="text-muted d-block text-center mt-1" style="font-size: 0.7rem;">
+                            <i class="bi bi-info-circle"></i> Координати автоматично
                         </small>
                     </form>
                 </div>
