@@ -178,6 +178,28 @@
     .route-link:hover {
         text-decoration: underline;
     }
+    
+    .chat-button {
+        margin-top: 1.5rem;
+        padding: 0.75rem 2rem;
+        background: rgba(255, 255, 255, 0.25);
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        color: white;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .chat-button:hover {
+        background: rgba(255, 255, 255, 0.35);
+        border-color: rgba(255, 255, 255, 0.6);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
 </style>
 {% endblock %}
 
@@ -228,6 +250,13 @@
                 </div>
             {% endif %}
         </div>
+        
+        <!-- Кнопка "Почати чат" (тільки для авторизованих користувачів, які переглядають чужі профілі) -->
+        {% if user.is_authenticated and user.pk != profile_user.pk and user.role != profile_user.role %}
+            <a href="{% url 'start_chat_with_user' profile_user.pk %}" class="chat-button">
+                <i class="bi bi-chat-dots"></i> Почати чат
+            </a>
+        {% endif %}
     </div>
     
     <!-- Статистика -->

@@ -29,6 +29,7 @@ urlpatterns = [
     
     # Профілі користувачів
     path('profile/<int:user_id>/', views.user_profile, name='user_profile'),   # перегляд профілю
+    path('profile/<int:user_id>/chat/', views.start_chat_with_user, name='start_chat_with_user'),   # почати чат з користувачем
     
     # Ендпоїнти AJAX
     path('api/notifications/', views.notifications_api, name='notifications_api'), # отримати сповіщення
