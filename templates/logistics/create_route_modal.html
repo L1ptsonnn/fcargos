@@ -437,8 +437,19 @@
         try {
             // Видаляємо стару карту, якщо вона існує
             if (window.routeModalData.routeMap) {
-                window.routeModalData.routeMap.remove();
+                try {
+                    window.routeModalData.routeMap.remove();
+                } catch (e) {
+                    console.log('Карта вже видалена');
+                }
                 window.routeModalData.routeMap = null;
+            }
+            
+            // Перевіряємо чи контейнер має розміри
+            if (mapElement.offsetWidth === 0 || mapElement.offsetHeight === 0) {
+                console.warn('Контейнер карти не має розмірів, чекаємо...');
+                setTimeout(initMap, 200);
+                return;
             }
             
             // Створюємо нову карту
@@ -458,7 +469,7 @@
                 if (window.routeModalData.routeMap) {
                     window.routeModalData.routeMap.invalidateSize();
                 }
-            }, 300);
+            }, 100);
             
             // Налаштовуємо обробник кліків
             setupMapClickHandler();
@@ -718,10 +729,15 @@
                 destinationPoint.classList.remove('success');
             }
             
-                // Ініціалізуємо карту після невеликої затримки
+                // Ініціалізуємо карту після того, як модальне вікно повністю відкрилося
+                // Використовуємо більшу затримку для гарантії, що модальне вікно має правильні розміри
                 setTimeout(function() {
-                    initMap();
-                }, 200);
+                    const mapElement = document.getElementById('routeMap');
+                    const modalElement = document.getElementById('createRouteModal');
+                    if (mapElement && modalElement && modalElement.classList.contains('show')) {
+                        initMap();
+                    }
+                }, 500);
             }
         });
         
@@ -763,16 +779,26 @@
         window.routeModalHtmxHandler = true;
         document.body.addEventListener('htmx:afterSwap', function(event) {
             if (event.detail.target.id === 'createRouteModalContent') {
-                // Відкриваємо модальне вікно після завантаження контенту
-                const modalElement = document.getElementById('createRouteModal');
-                if (modalElement) {
-                    // Перевіряємо чи модальне вікно вже ініціалізовано
-                    let modal = bootstrap.Modal.getInstance(modalElement);
-                    if (!modal) {
-                        modal = new bootstrap.Modal(modalElement);
+                // Невелика затримка для завантаження DOM
+                setTimeout(function() {
+                    const modalElement = document.getElementById('createRouteModal');
+                    if (modalElement) {
+                        // Перевіряємо чи модальне вікно вже ініціалізовано
+                        let modal = bootstrap.Modal.getInstance(modalElement);
+                        if (!modal) {
+                            modal = new bootstrap.Modal(modalElement, {
+                                backdrop: true,
+                                keyboard: true,
+                                focus: true
+                            });
+                        }
+                        
+                        // Перевіряємо чи модальне вікно вже відкрите
+                        if (!modalElement.classList.contains('show')) {
+                            modal.show();
+                        }
                     }
-                    modal.show();
-                }
+                }, 50);
                 
                 const response = event.detail.xhr.responseText;
                 // Якщо відповідь містить скрипт перенаправлення, виконуємо його
