@@ -227,11 +227,10 @@
     .user-card-modern {
         background: white;
         border-radius: 20px;
-        padding: 2rem;
+        padding: 1.5rem;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
         transition: all 0.4s;
         border: 1px solid rgba(226, 232, 240, 0.8);
-        height: 100%;
         position: relative;
         overflow: hidden;
     }
@@ -259,33 +258,34 @@
     }
     
     .user-avatar {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
+        font-size: 2rem;
         color: white;
-        margin: 0 auto 1.5rem;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        margin: 0 auto 1rem;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
     
     .chat-button-modern {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        border-radius: 12px;
-        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+        box-shadow: 0 3px 12px rgba(102, 126, 234, 0.25);
         position: relative;
         overflow: hidden;
         text-decoration: none;
         display: inline-block;
+        margin-top: 0.75rem;
     }
     
     .chat-button-modern::before {
@@ -572,53 +572,55 @@
         <div class="col-lg-4">
             <!-- Компанія -->
             <div class="user-card-modern company mb-4">
-                <div class="text-center">
-                    <div class="user-avatar">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar" style="margin: 0; width: 50px; height: 50px; font-size: 1.5rem;">
                         <i class="bi bi-building"></i>
                     </div>
-                    <h5 class="mb-2" style="color: #1e293b; font-weight: 700;">
-                        <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none" style="color: inherit;">
-                            {{ route.company.company_name|default:route.company.username }}
-                        </a>
-                    </h5>
-                    <p class="text-muted mb-3">
-                        <i class="bi bi-envelope"></i> {{ route.company.email }}
-                    </p>
-                    {% if user.is_authenticated and user.pk != route.company.pk and user.role != route.company.role %}
-                        <a href="{% url 'start_chat_with_user' route.company.pk %}" class="chat-button-modern">
-                            <i class="bi bi-chat-dots"></i> Написати в чат
-                        </a>
-                    {% endif %}
+                    <div style="flex: 1; min-width: 0;">
+                        <h6 class="mb-1" style="color: #1e293b; font-weight: 700; font-size: 1rem;">
+                            <a href="{% url 'user_profile' route.company.pk %}" class="text-decoration-none" style="color: inherit;">
+                                {{ route.company.company_name|default:route.company.username }}
+                            </a>
+                        </h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-envelope"></i> {{ route.company.email }}
+                        </p>
+                        {% if user.is_authenticated and user.pk != route.company.pk and user.role != route.company.role %}
+                            <a href="{% url 'start_chat_with_user' route.company.pk %}" class="chat-button-modern" style="margin-top: 0.5rem; display: inline-block;">
+                                <i class="bi bi-chat-dots"></i> Написати в чат
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             
             <!-- Перевізник -->
             {% if route.carrier %}
             <div class="user-card-modern carrier mb-4">
-                <div class="text-center">
-                    <div class="user-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar" style="margin: 0; width: 50px; height: 50px; font-size: 1.5rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                         <i class="bi bi-truck"></i>
                     </div>
-                    <h5 class="mb-2" style="color: #1e293b; font-weight: 700;">
-                        <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none" style="color: inherit;">
-                            {{ route.carrier.username }}
-                        </a>
-                    </h5>
-                    {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-star-fill text-warning" style="font-size: 1.2rem;"></i>
-                                <span class="badge bg-warning text-dark" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                    <div style="flex: 1; min-width: 0;">
+                        <h6 class="mb-1" style="color: #1e293b; font-weight: 700; font-size: 1rem;">
+                            <a href="{% url 'user_profile' route.carrier.pk %}" class="text-decoration-none" style="color: inherit;">
+                                {{ route.carrier.username }}
+                            </a>
+                        </h6>
+                        {% if route.carrier.carrier_profile and route.carrier.carrier_profile.rating > 0 %}
+                            <div class="mb-1">
+                                <i class="bi bi-star-fill text-warning" style="font-size: 0.9rem;"></i>
+                                <span class="badge bg-warning text-dark" style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
                                     {{ route.carrier.carrier_profile.rating|floatformat:1 }} / 5.0
                                 </span>
                             </div>
-                        </div>
-                    {% endif %}
-                    {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
-                        <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="chat-button-modern carrier">
-                            <i class="bi bi-chat-dots"></i> Написати в чат
-                        </a>
-                    {% endif %}
+                        {% endif %}
+                        {% if user.is_authenticated and user.pk != route.carrier.pk and user.role != route.carrier.role %}
+                            <a href="{% url 'start_chat_with_user' route.carrier.pk %}" class="chat-button-modern carrier" style="margin-top: 0.5rem; display: inline-block;">
+                                <i class="bi bi-chat-dots"></i> Написати в чат
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             {% endif %}
