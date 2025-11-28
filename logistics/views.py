@@ -1111,6 +1111,10 @@ def user_profile(request, user_id):
     
     profile_user = get_object_or_404(User, pk=user_id)
     
+    # Якщо користувач переглядає свій профіль, перенаправляємо на accounts/profile
+    if request.user.is_authenticated and request.user.pk == profile_user.pk:
+        return redirect('profile')
+    
     # Отримуємо профіль
     company_profile = None
     carrier_profile = None

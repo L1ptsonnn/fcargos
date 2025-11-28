@@ -286,6 +286,29 @@
         color: #ffc107;
         font-size: 1rem;
     }
+    .rating-badge-minimal {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .rating-value {
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    .rating-max {
+        opacity: 0.8;
+        font-size: 0.85rem;
+    }
+    .rating-count {
+        opacity: 0.7;
+        font-size: 0.8rem;
+        margin-left: 0.25rem;
+    }
     
     .statistics-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -326,19 +349,15 @@
                             <i class="bi bi-shield-check"></i> Адміністратор
                         </span>
                     {% endif %}
-                    {% if user.role == 'carrier' and profile %}
-                        <span class="badge bg-warning text-dark">
-                            <span class="rating-stars">
-                                {% for i in "12345" %}
-                                    {% if forloop.counter <= profile.rating %}
-                                        <i class="bi bi-star-fill"></i>
-                                    {% else %}
-                                        <i class="bi bi-star"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </span>
-                            {{ profile.rating }}
-                        </span>
+                    {% if user.role == 'carrier' and carrier_rating %}
+                        <div class="rating-badge-minimal">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span class="rating-value">{{ carrier_rating|floatformat:1 }}</span>
+                            <span class="rating-max">/ 5.0</span>
+                            {% if rating_count > 0 %}
+                                <span class="rating-count">({{ rating_count }})</span>
+                            {% endif %}
+                        </div>
                     {% endif %}
                 </div>
             </div>

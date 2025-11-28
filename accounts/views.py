@@ -237,6 +237,15 @@ def profile_view(request):
         context['average_price'] = routes.filter(status='delivered').aggregate(Avg('price'))['price__avg'] or 0
         context['recent_bids'] = bids.order_by('-created_at')[:5]  # останні 5 ставок
         context['my_routes'] = routes.order_by('-created_at')[:5]  # останні 5 маршрутів
+        
+        # Рейтинг перевізника
+        from logistics.models import Rating
+        if profile:
+            context['carrier_rating'] = profile.rating or 0.0
+            context['rating_count'] = Rating.objects.filter(carrier=request.user).count()
+        else:
+            context['carrier_rating'] = 0.0
+            context['rating_count'] = 0
     
     # Прапорець для відображення посилання в адмінку
     context['is_admin'] = request.user.is_staff
