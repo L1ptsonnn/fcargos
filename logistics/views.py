@@ -1249,7 +1249,8 @@ def user_profile(request, user_id):
         ratings = None
         user_rating = None
     else:
-        routes = Route.objects.filter(carrier=profile_user)
+        # Виключаємо тимчасові маршрути для чату
+        routes = Route.objects.filter(carrier=profile_user).exclude(origin_city='Чат').exclude(destination_city='Чат')
         bids = Bid.objects.filter(carrier=profile_user)
         routes_created = 0
         routes_in_transit = routes.filter(status='in_transit').count()
