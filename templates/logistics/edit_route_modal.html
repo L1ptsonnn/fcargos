@@ -528,6 +528,12 @@
                         }).addTo(window.routeModalData.routeMap)
                             .bindPopup(`<b>📍 Відправлення</b><br>${city}, ${country}`).openPopup();
                         
+                        // Додаємо обробник правої кнопки миші для видалення маркера
+                        window.routeModalData.originMarker.on('contextmenu', function(e) {
+                            e.originalEvent.preventDefault();
+                            removeOriginPoint();
+                        });
+                        
                         // Заповнюємо форму
                         document.getElementById('id_origin_lat').value = lat.toFixed(6);
                         document.getElementById('id_origin_lng').value = lng.toFixed(6);
@@ -551,6 +557,12 @@
                             })
                         }).addTo(window.routeModalData.routeMap)
                             .bindPopup(`<b>📍 Призначення</b><br>${city}, ${country}`).openPopup();
+                        
+                        // Додаємо обробник правої кнопки миші для видалення маркера
+                        window.routeModalData.destMarker.on('contextmenu', function(e) {
+                            e.originalEvent.preventDefault();
+                            removeDestinationPoint();
+                        });
                         
                         // Заповнюємо форму
                         document.getElementById('id_destination_lat').value = lat.toFixed(6);
