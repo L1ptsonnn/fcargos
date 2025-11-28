@@ -156,7 +156,6 @@ def create_route(request):
     
     # Підтримка HTMX для модальних вікон
     is_htmx = request.headers.get('HX-Request') == 'true'
-    template = 'logistics/create_route_partial.html' if is_htmx else 'logistics/create_route.html'
     
     # Обробляємо POST-запит із даними форми
     if request.method == 'POST':
@@ -177,13 +176,22 @@ def create_route(request):
             )
             messages.success(request, 'Маршрут успішно створено!')
             if is_htmx:
-                return HttpResponse(f'<script>window.location.href = "/logistics/routes/{route.pk}/";</script>')
+                # Закриваємо модальне вікно та перенаправляємо
+                return HttpResponse(f'<script>var modal = bootstrap.Modal.getInstance(document.getElementById("createRouteModal")); if(modal) modal.hide(); window.location.href = "/logistics/routes/{route.pk}/";</script>')
             return redirect('route_detail', pk=route.pk)
+        else:
+            # Якщо форма невалідна, повертаємо модальне вікно з помилками
+            if is_htmx:
+                return render(request, 'logistics/create_route_modal.html', {'form': form})
     else:
-        # На GET повертаємо порожню форму
+        # На GET повертаємо модальне вікно для HTMX або повну сторінку
         form = RouteForm()
+        if is_htmx:
+            return render(request, 'logistics/create_route_modal.html', {'form': form})
+        else:
+            return render(request, 'logistics/create_route.html', {'form': form})
     
-    return render(request, template, {'form': form})
+    return render(request, 'logistics/create_route.html', {'form': form})
 
 
 # Деталі маршруту: інформація, ставки, карта та дії

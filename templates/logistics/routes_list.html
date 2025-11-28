@@ -42,7 +42,13 @@
                 <p class="mb-0 opacity-75">Керуйте своїми логістичними маршрутами</p>
             </div>
             {% if user.role == 'company' %}
-                <a href="{% url 'create_route' %}" class="btn btn-light">
+                <a href="{% url 'create_route' %}" 
+                   class="btn btn-light"
+                   hx-get="{% url 'create_route' %}"
+                   hx-target="#createRouteModalContent"
+                   hx-swap="innerHTML"
+                   data-bs-toggle="modal"
+                   data-bs-target="#createRouteModal">
                     <i class="bi bi-plus-circle"></i> Створити маршрут
                 </a>
             {% endif %}
@@ -143,7 +149,13 @@
             <h4 class="mb-3">Маршрутів не знайдено</h4>
             <p class="text-muted mb-4">Почніть створювати маршрути для своїх вантажів</p>
             {% if user.role == 'company' %}
-                <a href="{% url 'create_route' %}" class="btn btn-primary btn-lg">
+                <a href="{% url 'create_route' %}" 
+                   class="btn btn-primary btn-lg"
+                   hx-get="{% url 'create_route' %}"
+                   hx-target="#createRouteModalContent"
+                   hx-swap="innerHTML"
+                   data-bs-toggle="modal"
+                   data-bs-target="#createRouteModal">
                     <i class="bi bi-plus-circle"></i> Створити перший маршрут
                 </a>
             {% endif %}

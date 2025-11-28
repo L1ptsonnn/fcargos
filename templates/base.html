@@ -44,7 +44,13 @@
                     {% if user.is_authenticated %}
                         {% if user.role == 'company' %}
                             <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'create_route' %}active{% endif %}" href="{% url 'create_route' %}">
+                                <a class="nav-link" 
+                                   href="{% url 'create_route' %}"
+                                   hx-get="{% url 'create_route' %}"
+                                   hx-target="#createRouteModalContent"
+                                   hx-swap="innerHTML"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#createRouteModal">
                                     <i class="bi bi-plus-circle"></i> Створити маршрут
                                 </a>
                             </li>
@@ -1249,6 +1255,9 @@
             }
         });
     </script>
+    
+    <!-- Контейнер для модального вікна створення маршруту -->
+    <div id="createRouteModalContent"></div>
 </body>
 </html>
 

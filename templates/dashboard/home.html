@@ -132,7 +132,13 @@
                     </a>
                 {% else %}
                     {% if user.role == 'company' %}
-                        <a href="{% url 'create_route' %}" class="btn btn-light btn-lg">
+                        <a href="{% url 'create_route' %}" 
+                           class="btn btn-light btn-lg"
+                           hx-get="{% url 'create_route' %}"
+                           hx-target="#createRouteModalContent"
+                           hx-swap="innerHTML"
+                           data-bs-toggle="modal"
+                           data-bs-target="#createRouteModal">
                             <i class="bi bi-plus-circle"></i> Створити маршрут
                         </a>
                     {% elif user.role == 'carrier' %}
