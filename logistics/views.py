@@ -1238,7 +1238,8 @@ def user_profile(request, user_id):
     
     # Статистика маршрутів
     if profile_user.role == 'company':
-        routes = Route.objects.filter(company=profile_user)
+        # Виключаємо тимчасові маршрути для чату
+        routes = Route.objects.filter(company=profile_user).exclude(origin_city='Чат').exclude(destination_city='Чат')
         routes_created = routes.count()
         routes_in_transit = routes.filter(status='in_transit').count()
         routes_completed = routes.filter(status='delivered').count()
