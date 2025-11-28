@@ -1104,6 +1104,63 @@ def history_api(request):
     return JsonResponse({'html': html})
 
 
+@login_required
+def start_chat_with_user(request, user_id):
+    """Почати чат з користувачем (знайти або створити маршрут для чату)"""
+    from accounts.models import User
+    
+    other_user = get_object_or_404(User, pk=user_id)
+    
+    # Не можна почати чат з самим собою
+    if request.user.pk == other_user.pk:
+        messages.error(request, 'Не можна почати чат з самим собою')
+        return redirect('user_profile', user_id=user_id)
+    
+    # Перевіряємо, чи користувачі мають різні ролі (компанія та перевізник)
+    if request.user.role == other_user.role:
+        messages.error(request, 'Можна почати чат тільки з користувачем іншої ролі (компанія ↔ перевізник)')
+        return redirect('user_profile', user_id=user_id)
+    
+    # Визначаємо хто компанія, хто перевізник
+    if request.user.role == 'company':
+        company = request.user
+        carrier = other_user
+    else:
+        company = other_user
+        carrier = request.user
+    
+    # Шукаємо існуючий маршрут між цими користувачами
+    existing_route = Route.objects.filter(
+        company=company,
+        carrier=carrier
+    ).order_by('-created_at').first()
+    
+    if existing_route:
+        # Якщо є маршрут, перенаправляємо на його чат
+        return redirect('route_messages', pk=existing_route.pk)
+    else:
+        # Створюємо тимчасовий маршрут для чату
+        # Використовуємо дефолтні значення
+        chat_route = Route.objects.create(
+            company=company,
+            carrier=carrier,
+            origin_city='Чат',
+            destination_city='Чат',
+            price=0,
+            status='pending',
+            cargo_type='Інше',
+            cargo_weight=0,
+            cargo_description='Тимчасовий маршрут для чату',
+            origin_lat=50.45,  # Київ
+            origin_lng=30.52,
+            destination_lat=50.45,
+            destination_lng=30.52,
+        )
+        
+        messages.info(request, f'Чат з {other_user.username} створено')
+        return redirect('route_messages', pk=chat_route.pk)
+
+
 def user_profile(request, user_id):
     """Профіль користувача (доступний для перегляду всім)"""
     from accounts.models import User, CarrierProfile, CompanyProfile
